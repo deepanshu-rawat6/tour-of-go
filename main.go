@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"tour_of_go/flow_control_statements"
 	"tour_of_go/generics"
 	"tour_of_go/packages"
 )
@@ -12,6 +13,7 @@ func main() {
 		fmt.Println("Usage: go run . <topic> [example]")
 		fmt.Println("Available topics:")
 		fmt.Println("  packages - Learn about packages and imports")
+		fmt.Println("  flow control statements - Learn about loops, if statements, etc")
 		fmt.Println("  generics - Learn about generics")
 		fmt.Println("\nExamples:")
 		fmt.Println("  go run . packages           # Run all packages examples")
@@ -32,11 +34,17 @@ func main() {
 		} else {
 			packages.Run()
 		}
+	case "flow_control_statements":
+		if example != "" {
+			flow_control_statements.RunExample(example)
+		} else {
+			flow_control_statements.Run()
+		}
 	case "generics":
 		generics.Run()
 	default:
 		fmt.Printf("Unknown topic: %s\n", topic)
-		fmt.Println("Available topics: packages, generics")
+		fmt.Println("Available topics: packages, flow_control_statements, generics")
 		os.Exit(1)
 	}
 }
