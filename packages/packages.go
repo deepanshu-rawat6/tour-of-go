@@ -16,16 +16,16 @@ func Run() {
 	exportedNamesExample()
 	fmt.Println()
 
-	functions()
+	functionsExample()
 	fmt.Println()
 
-	mutlipleResults()
+	mutlipleResultsExample()
 	fmt.Println()
 
-	namedResults()
+	namedResultsExample()
 	fmt.Println()
 
-	variables()
+	variablesExample()
 	fmt.Println()
 
 }
