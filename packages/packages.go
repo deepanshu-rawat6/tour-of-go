@@ -28,6 +28,23 @@ func Run() {
 	variablesExample()
 	fmt.Println()
 
+	variablesWithInitializersExample()
+	fmt.Println()
+
+	varsTypes()
+	fmt.Println()
+
+	typeConversions()
+	fmt.Println()
+
+	typeInference()
+	fmt.Println()
+
+	constants()
+	fmt.Println()
+
+	numericConstants()
+	fmt.Println()
 }
 
 // RunExample runs a specific example by name
@@ -47,6 +64,18 @@ func RunExample(name string) {
 		namedResultsExample()
 	case "variables":
 		variablesExample()
+	case "variables-with-initializers":
+		variablesWithInitializersExample()
+	case "vars-types":
+		varsTypes()
+	case "type-conversions":
+		typeConversions()
+	case "type-inference":
+		typeInference()
+	case "constants":
+		constants()
+	case "numeric-constants":
+		numericConstants()
 	default:
 		fmt.Printf("Unknown example: %s\n", name)
 		fmt.Println("\nAvailable examples:")
@@ -56,6 +85,12 @@ func RunExample(name string) {
 		fmt.Println("  multiple-results")
 		fmt.Println("  named-results")
 		fmt.Println("  variables")
+		fmt.Println("  variables-with-initializers")
+		fmt.Println("  vars-types")
+		fmt.Println("  type-conversions")
+		fmt.Println("  type-inference")
+		fmt.Println("  constants")
+		fmt.Println("  numeric-constants")
 		os.Exit(1)
 	}
 }
