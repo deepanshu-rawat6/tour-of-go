@@ -11,7 +11,7 @@ func add(x, y int) int {
 	return x + y
 }
 
-func functions() {
+func functionsExample() {
 	fmt.Println("Functions:")
 
 	x := 42

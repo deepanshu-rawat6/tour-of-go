@@ -6,12 +6,12 @@ func swap(x, y string) (string, string) {
 	return y, x
 }
 
-func mutlipleResults() {
+func mutlipleResultsExample() {
 
 	// Check for the explanation below:
-	//fmt.Println(fmt.Println("Mutliple results:"))
+	//fmt.Println(fmt.Println("Multiple results:"))
 
-	fmt.Println("Mutliple results:")
+	fmt.Println("Multiple results:")
 
 	a, b := swap("hello", "world")
 
@@ -39,15 +39,15 @@ Your code breakdown:
 fmt.Println(fmt.Println("Mutliple results:"))
 ```
 
-1. Inner call: `fmt.Println("Mutliple results:")` prints "Mutliple results:" and returns `(18, nil)`
-   - 18 = number of bytes written ("Mutliple results:" + newline)
+1. Inner call: `fmt.Println("Multiple results:")` prints "Multiple results:" and returns `(18, nil)`
+   - 18 = number of bytes written ("Multiple results:" + newline)
    - nil = no error
 2. Outer call: `fmt.Println(18, nil)` prints those two return values
 
 The fix:
 
 ```go
-fmt.Println("Mutliple results:")  // Just one call, no nesting
+fmt.Println("Multiple results:")  // Just one call, no nesting
 ```
 
 This is actually a perfect example for your multiple results' lesson! The swap function you have
