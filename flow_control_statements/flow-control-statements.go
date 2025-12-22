@@ -13,6 +13,11 @@ func Run() {
 	forLoop()
 	fmt.Println()
 
+	ifStatement()
+	fmt.Println()
+
+	exerciseLoopsAndFunctions()
+	fmt.Println()
 }
 
 // RunExample runs a specific example by name
@@ -22,6 +27,10 @@ func RunExample(name string) {
 	switch name {
 	case "for-loop":
 		forLoop()
+	case "if-statement":
+		ifStatement()
+	case "exercise-loops-and-functions":
+		exerciseLoopsAndFunctions()
 	default:
 		fmt.Printf("Unknown example: %s\n", name)
 		fmt.Println("\nAvailable examples:")
