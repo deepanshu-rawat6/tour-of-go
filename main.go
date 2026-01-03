@@ -5,7 +5,7 @@ import (
 	"os"
 	"tour_of_go/flow_control_statements"
 	"tour_of_go/generics"
-	more_types "tour_of_go/more-types"
+	"tour_of_go/more_types"
 	"tour_of_go/packages"
 )
 
@@ -15,7 +15,7 @@ func main() {
 		fmt.Println("Available topics:")
 		fmt.Println("  packages - Learn about packages and imports")
 		fmt.Println("  flow control statements - Learn about loops, if statements, etc")
-		fmt.Println("  more-types - pointers, struct, etc")
+		fmt.Println("  more_types - pointers, struct, etc")
 		fmt.Println("  generics - Learn about generics")
 		fmt.Println("\nExamples:")
 		fmt.Println("  go run . packages           # Run all packages examples")
@@ -42,7 +42,7 @@ func main() {
 		} else {
 			flow_control_statements.Run()
 		}
-	case "more-types":
+	case "more_types":
 		if example != "" {
 			more_types.RunExample(example)
 		} else {
@@ -52,7 +52,7 @@ func main() {
 		generics.Run()
 	default:
 		fmt.Printf("Unknown topic: %s\n", topic)
-		fmt.Println("Available topics: packages, flow_control_statements, more-types, generics")
+		fmt.Println("Available topics: packages, flow_control_statements, more_types, generics")
 		os.Exit(1)
 	}
 }
