@@ -10,7 +10,16 @@ func Run() {
 	fmt.Println("=== More Types Statements ===")
 	fmt.Println()
 
-	pointers()
+	pointersExample()
+	fmt.Println()
+
+	structExample()
+	fmt.Println()
+
+	arraysExample()
+	fmt.Println()
+
+	slicesExample()
 	fmt.Println()
 }
 
@@ -20,11 +29,19 @@ func RunExample(name string) {
 
 	switch name {
 	case "pointers":
-		pointers()
+		pointersExample()
+	case "struct":
+		structExample()
+	case "arrays":
+		arraysExample()
+	case "slices":
+		slicesExample()
 	default:
 		fmt.Printf("Unknown example: %s\n", name)
 		fmt.Println("\nAvailable examples:")
 		fmt.Println("  pointers")
+		fmt.Println("  struct")
+		fmt.Println("  arrays")
 		os.Exit(1)
 	}
 }
