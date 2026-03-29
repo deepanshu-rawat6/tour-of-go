@@ -3,6 +3,8 @@ package more_types
 import (
 	"fmt"
 	"strings"
+
+	"golang.org/x/tour/pic"
 )
 
 /*
@@ -226,6 +228,81 @@ func slicesOfSlices() {
 	}
 }
 
+/*
+
+Appending to a slice
+
+ It is common to append new elements to a slice, and so Go provides a built-in append function.
+The documentation of the built-in package describes append.
+
+func append(s []T, vs ...T) []T
+
+ The first parameter s of append is a slice of type T, and the rest are T values to append to the slice.
+
+The resulting value of append is a slice containing all the elements of the original slice plus the provided values.
+
+If the backing array of s is too small to fit all the given values a bigger array will be allocated.
+The returned slice will point to the newly allocated array.
+*/
+
+func appendingToASlice() {
+	var s []int
+	printSlice(s)
+
+	// append works on nil slices.
+	s = append(s, 0)
+	printSlice(s)
+
+	// The slice grows as needed.
+	s = append(s, 1)
+	printSlice(s)
+
+	// We can add more than one element at a time.
+	s = append(s, 2, 3, 4)
+	printSlice(s)
+
+	printSlice(s)
+}
+
+/*
+
+ Implement Pic. It should return a slice of length dy, each element of which is a slice of dx 8-bit unsigned integers.
+When you run the program, it will display your picture, interpreting the integers as grayscale (well, bluescale) values.
+
+The choice of image is up to you. Interesting functions include (x+y)/2, x*y, and x^y.
+
+(You need to use a loop to allocate each []uint8 inside the [][]uint8.)
+
+(Use uint8(intValue) to convert between types.)
+*/
+
+func Pic(dx, dy int) [][]uint8 {
+	arr := make([][]uint8, dy)
+
+	// Loop through each row (y coordinate)
+	for y := 0; y < dy; y++ {
+		// Create a slice for this row
+		arr[y] = make([]uint8, dx)
+
+		// Loop through each column (x coordinate)
+		for x := 0; x < dx; x++ {
+			// Calculate the pixel value using x*y
+			// You can also try: (x+y)/2 or x^y
+			arr[y][x] = uint8(x * y)
+		}
+	}
+
+	return arr
+}
+
+func printExerciseSlice(sl [][]uint8) {
+	fmt.Println(sl)
+}
+
+func exerciseSlices() {
+	pic.Show(Pic)
+}
+
 func slicesExample() {
 	fmt.Println("Slices in Go:")
 	standardSlice()
@@ -250,4 +327,10 @@ func slicesExample() {
 
 	fmt.Println("Slices of slices:")
 	slicesOfSlices()
+
+	fmt.Println("Appending to a Slice:")
+	appendingToASlice()
+
+	fmt.Println("Exercise Slices:")
+	exerciseSlices()
 }
