@@ -27,5 +27,24 @@ The fix:
 fmt.Println("Mutliple results:")  // Just one call, no nesting
 ```
 
-This is actually a perfect example for your multiple results' lesson! The swap function you have
-returns multiple values, just like fmt.Println does.
+## Real-World Context: Why do we care about `n` and `err`?
+
+While we often ignore the return values of `fmt.Println` in simple scripts, they are critical in professional systems.
+
+### 1. Reliable Logging
+In a high-throughput system, if the disk fills up, `fmt.Println` will return an error. If you ignore it, you might lose critical audit logs without knowing.
+```go
+n, err := fmt.Fprintln(logFile, "Transaction completed")
+if err != nil {
+    // Alert the SRE team! Disk might be full or permissions failed.
+}
+```
+
+### 2. Network CLI Tools
+If you are writing to a network socket (which is also an `io.Writer`), checking `n` ensures all your data was actually sent.
+```go
+n, err := fmt.Fprintf(conn, "GET / HTTP/1.1\r\n\r\n")
+if n < expectedBytes {
+    // Handle partial write!
+}
+```

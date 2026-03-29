@@ -94,3 +94,33 @@ BOTTOM  → defer fmt.Println(0)  ← Executes 10th (last)
 - LIFO order: Like a stack of plates - last one added is the first one removed (9, 8, 7... down to 0)
 
 This is why you see the numbers printed in reverse order (9 → 0) after "done" is printed!
+
+## Real-World Use Case: Resource Cleanup
+
+In production, `defer` is the #1 tool for preventing resource leaks.
+
+### 1. Database Transactions
+If you open a transaction, you **must** either commit it or roll it back.
+```go
+func processOrder(db *sql.DB) error {
+    tx, err := db.Begin()
+    if err != nil {
+        return err
+    }
+    defer tx.Rollback() // Ensures rollback if any error occurs later
+
+    // ... perform logic ...
+
+    return tx.Commit() // Rollback is skipped if Commit succeeds
+}
+```
+
+### 2. Mutex Unlocking
+Prevent deadlocks by ensuring the lock is released even if the function panics or returns early.
+```go
+func (c *Counter) Inc() {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    c.val++
+}
+```
