@@ -2,6 +2,19 @@
 
 ![go-mascot](./.img/go.png)
 
+## Advanced Guides & Internals
+
+For deep-dives into the Go runtime, idiomatic design patterns, and system design for Platform Engineering, check out our [**Master Table of Contents**](./more-internals/README.md).
+
+### 🟢 Phase 1: Go Internals
+Master the runtime mechanics: `defer`, Memory Layout, `cgo`, and Plan9 Assembly.
+
+### 🔵 Phase 2: Design Patterns
+Idiomatic patterns: Functional Options, Plugin Architectures, and the Repository Pattern.
+
+### 🔴 Phase 3: System Design & Platform Ops
+Architecting for scale: eBPF, Gossip Protocols, Distributed Tracing, and K8s-native services.
+
 ## Running Topics
 
 ### Run all examples in a topic
