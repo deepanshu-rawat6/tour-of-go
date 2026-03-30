@@ -14,7 +14,7 @@ Welcome to the deep-dive series. This guide is organized sequentially to take yo
 5.  [**Reflection & Type Systems**](./go-internals/reflection/README.md) - Using `reflect` and `unsafe` for generic libraries and ORMs.
 6.  [**cgo & FFI (Foreign Function Interface)**](./go-internals/cgo/README.md) - The cost of calling C code and overhead in drivers (sqlite3, networking).
 7.  [**Assembly in Go (Plan9)**](./go-internals/assembly/README.md) - Talking directly to the CPU with Go's unique assembly syntax.
-8.  [**Concurrency Orchestration**](./go-internals/go-internals/concurrency-deep-dive/README.md) - `errgroup`, `sync.Pool`, and Load Shedding.
+8.  [**Concurrency Orchestration**](./go-internals/concurrency-deep-dive/README.md) - `errgroup`, `sync.Pool`, and Load Shedding.
 
 ---
 
@@ -40,6 +40,28 @@ Welcome to the deep-dive series. This guide is organized sequentially to take yo
 5.  [**Rate Limiting Deep Dive**](./system-design/rate-limiting-deep-dive/README.md) - Implementing Token Buckets, Leaky Buckets, and Sliding Windows.
 6.  [**High-Throughput Architecture**](./system-design/high-throughput-systems/README.md) - Sharding, CQRS, WAL, and Batching.
 7.  [**Go for Platform Ops & SRE**](./system-design/platform-ops/README.md) - Kubernetes Operators, System Signals, and Prometheus Observability.
+
+---
+
+## 🏃 Runnable Code
+
+The theory above is backed by executable Go programs in [`runnable/`](./runnable/README.md):
+
+```shell
+go run ./more-internals/runnable/concurrency-patterns/   # Pipeline, fan-out/fan-in
+go run ./more-internals/runnable/design-patterns/        # Functional options, circuit breaker, singleflight
+go run ./more-internals/runnable/system-design/          # Token bucket + sliding window rate limiter
+```
+
+## 🚀 Projects (Runnable Platform Projects)
+
+Put it all together with standalone mini-projects in [`../projects/`](../projects/):
+
+| Project | Connects to |
+|---------|-------------|
+| [`grpc-service/`](../projects/grpc-service/) | Platform Ops & SRE |
+| [`otel-tracing/`](../projects/otel-tracing/) | Distributed Tracing (OpenTelemetry) |
+| [`k8s-controller/`](../projects/k8s-controller/) | Go for Platform Ops & SRE |
 
 ---
 

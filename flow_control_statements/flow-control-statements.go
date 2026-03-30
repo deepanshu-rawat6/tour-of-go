@@ -28,7 +28,7 @@ func Run() {
 
 // RunExample runs a specific example by name
 func RunExample(name string) {
-	fmt.Printf("=== Packages & Imports: %s ===\n\n", name)
+	fmt.Printf("=== Flow Control Statements: %s ===\n\n", name)
 
 	switch name {
 	case "for-loop":
