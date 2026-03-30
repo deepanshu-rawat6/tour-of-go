@@ -1,0 +1,7 @@
+apiVersion: greeting.example.com/v1
+kind: Greeting
+metadata:
+  name: hello-gopher
+  namespace: default
+spec:
+  message: "Hello from my first Kubernetes Operator!"
