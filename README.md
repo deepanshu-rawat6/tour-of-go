@@ -2,6 +2,28 @@
 
 ![go-mascot](./.img/go.png)
 
+A hands-on Go learning journal — from language basics to platform engineering and Kubernetes operators.
+
+## Learning Path (Recommended Order)
+
+Follow this sequence to go from Go basics to building production-grade platform tools:
+
+```
+1. packages              → Variables, functions, types, constants
+2. flow_control_statements → For, if, switch, defer
+3. more_types            → Pointers, structs, slices, maps, closures
+4. methods               → Value/pointer receivers, fmt.Stringer
+5. interfaces            → Implicit satisfaction, type assertions, embedding
+6. error_handling        → Custom errors, wrapping (%w), panic/recover
+7. generics              → Type parameters, constraints, generic types
+8. concurrency           → Goroutines, channels, select, mutex, worker pool
+9. context               → Cancellation, timeouts, request-scoped values
+   ↓
+more-internals/          → Deep dives: Go runtime, design patterns, system design
+   ↓
+projects/                → Runnable platform projects: gRPC, OTel tracing, K8s operator
+```
+
 ## Advanced Guides & Internals
 
 For deep-dives into the Go runtime, idiomatic design patterns, and system design for Platform Engineering, check out our [**Master Table of Contents**](./more-internals/README.md).
@@ -21,16 +43,18 @@ Architecting for scale: eBPF, Gossip Protocols, Distributed Tracing, and K8s-nat
 
 ```shell
 go run . packages
-go run . generics
+go run . concurrency
+go run . context
 ```
 
 ### Run a specific example
 
 ```shell
 go run . packages basic
-go run . packages exported-names
-go run . packages functions
-go run . packages multiple-results
+go run . interfaces type-assertions
+go run . error_handling wrapping
+go run . concurrency worker-pool
+go run . context timeout
 ```
 
 ### Show help
@@ -41,62 +65,63 @@ go run .
 
 ## Building
 
-### Build the executable
-
 ```shell
 go build .
-```
-
-This creates a `tour_of_go` executable in the root directory.
-
-### Run the built executable
-
-```shell
 ./tour_of_go packages
-./tour_of_go packages basic
-./tour_of_go          # Shows help
+./tour_of_go concurrency worker-pool
 ```
 
-Or specify a custom output name:
+## Advanced Runnable Snippets
+
+The `more-internals/runnable/` directory contains executable Go programs for advanced topics:
 
 ```shell
-go build -o myapp .
-./myapp packages
+go run ./more-internals/runnable/concurrency-patterns/   # Pipeline, fan-out/fan-in
+go run ./more-internals/runnable/design-patterns/        # Functional options, circuit breaker, singleflight
+go run ./more-internals/runnable/system-design/          # Rate limiter simulation
 ```
+
+## Projects
+
+Standalone mini-projects in `projects/` — each is a separate Go module with its own README:
+
+| Project | What you build | Key concepts |
+|---------|---------------|--------------|
+| [`projects/grpc-service/`](./projects/grpc-service/) | gRPC server + client | Protobuf, unary RPC, server streaming |
+| [`projects/otel-tracing/`](./projects/otel-tracing/) | Distributed tracing across 2 HTTP services | OpenTelemetry, trace propagation, spans |
+| [`projects/k8s-controller/`](./projects/k8s-controller/) | Kubernetes operator (CRD + controller) | controller-runtime, reconciliation loop, CRDs |
+| [`projects/distributed-scheduler/`](./projects/distributed-scheduler/) | Production distributed job scheduler | Redis lease, concurrency manager, Bleve search, state machine, zombie detection |
+| [`projects/event-driven-pipeline/`](./projects/event-driven-pipeline/) | Event processing pipeline | NATS JetStream, exactly-once, circuit breaker, DLQ, OTel tracing |
+| [`projects/service-mesh-sidecar/`](./projects/service-mesh-sidecar/) | TCP proxy sidecar | Connection pooling, token bucket, circuit breaking, health checks, Prometheus |
 
 ## Adding New Topics
 
-### 1. Create a new directory
+### 1. Create a new directory and dispatcher
 
 ```shell
-mkdir generics
+mkdir mytopic
 ```
 
-### 2. Create the main file with Run() function
-
-Create `generics/generics.go`:
+Create `mytopic/mytopic.go`:
 
 ```go
-package generics
+package mytopic
 
-import "fmt"
+import (
+    "fmt"
+    "os"
+)
 
-// Run executes all examples in the generics topic
 func Run() {
-    fmt.Println("=== Generics ===")
-    fmt.Println()
-
-    basicGenericsExample()
-    fmt.Println()
+    fmt.Println("=== My Topic ===")
+    myExample()
 }
 
-// RunExample runs a specific example by name
 func RunExample(name string) {
-    fmt.Printf("=== Generics: %s ===\n\n", name)
-
+    fmt.Printf("=== My Topic: %s ===\n\n", name)
     switch name {
-    case "basic":
-        basicGenericsExample()
+    case "my-example":
+        myExample()
     default:
         fmt.Printf("Unknown example: %s\n", name)
         os.Exit(1)
@@ -104,45 +129,20 @@ func RunExample(name string) {
 }
 ```
 
-### 3. Add example files
+### 2. Add example files
 
-Create `generics/basic.go`:
+Create `mytopic/my-example.go`:
 
 ```go
-package generics
+package mytopic
 
 import "fmt"
 
-func basicGenericsExample() {
-    fmt.Println("Basic Generics:")
-    // Your code here
+func myExample() {
+    fmt.Println("My example output")
 }
 ```
 
-### 4. Update main.go
+### 3. Register in main.go
 
-Add the import:
-
-```go
-import (
-    "fmt"
-    "os"
-    "tour_of_go/packages"
-    "tour_of_go/generics"  // Add this
-)
-```
-
-Add the case in the switch statement:
-
-```go
-case "generics":
-    if example != "" {
-        generics.RunExample(example)
-    } else {
-        generics.Run()
-    }
-```
-
-### 5. Update the help text in main.go
-
-Add "generics" to the available topics list.
+Add the import and a `case "mytopic":` block in the switch statement.
