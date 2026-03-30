@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  nats:
+    image: nats:2.10-alpine
+    command: ["-js", "-m", "8222"]
+    ports:
+      - "4222:4222"
+      - "8222:8222"  # monitoring
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
