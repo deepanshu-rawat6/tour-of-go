@@ -1,0 +1,63 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <!-- Concurrency Pool Panel -->
+  <div class="lg:col-span-2">
+    <div class="bg-gray-900 rounded-lg border border-gray-800 p-4">
+      <h2 class="text-green-400 font-bold mb-4">Concurrency Pool</h2>
+      <div id="concurrency-panel"
+           hx-get="/partials/concurrency"
+           hx-trigger="every 2s, refresh from:body"
+           hx-swap="innerHTML">
+        {{template "concurrency.html" .ConcurrencyKeys}}
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit Job Form -->
+  <div>
+    <div class="bg-gray-900 rounded-lg border border-gray-800 p-4">
+      <h2 class="text-blue-400 font-bold mb-4">Submit Job</h2>
+      <form hx-post="/jobs"
+            hx-target="#concurrency-panel"
+            hx-swap="innerHTML"
+            class="space-y-3">
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Job Name</label>
+          <input name="jobName" value="DataIngestion" required
+                 class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Tenant ID</label>
+          <input name="tenant" type="number" value="1" required
+                 class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 block mb-1">Priority (1=high, 10=low)</label>
+          <input name="priority" type="number" value="5" min="1" max="10"
+                 class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+        </div>
+        <button type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white rounded px-4 py-2 text-sm font-bold transition-colors">
+          Submit Job
+        </button>
+      </form>
+    </div>
+
+    <!-- Status Legend -->
+    <div class="bg-gray-900 rounded-lg border border-gray-800 p-4 mt-4">
+      <h2 class="text-gray-400 font-bold mb-3 text-sm">Status Legend</h2>
+      <div class="space-y-1 text-xs">
+        <div><span class="text-yellow-400">●</span> WAITING / RETRY — schedulable</div>
+        <div><span class="text-blue-400">●</span> PUBLISHED — dispatched to worker</div>
+        <div><span class="text-cyan-400">●</span> PROCESSING — worker running</div>
+        <div><span class="text-green-400">●</span> SUCCESSFUL — completed</div>
+        <div><span class="text-red-400">●</span> FAILED / FAILED_BY_JFC</div>
+        <div><span class="text-gray-500">●</span> CANCELLED</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{{end}}

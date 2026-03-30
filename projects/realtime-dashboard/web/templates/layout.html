@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Scheduler Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen font-mono">
+  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center gap-3">
+    <span class="text-green-400 font-bold text-lg">⚙ Scheduler Dashboard</span>
+    <span class="text-gray-500 text-sm">connected to distributed-scheduler</span>
+    <span id="ws-status" class="ml-auto text-xs text-yellow-400">● connecting</span>
+  </nav>
+  <main class="p-6">
+    {{template "content" .}}
+  </main>
+  <script>
+    // WebSocket for real-time concurrency updates
+    const ws = new WebSocket("ws://" + location.host + "/ws");
+    const statusEl = document.getElementById("ws-status");
+    ws.onopen = () => { statusEl.textContent = "● live"; statusEl.className = "ml-auto text-xs text-green-400"; };
+    ws.onclose = () => { statusEl.textContent = "● disconnected"; statusEl.className = "ml-auto text-xs text-red-400"; };
+    ws.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      if (msg.type === "concurrency_update") {
+        // Trigger HTMX to refresh the concurrency panel
+        htmx.trigger("#concurrency-panel", "refresh");
+      }
+    };
+  </script>
+</body>
+</html>

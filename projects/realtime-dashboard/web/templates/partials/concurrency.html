@@ -1,0 +1,21 @@
+{{define "concurrency.html"}}
+{{if .}}
+  <div class="space-y-2">
+  {{range $key, $val := .}}
+    <div class="flex items-center gap-3">
+      <span class="text-xs text-gray-400 w-40 truncate" title="{{$key}}">{{$key}}</span>
+      <div class="flex-1 bg-gray-800 rounded-full h-3 overflow-hidden">
+        <div class="bg-green-500 h-3 rounded-full transition-all duration-500"
+             style="width: {{if gt $val 0}}{{$val}}0%{{else}}2%{{end}}"></div>
+      </div>
+      <span class="text-xs text-green-400 w-6 text-right">{{$val}}</span>
+    </div>
+  {{end}}
+  </div>
+{{else}}
+  <p class="text-gray-500 text-sm">
+    No active concurrency keys.<br>
+    <span class="text-xs">Start the distributed-scheduler and submit jobs to see data here.</span>
+  </p>
+{{end}}
+{{end}}
