@@ -93,6 +93,9 @@ Standalone mini-projects in `projects/` — each is a separate Go module with it
 | [`projects/distributed-scheduler/`](./projects/distributed-scheduler/) | Production distributed job scheduler | Redis lease, concurrency manager, Bleve search, state machine, zombie detection |
 | [`projects/event-driven-pipeline/`](./projects/event-driven-pipeline/) | Event processing pipeline | NATS JetStream, exactly-once, circuit breaker, DLQ, OTel tracing |
 | [`projects/service-mesh-sidecar/`](./projects/service-mesh-sidecar/) | TCP proxy sidecar | Connection pooling, token bucket, circuit breaking, health checks, Prometheus |
+| [`projects/realtime-dashboard/`](./projects/realtime-dashboard/) | Live ops dashboard for job scheduler | HTMX, WebSocket, html/template, server-rendered UI |
+| [`projects/platform-console/`](./projects/platform-console/) | K8s Greeting resource browser | html/template, Tailwind, SSE, client-go dynamic client |
+| [`projects/cli-tui/`](./projects/cli-tui/) | Terminal dashboard for job scheduler | Bubble Tea, lipgloss, Elm architecture, TUI |
 
 ## Adding New Topics
 
