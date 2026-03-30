@@ -1,0 +1,59 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="max-w-4xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-bold text-purple-400">Greeting Resources</h1>
+    <a href="/greetings/new"
+       class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded text-sm font-bold transition-colors">
+      + Create Greeting
+    </a>
+  </div>
+
+  {{if .Greetings}}
+  <div class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-800 text-gray-400 text-xs uppercase">
+        <tr>
+          <th class="px-4 py-3 text-left">Name</th>
+          <th class="px-4 py-3 text-left">Message</th>
+          <th class="px-4 py-3 text-left">Status</th>
+          <th class="px-4 py-3 text-left">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-800">
+        {{range .Greetings}}
+        <tr class="hover:bg-gray-800/50 transition-colors">
+          <td class="px-4 py-3 font-medium">{{.Name}}</td>
+          <td class="px-4 py-3 text-gray-300">{{.Message}}</td>
+          <td class="px-4 py-3">
+            {{if .Ready}}
+              <span class="bg-green-900 text-green-400 px-2 py-0.5 rounded text-xs">● Ready</span>
+            {{else}}
+              <span class="bg-yellow-900 text-yellow-400 px-2 py-0.5 rounded text-xs">● Pending</span>
+            {{end}}
+          </td>
+          <td class="px-4 py-3">
+            <form method="POST" action="/greetings/{{.Name}}/delete" class="inline">
+              <button type="submit"
+                      class="text-red-400 hover:text-red-300 text-xs"
+                      onclick="return confirm('Delete {{.Name}}?')">
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="bg-gray-900 rounded-lg border border-gray-800 p-8 text-center text-gray-500">
+    <p class="text-lg mb-2">No Greeting resources found</p>
+    <p class="text-sm">Make sure the k8s-controller is running and the CRD is installed.</p>
+    <a href="/greetings/new" class="text-purple-400 hover:text-purple-300 text-sm mt-4 inline-block">
+      Create your first Greeting →
+    </a>
+  </div>
+  {{end}}
+</div>
+{{end}}

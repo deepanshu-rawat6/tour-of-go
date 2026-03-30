@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Platform Console</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen font-mono">
+  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center gap-4">
+    <span class="text-purple-400 font-bold text-lg">☸ Platform Console</span>
+    <a href="/" class="text-sm text-gray-400 hover:text-white">Greetings</a>
+    <a href="/greetings/new" class="text-sm text-gray-400 hover:text-white">+ New</a>
+    <span id="sse-status" class="ml-auto text-xs text-yellow-400">● connecting</span>
+  </nav>
+  <main class="p-6">{{template "content" .}}</main>
+  <script>
+    // SSE for live Greeting updates
+    const es = new EventSource("/events");
+    const status = document.getElementById("sse-status");
+    es.onopen = () => { status.textContent = "● live"; status.className = "ml-auto text-xs text-green-400"; };
+    es.onerror = () => { status.textContent = "● disconnected"; status.className = "ml-auto text-xs text-red-400"; };
+    es.onmessage = (e) => {
+      const event = JSON.parse(e.data);
+      // Reload the greeting list on any change
+      if (["ADDED","MODIFIED","DELETED"].includes(event.type)) {
+        window.location.reload();
+      }
+    };
+  </script>
+</body>
+</html>

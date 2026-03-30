@@ -1,0 +1,30 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="max-w-lg mx-auto">
+  <h1 class="text-xl font-bold text-purple-400 mb-6">Create Greeting</h1>
+  <div class="bg-gray-900 rounded-lg border border-gray-800 p-6">
+    <form method="POST" action="/greetings" class="space-y-4">
+      <div>
+        <label class="text-xs text-gray-400 block mb-1">Resource Name (lowercase, no spaces)</label>
+        <input name="name" required placeholder="hello-world"
+               class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-purple-500">
+      </div>
+      <div>
+        <label class="text-xs text-gray-400 block mb-1">Message</label>
+        <input name="message" required placeholder="Hello from my operator!"
+               class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-purple-500">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit"
+                class="bg-purple-600 hover:bg-purple-500 text-white px-6 py-2 rounded text-sm font-bold transition-colors">
+          Create
+        </button>
+        <a href="/" class="text-gray-400 hover:text-white px-4 py-2 text-sm">Cancel</a>
+      </div>
+    </form>
+  </div>
+  <p class="text-xs text-gray-500 mt-4">
+    This creates a Greeting CR. The k8s-controller will reconcile it and create a ConfigMap.
+  </p>
+</div>
+{{end}}
