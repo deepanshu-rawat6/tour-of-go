@@ -1,0 +1,25 @@
+# aws-resource-reaper configuration
+#
+# This tool runs on EC2/ECS in a central management account.
+# It assumes the role_arn in each target account via STS AssumeRole.
+# No static credentials are stored here — the tool uses the instance profile
+# (or env vars / ~/.aws for local development).
+
+accounts:
+  # Each entry is a target AWS account to scan.
+  - id: "123456789012"
+    role_arn: "arn:aws:iam::123456789012:role/ResourceReaperReadOnly"
+  - id: "234567890123"
+    role_arn: "arn:aws:iam::234567890123:role/ResourceReaperReadOnly"
+
+# AWS regions to scan in each account.
+regions:
+  - us-east-1
+  - us-west-2
+  - eu-west-1
+  - ap-southeast-1
+
+# Maximum number of concurrent account×region scan goroutines.
+# Tune this to avoid AWS API throttling. Recommended: 10–20 for most fleets.
+# Each slot may make several API calls (EC2, RDS, ELB, CloudWatch).
+concurrency: 10
