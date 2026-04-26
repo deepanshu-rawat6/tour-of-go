@@ -315,6 +315,32 @@ Distributed KV store implementing the Raft consensus algorithm from scratch. Lea
 
 ---
 
+### 14. xdp-firewall
+
+```mermaid
+graph TD
+    CLI[xdp-fw start\n--interface eth0] --> LOAD[Load BPF ELF\nAttach XDP to NIC]
+    LOAD --> RECONCILE[Reconcile\nrules.json vs kernel map]
+    RECONCILE --> DAEMON[Go Daemon\nHTTP API + Metrics Poller]
+
+    subgraph Kernel Space
+        NIC[NIC Driver] --> XDP[XDP Program]
+        XDP --> LPM[LPM Trie\nBPF_MAP_TYPE_LPM_TRIE]
+        LPM -->|match| DROP[XDP_DROP]
+        LPM -->|no match| PASS[XDP_PASS]
+        XDP --> CNTR[PERCPU_ARRAY\ncounters]
+    end
+
+    DAEMON -->|POST /api/blacklist| ENGINE[ThreatEngine\ncore domain]
+    ENGINE -->|Insert CIDR| LPM
+    ENGINE -->|Save| FILE[rules.json]
+    DAEMON -->|poll| CNTR
+    CNTR -->|aggregate| PROM[Prometheus /metrics]
+```
+
+Kernel-level XDP firewall. Drops packets from blacklisted CIDRs at the NIC driver level using an eBPF LPM trie — before the Linux networking stack allocates memory. Hexagonal architecture with HTTP admin API, atomic file persistence, and Prometheus metrics.
+
+
 ## Adding New Topics
 
 ```shell
@@ -322,3 +348,22 @@ mkdir mytopic
 ```
 
 Create `mytopic/mytopic.go` with `Run()` and `RunExample(name string)` functions, then register in `main.go` with a `case "mytopic":` block.
+
+---
+---
+
+### 15. k8s-event-sink
+
+```mermaid
+graph TD
+    INF[K8s SharedIndexInformer\nwatch v1.Event] --> PROC[EventProcessor]
+    PROC --> FILTER[Filter\nNormal → drop\nWarning → classify]
+    FILTER --> DEDUP[Dedup Engine\nleaky bucket\nnamespace+pod+reason]
+    DEDUP -->|first occurrence| FWD[Forward immediately]
+    DEDUP -->|window expiry| SUMMARY[Summary alert\nsuppressed N events]
+    FWD & SUMMARY --> SQLITE[(SQLite\ntime-series queries)]
+    FWD & SUMMARY --> BLEVE[(Bleve\nfull-text search)]
+    FWD & SUMMARY --> SLACK[Slack Webhook]
+```
+
+Kubernetes event vacuum daemon. Streams cluster events via informers, deduplicates with leaky bucket (first occurrence forwarded immediately, summary on window expiry), classifies severity, persists to embedded SQLite + Bleve. Single binary, zero external dependencies.
