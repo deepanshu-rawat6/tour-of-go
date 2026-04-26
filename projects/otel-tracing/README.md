@@ -2,57 +2,72 @@
 
 Two HTTP services instrumented with OpenTelemetry. A request to `service-a` triggers a call to `service-b`, and both emit spans with the **same trace ID** — showing how a single request is tracked across service boundaries.
 
-## Concepts
+---
 
-- **Span**: A single unit of work (one HTTP handler, one DB call). Has a start time, end time, and attributes.
-- **Trace**: A tree of spans sharing one Trace ID — the full journey of a request.
-- **Context Propagation**: The Trace ID travels via HTTP headers (`traceparent`) from service-a to service-b.
-- **Exporter**: Where spans are sent. This demo uses stdout; swap for Jaeger/Honeycomb in production.
+## Architecture
 
-## How to Run (stdout mode)
-
-```shell
-# Terminal 1 — start service-b first
-go run ./service-b/
-
-# Terminal 2 — start service-a
-go run ./service-a/
-
-# Terminal 3 — send a request
-curl "http://localhost:8080/hello?name=Gopher"
+```mermaid
+graph LR
+    Client -->|GET /hello?name=Gopher| A[Service A\n:8080]
+    A -->|HTTP + W3C traceparent header| B[Service B\n:8081]
+    B -->|span: service-b.greet| B
+    A -->|span: service-a.hello| A
+    A -->|OTLP gRPC| J[Jaeger\n:16686]
+    B -->|OTLP gRPC| J
 ```
 
-Watch both terminals — you'll see spans printed with matching `TraceID` values.
+## Trace Propagation
 
-## How to Run (with Jaeger UI)
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant A as Service A
+    participant B as Service B
+    participant J as Jaeger
+
+    C->>A: GET /hello?name=Gopher
+    A->>A: tracer.Start("service-a.hello") → span₁
+    A->>B: GET /greet (traceparent: 00-<traceID>-<spanID>-01)
+    B->>B: Extract context from header
+    B->>B: tracer.Start("service-b.greet") → span₂ (child of span₁)
+    B-->>A: 200 OK
+    A-->>C: 200 OK
+    A->>J: export span₁
+    B->>J: export span₂
+    Note over J: Both spans share the same TraceID
+```
+
+## Concepts
+
+- **Span** — a single unit of work with start time, end time, and attributes
+- **Trace** — a tree of spans sharing one Trace ID — the full journey of a request
+- **Context Propagation** — Trace ID travels via `traceparent` HTTP header (W3C standard)
+- **Exporter** — where spans are sent; this demo uses stdout or Jaeger via OTLP
+
+## How to Run
 
 ```shell
+# stdout mode (no Docker needed)
+go run ./service-b/ &
+go run ./service-a/ &
+curl "http://localhost:8080/hello?name=Gopher"
+# Watch both terminals for matching TraceID values
+
+# With Jaeger UI
 docker-compose up -d jaeger
-# Then run service-a and service-b as above
-# Open http://localhost:16686 to see the trace waterfall
+# Open http://localhost:16686
 ```
 
 ## Key Code Patterns
 
-**Starting a span** (service-a):
 ```go
+// Start a span
 ctx, span := tracer.Start(r.Context(), "service-a.hello")
 defer span.End()
-```
 
-**Injecting trace context into outgoing HTTP** (service-a → service-b):
-```go
+// Inject trace context into outgoing HTTP (service-a → service-b)
 otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(req.Header))
-```
 
-**Extracting trace context from incoming HTTP** (service-b):
-```go
+// Extract trace context from incoming HTTP (service-b)
 ctx := otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header))
 ```
-
-## What to Learn Next
-
-- Add span attributes: `span.SetAttributes(attribute.String("user.id", userID))`
-- Add span events: `span.AddEvent("cache miss")`
-- Instrument a database call as a child span
-- See [Distributed Tracing README](../../more-internals/system-design/tracing/README.md) for theory
