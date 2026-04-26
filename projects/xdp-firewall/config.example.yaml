@@ -1,0 +1,15 @@
+# xdp-firewall configuration
+
+# Network interface to attach the XDP program to.
+# Use 'ip link show' to list available interfaces.
+interface: eth0
+
+# HTTP admin API listen address.
+http_addr: ":8080"
+
+# Path to the rules persistence file.
+# Loaded on startup to reconcile with kernel state.
+rules_file: /etc/xdp-firewall/rules.json
+
+# How often to poll per-CPU eBPF counters and update Prometheus metrics.
+metrics_poll_interval: "2s"
