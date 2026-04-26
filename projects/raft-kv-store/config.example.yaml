@@ -1,0 +1,19 @@
+# 3-node local cluster — run one config per node
+
+# Node 1 config (save as config-node1.yaml)
+node_id: node1
+grpc_addr: ":9001"
+http_addr: ":8001"
+wal_dir: /tmp/raft-node1
+
+election_timeout_min_ms: 150
+election_timeout_max_ms: 300
+heartbeat_ms: 50
+
+peers:
+  - id: node2
+    grpc_addr: ":9002"
+    http_addr: ":8002"
+  - id: node3
+    grpc_addr: ":9003"
+    http_addr: ":8003"
