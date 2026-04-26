@@ -1,0 +1,41 @@
+# k8s-event-sink configuration
+
+# Namespaces to watch. Use ["*"] for cluster-wide (requires ClusterRole).
+namespaces:
+  - "*"
+
+# Deduplication window in seconds.
+# First occurrence is forwarded immediately.
+# Subsequent occurrences within this window are suppressed.
+# A summary alert is sent when the window expires if count > 1.
+dedup_window_seconds: 300
+
+# Override severity for specific event reasons.
+# Values: "critical", "warning", "ignore"
+severity:
+  OOMKilled: critical
+  CrashLoopBackOff: critical
+  NodeNotReady: critical
+  Evicted: critical
+
+# Event reasons to silently drop (in addition to all Normal-type events).
+ignore_reasons:
+  - Pulling
+  - Pulled
+  - Created
+  - Started
+
+storage:
+  sqlite_path: /data/events.db
+  bleve_path: /data/events.bleve
+
+alerts:
+  stdout: true
+  slack:
+    webhook_url: ""  # https://hooks.slack.com/services/...
+
+# Prometheus metrics + HTTP query endpoints
+metrics_addr: ":9090"
+
+# Path to kubeconfig. Leave empty for in-cluster (ServiceAccount).
+kubeconfig: ""
