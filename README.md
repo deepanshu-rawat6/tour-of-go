@@ -2,7 +2,7 @@
 
 ![go-mascot](./.img/go.png)
 
-A hands-on Go learning journal — from language basics to platform engineering and Kubernetes operators.
+A hands-on Go learning journal — from language basics to platform engineering, Kubernetes operators, FinOps tooling, systems programming, and infrastructure automation.
 
 ## Learning Path (Recommended Order)
 
@@ -21,7 +21,7 @@ Follow this sequence to go from Go basics to building production-grade platform 
    ↓
 more-internals/          → Deep dives: Go runtime, design patterns, system design
    ↓
-projects/                → Runnable platform projects: gRPC, OTel tracing, K8s operator
+projects/                → Runnable platform projects
 ```
 
 ## Advanced Guides & Internals
@@ -83,7 +83,7 @@ go run ./more-internals/runnable/system-design/          # Rate limiter simulati
 
 ## Projects
 
-Standalone mini-projects in `projects/` — each is a separate Go module with its own README:
+Standalone mini-projects in `projects/` — each is a separate Go module with its own README and docs:
 
 | Project | What you build | Key concepts |
 |---------|---------------|--------------|
@@ -96,6 +96,12 @@ Standalone mini-projects in `projects/` — each is a separate Go module with it
 | [`projects/realtime-dashboard/`](./projects/realtime-dashboard/) | Live ops dashboard for job scheduler | HTMX, WebSocket, html/template, server-rendered UI |
 | [`projects/platform-console/`](./projects/platform-console/) | K8s Greeting resource browser | html/template, Tailwind, SSE, client-go dynamic client |
 | [`projects/cli-tui/`](./projects/cli-tui/) | Terminal dashboard for job scheduler | Bubble Tea, lipgloss, Elm architecture, TUI |
+| [`projects/aws-resource-reaper/`](./projects/aws-resource-reaper/) | Concurrent FinOps CLI — scans and cleans idle AWS resources across accounts | AWS SDK v2, STS AssumeRole, errgroup + semaphore, Cobra CLI, log/slog |
+| [`projects/gocker/`](./projects/gocker/) | Mini container runtime (mini Docker from scratch) | Linux namespaces, OverlayFS, cgroups v1/v2, OCI image pull, chroot, re-exec trick |
+| [`projects/tf-drift-detector/`](./projects/tf-drift-detector/) | Terraform drift detector daemon — compares TF state vs live AWS infrastructure | errgroup fan-out, sync.Mutex, time.Ticker, signal.NotifyContext, stateful tracker, webhook alerting |
+| [`projects/raft-kv-store/`](./projects/raft-kv-store/) | Distributed KV store using Raft consensus from scratch | Leader election, log replication, WAL, gRPC transport, HTTP API, quorum commit |
+
+---
 
 ## Adding New Topics
 
