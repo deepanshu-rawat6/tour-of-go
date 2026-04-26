@@ -2,96 +2,71 @@
 
 A minimal Kubernetes operator built with `controller-runtime`. It watches a custom `Greeting` resource and creates a ConfigMap containing the greeting message.
 
+---
+
+## Architecture
+
+```mermaid
+graph TD
+    USER[kubectl apply -f greeting.yaml] --> API[Kubernetes API Server]
+    API -->|watch event ADDED/MODIFIED| CTRL[Greeting Controller\ncontroller-runtime]
+    CTRL -->|Reconcile| FETCH[Fetch Greeting CR]
+    FETCH --> CHECK{ConfigMap exists?}
+    CHECK -->|No| CREATE[Create ConfigMap\ngreeting-config]
+    CHECK -->|Yes, message changed| UPDATE[Update ConfigMap]
+    CHECK -->|Yes, in sync| NOOP[no-op]
+    CREATE & UPDATE --> STATUS[Update Greeting.status.ready = true]
+    STATUS --> API
+```
+
+## Reconciliation Loop
+
+```mermaid
+sequenceDiagram
+    participant K as Kubernetes API
+    participant C as Controller
+    participant CM as ConfigMap
+
+    K->>C: Reconcile(name: "hello-gopher")
+    C->>K: Get Greeting "hello-gopher"
+    K-->>C: Greeting{message: "Hello!"}
+    C->>K: Get ConfigMap "greeting-hello-gopher"
+    K-->>C: NotFound
+    C->>K: Create ConfigMap{data: {message: "Hello!"}}
+    K-->>C: Created
+    C->>K: Update Greeting.status.ready = true
+    Note over C: Returns — will be called again on next change
+```
+
 ## Concepts
 
-- **CRD (Custom Resource Definition)**: Extends the Kubernetes API with your own resource types (`config/crd/greeting.yaml`)
-- **Custom Resource (CR)**: An instance of your CRD (`config/samples/greeting_sample.yaml`)
-- **Controller**: A reconciliation loop that watches CRs and drives the cluster toward desired state
-- **Reconciliation Loop**: Called on every create/update/delete of a watched resource — must be idempotent
-- **OwnerReference**: Links the ConfigMap to the Greeting so K8s auto-deletes it when the Greeting is deleted
+- **CRD** — extends the Kubernetes API with your own resource types (`config/crd/greeting.yaml`)
+- **Custom Resource** — an instance of your CRD (`config/samples/greeting_sample.yaml`)
+- **Reconciliation Loop** — called on every create/update/delete; must be idempotent
+- **OwnerReference** — links the ConfigMap to the Greeting so K8s auto-deletes it when the Greeting is deleted
 
 ## Prerequisites
 
 ```shell
-# Install kind (local K8s cluster)
 brew install kind
-
-# Create a cluster
 kind create cluster --name tour-of-go
 ```
 
 ## How to Run
 
 ```shell
-# 1. Install the CRD into your cluster
 kubectl apply -f config/crd/
-
-# 2. Run the controller locally (uses your current kubeconfig)
 make run
-
-# 3. In another terminal, apply a sample Greeting
 kubectl apply -f config/samples/
-
-# 4. Watch the controller create a ConfigMap
-kubectl get configmaps
-kubectl describe configmap greeting-hello-gopher
-
-# 5. Check the Greeting status
 kubectl get greetings
-```
-
-## Expected Output
-
-Controller logs:
-```
-INFO  Reconciling Greeting  {"name": "hello-gopher", "namespace": "default"}
-INFO  Creating ConfigMap    {"configmap": "greeting-hello-gopher"}
-INFO  Reconciliation complete {"configmap": "greeting-hello-gopher"}
-```
-
-```shell
-$ kubectl get greetings
-NAME            MESSAGE                                    READY
-hello-gopher    Hello from my first Kubernetes Operator!  true
-
-$ kubectl get configmaps | grep greeting
-greeting-hello-gopher   1      5s
+kubectl get configmaps | grep greeting
 ```
 
 ## Key Files
 
 ```
-api/v1/greeting_types.go              # CRD Go types (Spec, Status)
-api/v1/groupversion_info.go           # Group/Version registration
-api/v1/zz_generated.deepcopy.go       # Generated DeepCopy methods
+api/v1/greeting_types.go                    # CRD Go types (Spec, Status)
 internal/controller/greeting_controller.go  # The reconciliation loop
-main.go                               # Manager setup and startup
-config/crd/greeting.yaml              # CRD YAML manifest
-config/samples/greeting_sample.yaml   # Sample CR to apply
-Makefile                              # generate, manifests, run, docker-build
+config/crd/greeting.yaml                    # CRD YAML manifest
+config/samples/greeting_sample.yaml         # Sample CR to apply
 ```
-
-## Reconciliation Loop Explained
-
-```
-Greeting CR created/updated
-        ↓
-Reconcile() called
-        ↓
-Fetch Greeting from API server
-        ↓
-Does ConfigMap exist?
-  NO  → Create ConfigMap with greeting.spec.message
-  YES → Message changed? → Update ConfigMap
-        ↓
-Update Greeting.status.ready = true
-        ↓
-Return (will be called again on next change)
-```
-
-## What to Learn Next
-
-- Add a `Finalizer` to run cleanup logic before deletion
-- Add validation webhooks with `kubebuilder:webhook`
-- Watch a secondary resource (e.g., reconcile when a Pod changes)
-- See [Platform Ops README](../../more-internals/system-design/platform-ops/README.md) for the theory
