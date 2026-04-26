@@ -1,0 +1,42 @@
+# tf-drift-detector configuration
+
+backend:
+  # "s3" for remote Terraform state, "local" for a local tfstate file
+  type: s3
+  bucket: my-terraform-state-bucket
+  key: path/to/terraform.tfstate
+  region: us-east-1
+  # For local backend:
+  # type: local
+  # file_path: /path/to/terraform.tfstate
+
+# AWS region for live API calls (can differ from state bucket region)
+aws_region: us-east-1
+
+# Polling interval for daemon mode (e.g. 5m, 30s, 1h)
+interval: "5m"
+
+# Max concurrent AWS API calls (tune to avoid throttling)
+concurrency: 10
+
+# Where to persist drift state across daemon restarts
+drift_state_file: /var/lib/tf-drift/state.json
+
+alerts:
+  # Print drift as JSON to stdout (always enabled if no other alerter configured)
+  stdout: true
+  slack:
+    webhook_url: ""  # https://hooks.slack.com/services/...
+  discord:
+    webhook_url: ""  # https://discord.com/api/webhooks/...
+
+# Per-resource-type fields to ignore in addition to built-in defaults.
+# Use this to suppress known false positives in your environment.
+ignore_fields:
+  aws_instance:
+    - "user_data"
+    - "ebs_optimized"
+  aws_s3_bucket:
+    - "acceleration_status"
+  aws_lambda_function:
+    - "last_modified"
