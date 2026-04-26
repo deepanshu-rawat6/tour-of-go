@@ -340,16 +340,6 @@ graph TD
 
 Kernel-level XDP firewall. Drops packets from blacklisted CIDRs at the NIC driver level using an eBPF LPM trie — before the Linux networking stack allocates memory. Hexagonal architecture with HTTP admin API, atomic file persistence, and Prometheus metrics.
 
-
-## Adding New Topics
-
-```shell
-mkdir mytopic
-```
-
-Create `mytopic/mytopic.go` with `Run()` and `RunExample(name string)` functions, then register in `main.go` with a `case "mytopic":` block.
-
----
 ---
 
 ### 15. k8s-event-sink
@@ -367,3 +357,14 @@ graph TD
 ```
 
 Kubernetes event vacuum daemon. Streams cluster events via informers, deduplicates with leaky bucket (first occurrence forwarded immediately, summary on window expiry), classifies severity, persists to embedded SQLite + Bleve. Single binary, zero external dependencies.
+
+## Adding New Topics
+
+```shell
+mkdir mytopic
+```
+
+Create `mytopic/mytopic.go` with `Run()` and `RunExample(name string)` functions, then register in `main.go` with a `case "mytopic":` block.
+
+---
+
