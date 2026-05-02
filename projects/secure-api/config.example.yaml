@@ -1,0 +1,19 @@
+server:
+  addr: ":8080"
+  # mTLS — leave empty to disable mutual TLS
+  tls_cert: "certs/server.crt"
+  tls_key:  "certs/server.key"
+  tls_ca:   "certs/ca.crt"   # CA cert for verifying client certs
+
+jwt:
+  secret: "change-me-in-production"
+  expiry: "1h"
+
+# Seeded users for the OAuth2 password grant demo
+users:
+  - username: "admin"
+    password: "secret"
+    roles: ["admin", "user"]
+  - username: "alice"
+    password: "password"
+    roles: ["user"]

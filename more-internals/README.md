@@ -62,6 +62,9 @@ Put it all together with standalone mini-projects in [`../projects/`](../project
 | [`grpc-service/`](../projects/grpc-service/) | Platform Ops & SRE |
 | [`otel-tracing/`](../projects/otel-tracing/) | Distributed Tracing (OpenTelemetry) |
 | [`k8s-controller/`](../projects/k8s-controller/) | Go for Platform Ops & SRE |
+| [`secure-api/`](../projects/secure-api/) | SOLID, TDD, Immutability, Security (JWT/OAuth2/mTLS) |
+| [`cache-service/`](../projects/cache-service/) | Caching Strategies (LRU, TTL, cache-aside, write-through, singleflight) |
+| [`rabbitmq-worker/`](../projects/rabbitmq-worker/) | Message Queues (AMQP, DLX, prefetch, manual ack) |
 
 ---
 

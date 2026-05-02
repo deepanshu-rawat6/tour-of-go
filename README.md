@@ -69,6 +69,11 @@ Standalone mini-projects in `projects/` — each is a separate Go module with it
 | 11 | [`gocker`](./projects/gocker/) | Mini container runtime | Linux namespaces, OverlayFS, cgroups v1/v2, OCI pull, chroot |
 | 12 | [`tf-drift-detector`](./projects/tf-drift-detector/) | Terraform drift detection daemon | errgroup, sync.Mutex, time.Ticker, stateful tracker, webhooks |
 | 13 | [`raft-kv-store`](./projects/raft-kv-store/) | Distributed KV store via Raft | Leader election, log replication, WAL, gRPC, quorum commit |
+| 14 | [`xdp-firewall`](./projects/xdp-firewall/) | Kernel-level XDP packet filter | eBPF LPM trie, XDP_DROP, PERCPU_ARRAY, hexagonal architecture |
+| 15 | [`k8s-event-sink`](./projects/k8s-event-sink/) | Kubernetes event vacuum daemon | SharedIndexInformer, leaky bucket dedup, SQLite, Bleve, Slack |
+| 16 | [`secure-api`](./projects/secure-api/) | JWT + OAuth2 + mTLS HTTP API | SOLID principles, TDD, immutable value objects, JWT, bcrypt, mTLS |
+| 17 | [`cache-service`](./projects/cache-service/) | In-memory + Redis caching layer | LRU eviction, TTL reaper, cache-aside, write-through, singleflight |
+| 18 | [`rabbitmq-worker`](./projects/rabbitmq-worker/) | RabbitMQ task worker system | AMQP, durable queues, DLX, prefetch/QoS, manual ack, graceful shutdown |
 
 ---
 
@@ -357,6 +362,64 @@ graph TD
 ```
 
 Kubernetes event vacuum daemon. Streams cluster events via informers, deduplicates with leaky bucket (first occurrence forwarded immediately, summary on window expiry), classifies severity, persists to embedded SQLite + Bleve. Single binary, zero external dependencies.
+
+---
+
+### 16. secure-api
+
+```mermaid
+graph TD
+    Client -->|POST /oauth2/token| TH[Token Handler]
+    TH --> UA[UserAuthenticator\nport — ISP]
+    UA --> US[UserStore\nbcrypt]
+    TH --> TI[TokenIssuer\nport — ISP]
+    TI --> JWT[JWTAdapter\nHS256]
+    JWT -->|Bearer token| Client
+
+    Client -->|GET /me\nAuthorization: Bearer| AM[Auth Middleware\nOCP — chain]
+    AM --> TV[TokenValidator\nport — ISP]
+    TV --> JWT
+    AM -->|Claims in context\nimmutable value object| MH[Me Handler\nSRP]
+    MH -->|user_id + roles| Client
+```
+
+JWT + OAuth2 password grant + optional mTLS HTTP API. Built with SOLID principles (each package has one concern, middleware chain is open for extension), TDD (every component written test-first with table-driven tests), and immutable value objects (`Claims`, `Token` — no setters, copy-on-read).
+
+---
+
+### 17. cache-service
+
+```mermaid
+graph LR
+    Client -->|GET PUT DELETE /cache/:key| H[HTTP Handler\nhit/miss stats]
+    H --> SF[SingleflightCache\nstampede prevention]
+    SF --> CA[CacheAside\nlazy loading]
+    CA -->|hit| LRU[LRU Cache\ncontainer/list + map\nO1 evict + TTL reaper]
+    CA -->|miss| ST[Backing Store\nMemory or Redis]
+    ST -->|populate| LRU
+    H -.->|CACHE_BACKEND=redis| R[Redis\ngo-redis/v9]
+```
+
+In-memory + Redis caching layer. Hand-rolled LRU cache with O(1) eviction and background TTL reaper. Three strategies: cache-aside (lazy loading), write-through (strong consistency), and singleflight (prevents thundering herd on concurrent cache misses). Pluggable Redis backend.
+
+---
+
+### 18. rabbitmq-worker
+
+```mermaid
+graph LR
+    P[Producer\ncmd/producer] -->|persistent JSON| EX[tasks\ndirect exchange]
+    EX --> Q[tasks.queue\ndurable + DLX binding]
+    Q -->|prefetch=5\nautoAck=false| W1[Worker 1]
+    Q --> W2[Worker 2]
+    Q --> W3[Worker 3]
+    W1 -->|Ack| DONE[done]
+    W2 -->|Nack requeue| Q
+    W3 -->|Nack no-requeue| DLX[tasks.dlx\nfanout]
+    DLX --> DLQ[tasks.dlq\ndead letters]
+```
+
+RabbitMQ task worker system. Producer publishes persistent tasks to a durable direct exchange. Consumer pool uses QoS prefetch for backpressure, manual ack/nack for reliability, and dead letter exchange (DLX) for failed messages after 3 retries. Graceful shutdown drains in-flight messages on SIGTERM.
 
 ## Adding New Topics
 
