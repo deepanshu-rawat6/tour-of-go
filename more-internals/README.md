@@ -65,6 +65,7 @@ Put it all together with standalone mini-projects in [`../projects/`](../project
 | [`secure-api/`](../projects/secure-api/) | SOLID, TDD, Immutability, Security (JWT/OAuth2/mTLS) |
 | [`cache-service/`](../projects/cache-service/) | Caching Strategies (LRU, TTL, cache-aside, write-through, singleflight) |
 | [`rabbitmq-worker/`](../projects/rabbitmq-worker/) | Message Queues (AMQP, DLX, prefetch, manual ack) |
+| [`from-scratch/`](../projects/from-scratch/) | From-Scratch Series: TCP, HTTP, WebSocket, Rate Limiter, Load Balancer, MQ, Cache, Log Aggregator, Scheduler, URL Shortener |
 
 ---
 

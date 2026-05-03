@@ -75,6 +75,21 @@ Standalone mini-projects in `projects/` — each is a separate Go module with it
 | 17 | [`cache-service`](./projects/cache-service/) | In-memory + Redis caching layer | LRU eviction, TTL reaper, cache-aside, write-through, singleflight |
 | 18 | [`rabbitmq-worker`](./projects/rabbitmq-worker/) | RabbitMQ task worker system | AMQP, durable queues, DLX, prefetch/QoS, manual ack, graceful shutdown |
 
+### From Scratch Series
+
+| # | Project | What you build | Key concepts |
+|---|---------|---------------|--------------|
+| FS-01 | [`from-scratch/01-tcp-server`](./projects/from-scratch/01-tcp-server/) | Raw TCP echo server | `net.Listener`, goroutine-per-conn, `io.Copy` |
+| FS-02 | [`from-scratch/02-http-server`](./projects/from-scratch/02-http-server/) | HTTP/1.1 parser on TCP + stdlib | Request line parsing, routing, response writing |
+| FS-03 | [`from-scratch/03-websocket-chat`](./projects/from-scratch/03-websocket-chat/) | Multi-room WebSocket chat | Hub pattern, broadcast, room isolation |
+| FS-04 | [`from-scratch/04-rate-limiter`](./projects/from-scratch/04-rate-limiter/) | All 4 rate limiting algorithms | Token bucket, leaky bucket, fixed window, sliding window |
+| FS-05 | [`from-scratch/05-load-balancer`](./projects/from-scratch/05-load-balancer/) | L7 reverse proxy | Round-robin, least-connections, health checks |
+| FS-06 | [`from-scratch/06-message-queue`](./projects/from-scratch/06-message-queue/) | In-memory pub/sub + TCP server | Broker, topics, fan-out, custom text protocol |
+| FS-07 | [`from-scratch/07-distributed-cache`](./projects/from-scratch/07-distributed-cache/) | Redis-compatible KV store | RESP protocol, TTL eviction, `redis-cli` compatible |
+| FS-08 | [`from-scratch/08-log-aggregator`](./projects/from-scratch/08-log-aggregator/) | Log tail → ship → aggregate → query | File tailer, TCP shipper, in-memory store, HTTP search |
+| FS-09 | [`from-scratch/09-task-scheduler`](./projects/from-scratch/09-task-scheduler/) | Cron-like task scheduler | Cron parser, tick loop, HTTP API |
+| FS-10 | [`from-scratch/10-url-shortener`](./projects/from-scratch/10-url-shortener/) | URL shortener (capstone) | Integrates FS-04 + FS-07 + FS-06 + FS-09 |
+
 ---
 
 ## Project Architectures
