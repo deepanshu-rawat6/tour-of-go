@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><title>Chat</title></head>
+<body>
+<h2>WebSocket Chat</h2>
+<div>Room: <input id="room" value="general"> Name: <input id="name" value="user1"></div>
+<button onclick="connect()">Connect</button>
+<div id="msgs" style="border:1px solid #ccc;height:200px;overflow:auto;padding:8px;margin:8px 0"></div>
+<input id="msg" placeholder="message" style="width:300px">
+<button onclick="send()">Send</button>
+<script>
+let ws;
+function connect() {
+  const room = document.getElementById('room').value;
+  const name = document.getElementById('name').value;
+  ws = new WebSocket(`ws://localhost:8082/ws?room=${room}&name=${name}`);
+  ws.onmessage = e => {
+    const d = document.getElementById('msgs');
+    d.innerHTML += '<div>' + e.data + '</div>';
+    d.scrollTop = d.scrollHeight;
+  };
+}
+function send() {
+  const msg = document.getElementById('msg').value;
+  if (ws) ws.send(JSON.stringify({text: msg}));
+  document.getElementById('msg').value = '';
+}
+</script>
+</body>
+</html>

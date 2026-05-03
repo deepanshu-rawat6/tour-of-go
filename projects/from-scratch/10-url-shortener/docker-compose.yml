@@ -1,0 +1,10 @@
+version: "3.8"
+# Starts the from-scratch dependencies for the URL shortener capstone.
+# The cache and MQ servers are started as Go processes, not Docker images,
+# because they are built from scratch in this series.
+#
+# Usage:
+#   cd ../07-distributed-cache && go run ./cmd/server/ &
+#   cd ../06-message-queue    && go run ./cmd/server/ &
+#   go run ./cmd/server/
+services: {}
