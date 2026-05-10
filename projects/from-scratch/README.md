@@ -2,7 +2,7 @@
 
 Build fundamental distributed systems components from the ground up in Go — no magic, no frameworks, just `net`, `sync`, and the standard library.
 
-Each project builds on the previous one. The series culminates in a URL shortener that integrates the rate limiter, cache, message queue, and task scheduler you built along the way.
+Each project builds on the previous one. The series culminates in a URL shortener that integrates the rate limiter, cache, message queue, and task scheduler you built along the way. Project 11 introduces `go-chi/chi` to show where a router earns its place.
 
 ---
 
@@ -19,6 +19,7 @@ graph LR
     T --> A[08-log-aggregator\ntail + ship + query]
     H --> S[09-task-scheduler\ncron + HTTP API]
     R & C & M & S --> U[10-url-shortener\ncapstone]
+    R & L --> G[11-api-gateway\nchi · JWT · ReverseProxy]
 ```
 
 ---
@@ -37,6 +38,7 @@ graph LR
 | 08 | [`08-log-aggregator`](./08-log-aggregator/) | Log tail → ship → aggregate → query | File tailer, TCP shipper, in-memory store, HTTP search |
 | 09 | [`09-task-scheduler`](./09-task-scheduler/) | Cron-like task scheduler | Cron parser, tick loop, HTTP API |
 | 10 | [`10-url-shortener`](./10-url-shortener/) | URL shortener (capstone) | Integrates 04 + 07 + 06 + 09 |
+| 11 | [`11-api-gateway`](./11-api-gateway/) | Edge API Gateway (JWT auth, rate limiting, reverse proxy) | `go-chi/chi` middleware composability, HS256 JWT, `httputil.ReverseProxy` Director, `context.Context` identity propagation, `replace` directive |
 
 ---
 
