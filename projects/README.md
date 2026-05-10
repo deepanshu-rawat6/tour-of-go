@@ -28,6 +28,8 @@ graph TD
     INTERNALS --> P17[cache-service\nLRU · cache-aside · Redis]
     INTERNALS --> P18[rabbitmq-worker\nAMQP · DLX · prefetch]
     INTERNALS --> FS[from-scratch/\nTCP → HTTP → WS → cache → URL shortener]
+    P4 --> P19[idempotent-payments\nIdempotency keys · SELECT FOR UPDATE · pgx]
+    P4 --> P20[triage-engine\nLangGraph-equiv · pgvector RAG · HITL · testcontainers]
 ```
 
 ---
@@ -54,6 +56,8 @@ graph TD
 | 16 | [`secure-api`](./secure-api/) | JWT + OAuth2 + mTLS HTTP API | SOLID principles, TDD, immutable value objects, JWT, bcrypt, mTLS |
 | 17 | [`cache-service`](./cache-service/) | In-memory + Redis caching layer | LRU eviction, TTL reaper, cache-aside, write-through, singleflight |
 | 18 | [`rabbitmq-worker`](./rabbitmq-worker/) | RabbitMQ task worker system | AMQP, durable queues, DLX, prefetch/QoS, manual ack, graceful shutdown |
+| 19 | [`idempotent-payments`](./idempotent-payments/) | Mock payment API with double-charge prevention | Idempotency keys, HTTP middleware, `SELECT ... FOR UPDATE`, ACID transactions, pgx, hexagonal architecture |
+| 20 | [`triage-engine`](./triage-engine/) | Stateful support ticket triage engine with HITL | LangGraph-equivalent state machine, pgvector RAG, OpenAI, state persistence (JSONB), testcontainers-go |
 
 ### From Scratch Series
 
@@ -415,3 +419,55 @@ graph LR
 ```
 
 RabbitMQ task worker system. Durable exchange, DLX for failed messages after 3 retries, QoS prefetch for backpressure, graceful SIGTERM shutdown.
+
+---
+
+### 19. idempotent-payments
+
+```mermaid
+graph TD
+    Client -->|POST /payments\nIdempotency-Key: abc-123| MW[IdempotencyMiddleware]
+    MW -->|key exists?| PG1[(PostgreSQL\nidempotency_keys)]
+    PG1 -->|cache hit| Client
+    MW -->|cache miss| H[PaymentHandler]
+    H --> SVC[LedgerService\nvalidate amount + accounts]
+    SVC --> REPO[LedgerRepo.TransferTx]
+    REPO -->|BEGIN| TX[Transaction]
+    TX -->|SELECT ... FOR UPDATE| PG2[(PostgreSQL\naccounts)]
+    TX -->|debit + credit + INSERT payment| PG2
+    TX -->|COMMIT| REPO
+    REPO --> H
+    H -->|capture response| MW
+    MW -->|store response| PG1
+    MW -->|201 JSON| Client
+
+    CLEANUP[TTL Cleanup Goroutine\ntime.Ticker] -->|DELETE expired| PG1
+```
+
+Mock payment API that prevents double-charges. The idempotency middleware intercepts every `POST /payments`, checks for a cached response by key, and replays it on retry — the handler never runs twice. `SELECT ... FOR UPDATE` prevents concurrent overdrafts at the DB level.
+
+---
+
+### 20. triage-engine
+
+```mermaid
+graph TD
+    Webhook[POST /webhooks/ticket] --> ENG[TriageEngine.Start]
+    ENG --> N1[categorize\nLLM → category]
+    N1 --> N2[retrieveRunbook\npgvector cosine search]
+    N2 --> N3[executeDiagnostic\nHTTP → CI build status]
+    N3 --> N4[draftResolution\nLLM → response draft]
+    N4 --> N5[awaitHuman\nSave JSONB to PG\nNotify engineer]
+    N5 -->|PAUSED| PG[(PostgreSQL\ninvestigation_states JSONB\nrunbook_chunks vector 1536)]
+
+    Resume[POST /graph/resume\napproved: true/false] --> LOAD[Load state from PG]
+    LOAD -->|approved| DONE[StatusCompleted]
+    LOAD -->|rejected| REJ[StatusRejected]
+    DONE & REJ --> PG
+
+    N2 -->|embed + cosine| PG
+    N1 & N4 -->|chat completions| OAI[OpenAI API]
+    N3 -->|GET /builds/user/latest| DIAG[Diagnostic API]
+```
+
+Go-based LangGraph-equivalent workflow engine. State is serialized as JSONB and persisted to PostgreSQL at the `awaitHuman` node — the process can restart between `Start` and `Resume` with no data loss. pgvector stores runbook embeddings for RAG retrieval. Integration tests use testcontainers-go to spin up `pgvector/pgvector:pg16` automatically.
