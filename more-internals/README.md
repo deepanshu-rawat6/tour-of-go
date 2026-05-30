@@ -4,6 +4,51 @@ Welcome to the deep-dive series. This guide is organized sequentially to take yo
 
 ---
 
+## Roadmap Overview
+
+```mermaid
+graph TD
+    subgraph Phase 1: Go Internals
+        Q[Quirks] --> D[Defer]
+        D --> I[Interfaces]
+        I --> RT[Runtime\nG-M-P · GC]
+        RT --> REF[Reflection]
+        REF --> CGO[cgo · Assembly]
+        CGO --> CONC[Concurrency\nerrgroup · sync.Pool]
+        CONC --> PROD[Production Go\npprof · atomic · timeouts]
+        PROD --> TEST[Testing\ntable-driven · fuzz · bench]
+        TEST --> MOD[Module Patterns\ngo.work · internal]
+    end
+
+    subgraph Phase 2: Design Patterns
+        MOD --> PAT[Functional Options\nWorker Pools]
+        PAT --> ERR[Error Handling\nRetryable vs Fatal]
+        ERR --> PLUG[Plugin Architecture]
+        PLUG --> DAO[Repository Pattern]
+        DAO --> IND[Industry Patterns\nCircuit Breaker · Middleware]
+        IND --> TF[Twelve-Factor App]
+        TF --> API[API Design\nREST · Pagination · OpenAPI]
+    end
+
+    subgraph Phase 3: System Design
+        API --> NET[Networking\nDNS · TLS · HTTP/2]
+        NET --> CONS[Consistency Models\nCAP · Quorums]
+        CONS --> DBINT[Database Internals\nB-tree · LSM-tree]
+        DBINT --> AUTH[Auth\nOAuth2 · JWT · mTLS]
+        AUTH --> MQ[Message Queues\nKafka · NATS · SQS]
+        MQ --> CAP[Capacity Planning\nLittle's Law]
+        CAP --> RL[Rate Limiting\nBackpressure]
+        RL --> HT[High Throughput\nCQRS · WAL · Sharding]
+        HT --> OBS[Observability\nslog · OTel · Prometheus]
+        OBS --> IR[Incident Response\nSLO · Error Budgets]
+        IR --> CICD[CI/CD\nDocker · Actions · GoReleaser]
+        CICD --> TER[Terraform · Helm]
+        TER --> ADV[Advanced\nGossip · Operators · eBPF]
+    end
+```
+
+---
+
 ## 🟢 Phase 1: Go Internals & Runtime Mechanics
 *Understand the language "magic" and avoid common pitfalls.*
 
