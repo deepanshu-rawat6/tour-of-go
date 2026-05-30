@@ -23,6 +23,24 @@ graph TD
 
 ## Comparison
 
+```mermaid
+graph LR
+    subgraph SQL
+        TABLE[Tables\nrows + columns] --> JOIN[JOINs\nrelationships]
+        JOIN --> ACID[ACID\ntransactions]
+    end
+    
+    subgraph Document
+        DOC[Documents\nJSON/BSON] --> NEST[Nested\nembedded data]
+        NEST --> FLEX[Flexible Schema\nno migrations]
+    end
+    
+    subgraph Key-Value
+        KV[Key → Value] --> FAST[O(1) lookup]
+        FAST --> SCALE[Infinite horizontal scale]
+    end
+```
+
 | Aspect | SQL (PostgreSQL) | Document (MongoDB) | Key-Value (DynamoDB) | In-Memory (Redis) |
 |--------|-----------------|-------------------|---------------------|-------------------|
 | Schema | Strict (migrations) | Flexible (schemaless) | Strict (partition + sort key) | None |
@@ -76,6 +94,17 @@ PK: USER#123          SK: ORDER#2024-002   → {total, status}
 ---
 
 ## When to Choose What
+
+```mermaid
+graph TD
+    subgraph Scaling Patterns
+        SQL_SCALE[SQL Scaling\nVertical → Read Replicas → Sharding]
+        NOSQL_SCALE[NoSQL Scaling\nHorizontal from day 1\nauto-partition]
+    end
+    
+    SQL_SCALE --> COMPLEX[Complex queries\njoins, aggregations]
+    NOSQL_SCALE --> SIMPLE[Simple access patterns\nkey-based lookups]
+```
 
 | Scenario | Choice | Reason |
 |----------|--------|--------|

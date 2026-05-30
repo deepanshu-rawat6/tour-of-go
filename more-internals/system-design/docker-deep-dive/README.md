@@ -50,6 +50,13 @@ ENTRYPOINT ["/server"]
 
 ## .dockerignore
 
+```mermaid
+graph LR
+    SRC[Project Dir\n500MB] -->|without .dockerignore| CTX1[Build Context\n500MB sent to daemon]
+    SRC -->|with .dockerignore| CTX2[Build Context\n5MB sent to daemon\n.git excluded]
+    CTX2 --> FAST[Faster builds]
+```
+
 ```gitignore
 # .dockerignore — reduces build context size
 .git
@@ -91,6 +98,20 @@ func healthHandler(w http.ResponseWriter, _ *http.Request) {
 ---
 
 ## Docker Compose for Local Dev
+
+```mermaid
+graph TD
+    COMPOSE[docker-compose.yml] --> APP[app\nGo service :8080]
+    COMPOSE --> PG[postgres\n:5432]
+    COMPOSE --> REDIS[redis\n:6379]
+    
+    APP -->|DATABASE_URL| PG
+    APP -->|REDIS_URL| REDIS
+    APP -->|volume mount| SRC[./src → /app\nhot reload]
+    
+    PG -->|healthcheck| APP
+    PG --> VOL[(pgdata volume\npersistent)]
+```
 
 ```yaml
 # docker-compose.yml
@@ -209,6 +230,15 @@ docker images myapp
 ---
 
 ## Multi-Platform Builds
+
+```mermaid
+graph LR
+    SRC[Source] --> BUILDX[docker buildx]
+    BUILDX --> AMD[linux/amd64\nEC2, GCE]
+    BUILDX --> ARM[linux/arm64\nGraviton, M-series Mac]
+    AMD --> REG[Registry\nmulti-arch manifest]
+    ARM --> REG
+```
 
 ```bash
 # Build for linux/amd64 + linux/arm64

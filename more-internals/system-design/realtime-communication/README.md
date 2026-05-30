@@ -150,6 +150,20 @@ graph TD
     S1 -->|push to connected clients| CLIENTS[Clients]
 ```
 
+```mermaid
+sequenceDiagram
+    participant Pub as Publisher
+    participant Redis as Redis Pub/Sub
+    participant S1 as Server 1
+    participant S2 as Server 2
+    participant C as Client (on S2)
+    
+    Pub->>Redis: PUBLISH channel event
+    Redis->>S1: message (no clients for this)
+    Redis->>S2: message
+    S2->>C: push via WebSocket/SSE
+```
+
 **Problem**: Client connects to Server 1, but event is published on Server 2.
 **Solution**: Use Redis Pub/Sub or NATS to fan-out events to all servers.
 

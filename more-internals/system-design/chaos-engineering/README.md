@@ -134,6 +134,16 @@ func retryWithBackoff(fn func() error) error {
 
 ## Tools
 
+```mermaid
+graph TD
+    subgraph Experiment Lifecycle
+        STEADY[📊 Measure Steady State\nbaseline metrics] --> INJECT[💉 Inject Fault\nkill pod / add latency]
+        INJECT --> OBSERVE[👁️ Observe Impact\nerror rate, latency, recovery]
+        OBSERVE --> RECOVER[🔄 Remove Fault\nverify recovery to baseline]
+        RECOVER --> REPORT[📝 Report\nfindings + action items]
+    end
+```
+
 | Tool | Type | Environment |
 |------|------|-------------|
 | Litmus Chaos | K8s-native experiments | Kubernetes |
