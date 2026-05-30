@@ -29,13 +29,13 @@ projects/                → Runnable platform projects
 For deep-dives into the Go runtime, idiomatic design patterns, and system design for Platform Engineering, check out our [**Master Table of Contents**](./more-internals/README.md).
 
 ### 🟢 Phase 1: Go Internals
-Master the runtime mechanics: `defer`, Memory Layout, `cgo`, and Plan9 Assembly.
+Master the runtime mechanics: `defer`, Memory Layout, `cgo`, Plan9 Assembly, and **Production Go** (pprof, escape analysis, atomic ops, graceful shutdown).
 
 ### 🔵 Phase 2: Design Patterns
-Idiomatic patterns: Functional Options, Plugin Architectures, and the Repository Pattern.
+Idiomatic patterns: Functional Options, Plugin Architectures, Repository Pattern, and **The Twelve-Factor App**.
 
 ### 🔴 Phase 3: System Design & Platform Ops
-Architecting for scale: eBPF, Gossip Protocols, Distributed Tracing, and K8s-native services.
+Architecting for scale: eBPF, Gossip Protocols, Distributed Tracing, K8s-native services, **Database Internals** (B-tree/LSM-tree), **CI/CD**, **Observability**, **Networking**, **Incident Response**, **Database Migrations**, and **Backpressure**.
 
 ---
 
@@ -54,7 +54,7 @@ go run .              # show help
 
 Standalone mini-projects in `projects/` — each is a separate Go module with its own README and docs.
 
-See **[`projects/README.md`](./projects/README.md)** for the full project index, learning path diagram, and architecture diagrams for all 18 projects + the from-scratch series.
+See **[`projects/README.md`](./projects/README.md)** for the full project index, learning path diagram, and architecture diagrams for all 22 projects + the from-scratch series (14 projects).
 
 ## Adding New Topics
 

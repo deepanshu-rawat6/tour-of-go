@@ -15,6 +15,9 @@ Welcome to the deep-dive series. This guide is organized sequentially to take yo
 6.  [**cgo & FFI (Foreign Function Interface)**](./go-internals/cgo/README.md) - The cost of calling C code and overhead in drivers (sqlite3, networking).
 7.  [**Assembly in Go (Plan9)**](./go-internals/assembly/README.md) - Talking directly to the CPU with Go's unique assembly syntax.
 8.  [**Concurrency Orchestration**](./go-internals/concurrency-deep-dive/README.md) - `errgroup`, `sync.Pool`, and Load Shedding.
+9.  [**Production Go**](./go-internals/production-go/README.md) - HTTP timeouts, pprof profiling, escape analysis, `sync/atomic`, lock-free patterns, graceful shutdown.
+10. [**Testing Patterns**](./go-internals/testing-patterns/README.md) - Table-driven tests, mocks, testcontainers-go, benchmarks, fuzz testing.
+11. [**Module Patterns**](./go-internals/module-patterns/README.md) - `go.work` workspaces, `internal/` packages, `replace` directives, monorepo strategies.
 
 ---
 
@@ -27,6 +30,9 @@ Welcome to the deep-dive series. This guide is organized sequentially to take yo
 4.  [**Data Access Object (DAO) & Repository**](./design-patterns/dao/README.md) - Layering business logic to swap databases (MySQL vs. MongoDB) seamlessly.
 5.  [**Industry-Standard Patterns**](./design-patterns/industry-patterns/README.md) - Middleware, Strategy, and Circuit Breakers.
 6.  [**Engineering Best Practices**](./design-patterns/additional-patterns/README.md) - Dependency Injection, Observer, and Factory patterns.
+7.  [**Concurrency Patterns**](./design-patterns/concurrency-patterns/README.md) - Pipeline, fan-out/fan-in, and context propagation.
+8.  [**The Twelve-Factor App**](./design-patterns/twelve-factor/README.md) - Cloud-native principles applied to Go: env config, stateless processes, port binding, disposability.
+9.  [**API Design**](./design-patterns/api-design/README.md) - REST best practices, versioning, pagination (cursor vs offset), error responses (RFC 7807), OpenAPI.
 
 ---
 
@@ -40,6 +46,19 @@ Welcome to the deep-dive series. This guide is organized sequentially to take yo
 5.  [**Rate Limiting Deep Dive**](./system-design/rate-limiting-deep-dive/README.md) - Implementing Token Buckets, Leaky Buckets, and Sliding Windows.
 6.  [**High-Throughput Architecture**](./system-design/high-throughput-systems/README.md) - Sharding, CQRS, WAL, and Batching.
 7.  [**Go for Platform Ops & SRE**](./system-design/platform-ops/README.md) - Kubernetes Operators, System Signals, and Prometheus Observability.
+8.  [**Database Internals**](./system-design/database-internals/README.md) - B-tree, LSM-tree storage engines, query optimization, connection pooling, sharding strategies.
+9.  [**CI/CD for Go Services**](./system-design/cicd/README.md) - Multi-stage Docker, GitHub Actions, semantic versioning, GoReleaser, deployment strategies.
+10. [**Observability Guide**](./system-design/observability-guide/README.md) - Structured logging with `slog`, trace ID propagation, Prometheus metrics, log levels.
+11. [**Networking Fundamentals**](./system-design/networking/README.md) - DNS resolution, TCP/TLS handshakes, HTTP/2 multiplexing, mTLS certificate rotation.
+12. [**Incident Response & SRE**](./system-design/incident-response/README.md) - SLI/SLO/SLA, error budgets, burn rate alerts, runbook templates, on-call practices.
+13. [**Database Migrations**](./system-design/database-migrations/README.md) - Zero-downtime schema changes, expand-contract pattern, golang-migrate.
+14. [**Backpressure & Flow Control**](./system-design/backpressure/README.md) - Adaptive load shedding, bounded channels, semaphores, AIMD, context timeouts.
+15. [**Auth Deep Dive**](./system-design/auth-deep-dive/README.md) - OAuth2 flows, PKCE, JWT best practices, refresh token rotation, session management.
+16. [**Message Queue Patterns**](./system-design/message-queue-patterns/README.md) - Kafka vs NATS vs SQS vs RabbitMQ, ordering, exactly-once, DLQ, backpressure.
+17. [**Capacity Planning**](./system-design/capacity-planning/README.md) - Back-of-envelope calculations, Little's Law, QPS/storage/bandwidth estimation.
+18. [**Consistency Models**](./system-design/consistency-models/README.md) - Strong vs eventual vs causal, linearizability, quorum reads/writes, CAP theorem.
+19. [**Terraform Basics**](./system-design/terraform-basics/README.md) - Module structure, remote state, workspaces, lifecycle rules, deploying Go services.
+20. [**Helm Charts**](./system-design/helm-charts/README.md) - Chart anatomy, values, Go templates, environment overrides, CI/CD integration.
 
 ---
 

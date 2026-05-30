@@ -20,6 +20,9 @@ graph LR
     H --> S[09-task-scheduler\ncron + HTTP API]
     R & C & M & S --> U[10-url-shortener\ncapstone]
     R & L --> G[11-api-gateway\nchi · JWT · ReverseProxy]
+    C --> CH[12-consistent-hash\nvirtual nodes · ring]
+    C --> BF[13-bloom-filter\nprobabilistic DS]
+    CH --> CRDT[14-crdt\neventual consistency]
 ```
 
 ---
@@ -39,6 +42,9 @@ graph LR
 | 09 | [`09-task-scheduler`](./09-task-scheduler/) | Cron-like task scheduler | Cron parser, tick loop, HTTP API |
 | 10 | [`10-url-shortener`](./10-url-shortener/) | URL shortener (capstone) | Integrates 04 + 07 + 06 + 09 |
 | 11 | [`11-api-gateway`](./11-api-gateway/) | Edge API Gateway (JWT auth, rate limiting, reverse proxy) | `go-chi/chi` middleware composability, HS256 JWT, `httputil.ReverseProxy` Director, `context.Context` identity propagation, `replace` directive |
+| 12 | [`12-consistent-hash`](./12-consistent-hash/) | Consistent hashing ring | Virtual nodes, crc32, binary search, minimal redistribution |
+| 13 | [`13-bloom-filter`](./13-bloom-filter/) | Bloom filter + HyperLogLog | Probabilistic membership, cardinality estimation, false positive rates |
+| 14 | [`14-crdt`](./14-crdt/) | Conflict-Free Replicated Data Types | G-Counter, PN-Counter, LWW-Register, eventual consistency |
 
 ---
 

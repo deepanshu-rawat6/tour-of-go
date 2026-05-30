@@ -30,6 +30,8 @@ graph TD
     INTERNALS --> FS[from-scratch/\nTCP → HTTP → WS → cache → URL shortener]
     P4 --> P19[idempotent-payments\nIdempotency keys · SELECT FOR UPDATE · pgx]
     P4 --> P20[triage-engine\nLangGraph-equiv · pgvector RAG · HITL · testcontainers]
+    P4 --> P21[saga-orchestrator\nSaga pattern · compensation · choreography]
+    P4 --> P22[event-sourced-ledger\nEvent sourcing · CQRS · projections]
 ```
 
 ---
@@ -58,6 +60,8 @@ graph TD
 | 18 | [`rabbitmq-worker`](./rabbitmq-worker/) | RabbitMQ task worker system | AMQP, durable queues, DLX, prefetch/QoS, manual ack, graceful shutdown |
 | 19 | [`idempotent-payments`](./idempotent-payments/) | Mock payment API with double-charge prevention | Idempotency keys, HTTP middleware, `SELECT ... FOR UPDATE`, ACID transactions, pgx, hexagonal architecture |
 | 20 | [`triage-engine`](./triage-engine/) | Stateful support ticket triage engine with HITL | LangGraph-equivalent state machine, pgvector RAG, OpenAI, state persistence (JSONB), testcontainers-go |
+| 21 | [`saga-orchestrator`](./saga-orchestrator/) | Distributed transaction orchestrator | Saga pattern, compensating transactions, choreography vs orchestration, state machine |
+| 22 | [`event-sourced-ledger`](./event-sourced-ledger/) | Financial ledger with event sourcing | Event store, CQRS, projections, optimistic concurrency, aggregate pattern |
 
 ### From Scratch Series
 
@@ -73,6 +77,10 @@ graph TD
 | FS-08 | [`from-scratch/08-log-aggregator`](./from-scratch/08-log-aggregator/) | Log tail → ship → aggregate → query | File tailer, TCP shipper, in-memory store, HTTP search |
 | FS-09 | [`from-scratch/09-task-scheduler`](./from-scratch/09-task-scheduler/) | Cron-like task scheduler | Cron parser, tick loop, HTTP API |
 | FS-10 | [`from-scratch/10-url-shortener`](./from-scratch/10-url-shortener/) | URL shortener (capstone) | Integrates FS-04 + FS-07 + FS-06 + FS-09 |
+| FS-11 | [`from-scratch/11-api-gateway`](./from-scratch/11-api-gateway/) | Edge API Gateway | chi middleware, JWT, ReverseProxy, context propagation |
+| FS-12 | [`from-scratch/12-consistent-hash`](./from-scratch/12-consistent-hash/) | Consistent hashing ring | Virtual nodes, crc32, binary search, minimal redistribution |
+| FS-13 | [`from-scratch/13-bloom-filter`](./from-scratch/13-bloom-filter/) | Bloom filter + HyperLogLog | Probabilistic membership, cardinality estimation |
+| FS-14 | [`from-scratch/14-crdt`](./from-scratch/14-crdt/) | CRDTs | G-Counter, PN-Counter, LWW-Register, eventual consistency |
 
 ---
 
