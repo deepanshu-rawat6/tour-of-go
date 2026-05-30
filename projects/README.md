@@ -38,49 +38,49 @@ graph TD
 
 ## Project Index
 
-| # | Project | What you build | Key concepts |
-|---|---------|---------------|--------------|
-| 1 | [`grpc-service`](./grpc-service/) | gRPC server + client | Protobuf, unary RPC, server streaming |
-| 2 | [`otel-tracing`](./otel-tracing/) | Distributed tracing across 2 HTTP services | OpenTelemetry, trace propagation, spans |
-| 3 | [`k8s-controller`](./k8s-controller/) | Kubernetes operator (CRD + controller) | controller-runtime, reconciliation loop, CRDs |
-| 4 | [`distributed-scheduler`](./distributed-scheduler/) | Production distributed job scheduler | Redis lease, concurrency manager, Bleve search, state machine |
-| 5 | [`event-driven-pipeline`](./event-driven-pipeline/) | Event processing pipeline | NATS JetStream, exactly-once, circuit breaker, DLQ |
-| 6 | [`service-mesh-sidecar`](./service-mesh-sidecar/) | TCP proxy sidecar | Connection pooling, token bucket, circuit breaking, Prometheus |
-| 7 | [`realtime-dashboard`](./realtime-dashboard/) | Live ops dashboard | HTMX, WebSocket, html/template, server-rendered UI |
-| 8 | [`platform-console`](./platform-console/) | K8s resource browser | html/template, Tailwind, SSE, client-go dynamic client |
-| 9 | [`cli-tui`](./cli-tui/) | Terminal dashboard | Bubble Tea, lipgloss, Elm architecture, TUI |
-| 10 | [`aws-resource-reaper`](./aws-resource-reaper/) | Concurrent FinOps CLI | AWS SDK v2, STS AssumeRole, errgroup + semaphore, log/slog |
-| 11 | [`gocker`](./gocker/) | Mini container runtime | Linux namespaces, OverlayFS, cgroups v1/v2, OCI pull, chroot |
-| 12 | [`tf-drift-detector`](./tf-drift-detector/) | Terraform drift detection daemon | errgroup, sync.Mutex, time.Ticker, stateful tracker, webhooks |
-| 13 | [`raft-kv-store`](./raft-kv-store/) | Distributed KV store via Raft | Leader election, log replication, WAL, gRPC, quorum commit |
-| 14 | [`xdp-firewall`](./xdp-firewall/) | Kernel-level XDP packet filter | eBPF LPM trie, XDP_DROP, PERCPU_ARRAY, hexagonal architecture |
-| 15 | [`k8s-event-sink`](./k8s-event-sink/) | Kubernetes event vacuum daemon | SharedIndexInformer, leaky bucket dedup, SQLite, Bleve, Slack |
-| 16 | [`secure-api`](./secure-api/) | JWT + OAuth2 + mTLS HTTP API | SOLID principles, TDD, immutable value objects, JWT, bcrypt, mTLS |
-| 17 | [`cache-service`](./cache-service/) | In-memory + Redis caching layer | LRU eviction, TTL reaper, cache-aside, write-through, singleflight |
-| 18 | [`rabbitmq-worker`](./rabbitmq-worker/) | RabbitMQ task worker system | AMQP, durable queues, DLX, prefetch/QoS, manual ack, graceful shutdown |
-| 19 | [`idempotent-payments`](./idempotent-payments/) | Mock payment API with double-charge prevention | Idempotency keys, HTTP middleware, `SELECT ... FOR UPDATE`, ACID transactions, pgx, hexagonal architecture |
-| 20 | [`triage-engine`](./triage-engine/) | Stateful support ticket triage engine with HITL | LangGraph-equivalent state machine, pgvector RAG, OpenAI, state persistence (JSONB), testcontainers-go |
-| 21 | [`saga-orchestrator`](./saga-orchestrator/) | Distributed transaction orchestrator | Saga pattern, compensating transactions, choreography vs orchestration, state machine |
-| 22 | [`event-sourced-ledger`](./event-sourced-ledger/) | Financial ledger with event sourcing | Event store, CQRS, projections, optimistic concurrency, aggregate pattern |
+| # | Project | Level | What you build | Key concepts |
+|---|---------|-------|---------------|--------------|
+| 1 | [`grpc-service`](./grpc-service/) | `SDE-1` | gRPC server + client | Protobuf, unary RPC, server streaming |
+| 2 | [`otel-tracing`](./otel-tracing/) | `SDE-1` | Distributed tracing across 2 HTTP services | OpenTelemetry, trace propagation, spans |
+| 3 | [`k8s-controller`](./k8s-controller/) | `SDE-2` | Kubernetes operator (CRD + controller) | controller-runtime, reconciliation loop, CRDs |
+| 4 | [`distributed-scheduler`](./distributed-scheduler/) | `SDE-2` | Production distributed job scheduler | Redis lease, concurrency manager, Bleve search, state machine |
+| 5 | [`event-driven-pipeline`](./event-driven-pipeline/) | `SDE-2` | Event processing pipeline | NATS JetStream, exactly-once, circuit breaker, DLQ |
+| 6 | [`service-mesh-sidecar`](./service-mesh-sidecar/) | `SDE-2` | TCP proxy sidecar | Connection pooling, token bucket, circuit breaking, Prometheus |
+| 7 | [`realtime-dashboard`](./realtime-dashboard/) | `SDE-1` | Live ops dashboard | HTMX, WebSocket, html/template, server-rendered UI |
+| 8 | [`platform-console`](./platform-console/) | `SDE-2` | K8s resource browser | html/template, Tailwind, SSE, client-go dynamic client |
+| 9 | [`cli-tui`](./cli-tui/) | `SDE-1` | Terminal dashboard | Bubble Tea, lipgloss, Elm architecture, TUI |
+| 10 | [`aws-resource-reaper`](./aws-resource-reaper/) | `SDE-1` | Concurrent FinOps CLI | AWS SDK v2, STS AssumeRole, errgroup + semaphore, log/slog |
+| 11 | [`gocker`](./gocker/) | `SDE-2` | Mini container runtime | Linux namespaces, OverlayFS, cgroups v1/v2, OCI pull, chroot |
+| 12 | [`tf-drift-detector`](./tf-drift-detector/) | `SDE-2` | Terraform drift detection daemon | errgroup, sync.Mutex, time.Ticker, stateful tracker, webhooks |
+| 13 | [`raft-kv-store`](./raft-kv-store/) | `SDE-2` | Distributed KV store via Raft | Leader election, log replication, WAL, gRPC, quorum commit |
+| 14 | [`xdp-firewall`](./xdp-firewall/) | `SDE-2` | Kernel-level XDP packet filter | eBPF LPM trie, XDP_DROP, PERCPU_ARRAY, hexagonal architecture |
+| 15 | [`k8s-event-sink`](./k8s-event-sink/) | `SDE-2` | Kubernetes event vacuum daemon | SharedIndexInformer, leaky bucket dedup, SQLite, Bleve, Slack |
+| 16 | [`secure-api`](./secure-api/) | `SDE-1` | JWT + OAuth2 + mTLS HTTP API | SOLID principles, TDD, immutable value objects, JWT, bcrypt, mTLS |
+| 17 | [`cache-service`](./cache-service/) | `SDE-1` | In-memory + Redis caching layer | LRU eviction, TTL reaper, cache-aside, write-through, singleflight |
+| 18 | [`rabbitmq-worker`](./rabbitmq-worker/) | `SDE-1` | RabbitMQ task worker system | AMQP, durable queues, DLX, prefetch/QoS, manual ack, graceful shutdown |
+| 19 | [`idempotent-payments`](./idempotent-payments/) | `SDE-1` | Mock payment API with double-charge prevention | Idempotency keys, HTTP middleware, `SELECT ... FOR UPDATE`, ACID transactions, pgx, hexagonal architecture |
+| 20 | [`triage-engine`](./triage-engine/) | `SDE-2` | Stateful support ticket triage engine with HITL | LangGraph-equivalent state machine, pgvector RAG, OpenAI, state persistence (JSONB), testcontainers-go |
+| 21 | [`saga-orchestrator`](./saga-orchestrator/) | `SDE-2` | Distributed transaction orchestrator | Saga pattern, compensating transactions, choreography vs orchestration, state machine |
+| 22 | [`event-sourced-ledger`](./event-sourced-ledger/) | `SDE-2` | Financial ledger with event sourcing | Event store, CQRS, projections, optimistic concurrency, aggregate pattern |
 
 ### From Scratch Series
 
-| # | Project | What you build | Key concepts |
-|---|---------|---------------|--------------|
-| FS-01 | [`from-scratch/01-tcp-server`](./from-scratch/01-tcp-server/) | Raw TCP echo server | `net.Listener`, goroutine-per-conn, `io.Copy` |
-| FS-02 | [`from-scratch/02-http-server`](./from-scratch/02-http-server/) | HTTP/1.1 parser on TCP + stdlib | Request line parsing, routing, response writing |
-| FS-03 | [`from-scratch/03-websocket-chat`](./from-scratch/03-websocket-chat/) | Multi-room WebSocket chat | Hub pattern, broadcast, room isolation |
-| FS-04 | [`from-scratch/04-rate-limiter`](./from-scratch/04-rate-limiter/) | All 4 rate limiting algorithms | Token bucket, leaky bucket, fixed window, sliding window |
-| FS-05 | [`from-scratch/05-load-balancer`](./from-scratch/05-load-balancer/) | L7 reverse proxy | Round-robin, least-connections, health checks |
-| FS-06 | [`from-scratch/06-message-queue`](./from-scratch/06-message-queue/) | In-memory pub/sub + TCP server | Broker, topics, fan-out, custom text protocol |
-| FS-07 | [`from-scratch/07-distributed-cache`](./from-scratch/07-distributed-cache/) | Redis-compatible KV store | RESP protocol, TTL eviction, `redis-cli` compatible |
-| FS-08 | [`from-scratch/08-log-aggregator`](./from-scratch/08-log-aggregator/) | Log tail → ship → aggregate → query | File tailer, TCP shipper, in-memory store, HTTP search |
-| FS-09 | [`from-scratch/09-task-scheduler`](./from-scratch/09-task-scheduler/) | Cron-like task scheduler | Cron parser, tick loop, HTTP API |
-| FS-10 | [`from-scratch/10-url-shortener`](./from-scratch/10-url-shortener/) | URL shortener (capstone) | Integrates FS-04 + FS-07 + FS-06 + FS-09 |
-| FS-11 | [`from-scratch/11-api-gateway`](./from-scratch/11-api-gateway/) | Edge API Gateway | chi middleware, JWT, ReverseProxy, context propagation |
-| FS-12 | [`from-scratch/12-consistent-hash`](./from-scratch/12-consistent-hash/) | Consistent hashing ring | Virtual nodes, crc32, binary search, minimal redistribution |
-| FS-13 | [`from-scratch/13-bloom-filter`](./from-scratch/13-bloom-filter/) | Bloom filter + HyperLogLog | Probabilistic membership, cardinality estimation |
-| FS-14 | [`from-scratch/14-crdt`](./from-scratch/14-crdt/) | CRDTs | G-Counter, PN-Counter, LWW-Register, eventual consistency |
+| # | Project | Level | What you build | Key concepts |
+|---|---------|-------|---------------|--------------|
+| FS-01 | [`from-scratch/01-tcp-server`](./from-scratch/01-tcp-server/) | `SDE-1` | Raw TCP echo server | `net.Listener`, goroutine-per-conn, `io.Copy` |
+| FS-02 | [`from-scratch/02-http-server`](./from-scratch/02-http-server/) | `SDE-1` | HTTP/1.1 parser on TCP + stdlib | Request line parsing, routing, response writing |
+| FS-03 | [`from-scratch/03-websocket-chat`](./from-scratch/03-websocket-chat/) | `SDE-1` | Multi-room WebSocket chat | Hub pattern, broadcast, room isolation |
+| FS-04 | [`from-scratch/04-rate-limiter`](./from-scratch/04-rate-limiter/) | `SDE-1` | All 4 rate limiting algorithms | Token bucket, leaky bucket, fixed window, sliding window |
+| FS-05 | [`from-scratch/05-load-balancer`](./from-scratch/05-load-balancer/) | `SDE-1` | L7 reverse proxy | Round-robin, least-connections, health checks |
+| FS-06 | [`from-scratch/06-message-queue`](./from-scratch/06-message-queue/) | `SDE-1` | In-memory pub/sub + TCP server | Broker, topics, fan-out, custom text protocol |
+| FS-07 | [`from-scratch/07-distributed-cache`](./from-scratch/07-distributed-cache/) | `SDE-1` | Redis-compatible KV store | RESP protocol, TTL eviction, `redis-cli` compatible |
+| FS-08 | [`from-scratch/08-log-aggregator`](./from-scratch/08-log-aggregator/) | `SDE-1` | Log tail → ship → aggregate → query | File tailer, TCP shipper, in-memory store, HTTP search |
+| FS-09 | [`from-scratch/09-task-scheduler`](./from-scratch/09-task-scheduler/) | `SDE-1` | Cron-like task scheduler | Cron parser, tick loop, HTTP API |
+| FS-10 | [`from-scratch/10-url-shortener`](./from-scratch/10-url-shortener/) | `SDE-1` | URL shortener (capstone) | Integrates FS-04 + FS-07 + FS-06 + FS-09 |
+| FS-11 | [`from-scratch/11-api-gateway`](./from-scratch/11-api-gateway/) | `SDE-1` | Edge API Gateway | chi middleware, JWT, ReverseProxy, context propagation |
+| FS-12 | [`from-scratch/12-consistent-hash`](./from-scratch/12-consistent-hash/) | `SDE-2` | Consistent hashing ring | Virtual nodes, crc32, binary search, minimal redistribution |
+| FS-13 | [`from-scratch/13-bloom-filter`](./from-scratch/13-bloom-filter/) | `SDE-2` | Bloom filter + HyperLogLog | Probabilistic membership, cardinality estimation |
+| FS-14 | [`from-scratch/14-crdt`](./from-scratch/14-crdt/) | `SDE-2` | CRDTs | G-Counter, PN-Counter, LWW-Register, eventual consistency |
 
 ---
 

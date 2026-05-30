@@ -29,22 +29,22 @@ graph LR
 
 ## Projects
 
-| # | Project | What you build | Key concepts |
-|---|---------|---------------|--------------|
-| 01 | [`01-tcp-server`](./01-tcp-server/) | Raw TCP echo server | `net.Listener`, goroutine-per-conn, `io.Copy` |
-| 02 | [`02-http-server`](./02-http-server/) | HTTP/1.1 parser on TCP + stdlib comparison | Request line parsing, routing, response writing |
-| 03 | [`03-websocket-chat`](./03-websocket-chat/) | Multi-room chat server | Hub pattern, broadcast, gorilla/websocket |
-| 04 | [`04-rate-limiter`](./04-rate-limiter/) | All 4 rate limiting algorithms | Token bucket, leaky bucket, fixed window, sliding window |
-| 05 | [`05-load-balancer`](./05-load-balancer/) | L7 reverse proxy | Round-robin, least-connections, health checks |
-| 06 | [`06-message-queue`](./06-message-queue/) | In-memory pub/sub + TCP server | Broker, topics, fan-out, custom protocol |
-| 07 | [`07-distributed-cache`](./07-distributed-cache/) | Redis-compatible KV store | RESP protocol, TTL eviction, `redis-cli` compatible |
-| 08 | [`08-log-aggregator`](./08-log-aggregator/) | Log tail → ship → aggregate → query | File tailer, TCP shipper, in-memory store, HTTP search |
-| 09 | [`09-task-scheduler`](./09-task-scheduler/) | Cron-like task scheduler | Cron parser, tick loop, HTTP API |
-| 10 | [`10-url-shortener`](./10-url-shortener/) | URL shortener (capstone) | Integrates 04 + 07 + 06 + 09 |
-| 11 | [`11-api-gateway`](./11-api-gateway/) | Edge API Gateway (JWT auth, rate limiting, reverse proxy) | `go-chi/chi` middleware composability, HS256 JWT, `httputil.ReverseProxy` Director, `context.Context` identity propagation, `replace` directive |
-| 12 | [`12-consistent-hash`](./12-consistent-hash/) | Consistent hashing ring | Virtual nodes, crc32, binary search, minimal redistribution |
-| 13 | [`13-bloom-filter`](./13-bloom-filter/) | Bloom filter + HyperLogLog | Probabilistic membership, cardinality estimation, false positive rates |
-| 14 | [`14-crdt`](./14-crdt/) | Conflict-Free Replicated Data Types | G-Counter, PN-Counter, LWW-Register, eventual consistency |
+| # | Project | Level | What you build | Key concepts |
+|---|---------|-------|---------------|--------------|
+| 01 | [`01-tcp-server`](./01-tcp-server/) | `SDE-1` | Raw TCP echo server | `net.Listener`, goroutine-per-conn, `io.Copy` |
+| 02 | [`02-http-server`](./02-http-server/) | `SDE-1` | HTTP/1.1 parser on TCP + stdlib comparison | Request line parsing, routing, response writing |
+| 03 | [`03-websocket-chat`](./03-websocket-chat/) | `SDE-1` | Multi-room chat server | Hub pattern, broadcast, gorilla/websocket |
+| 04 | [`04-rate-limiter`](./04-rate-limiter/) | `SDE-1` | All 4 rate limiting algorithms | Token bucket, leaky bucket, fixed window, sliding window |
+| 05 | [`05-load-balancer`](./05-load-balancer/) | `SDE-1` | L7 reverse proxy | Round-robin, least-connections, health checks |
+| 06 | [`06-message-queue`](./06-message-queue/) | `SDE-1` | In-memory pub/sub + TCP server | Broker, topics, fan-out, custom protocol |
+| 07 | [`07-distributed-cache`](./07-distributed-cache/) | `SDE-1` | Redis-compatible KV store | RESP protocol, TTL eviction, `redis-cli` compatible |
+| 08 | [`08-log-aggregator`](./08-log-aggregator/) | `SDE-1` | Log tail → ship → aggregate → query | File tailer, TCP shipper, in-memory store, HTTP search |
+| 09 | [`09-task-scheduler`](./09-task-scheduler/) | `SDE-1` | Cron-like task scheduler | Cron parser, tick loop, HTTP API |
+| 10 | [`10-url-shortener`](./10-url-shortener/) | `SDE-1` | URL shortener (capstone) | Integrates 04 + 07 + 06 + 09 |
+| 11 | [`11-api-gateway`](./11-api-gateway/) | `SDE-1` | Edge API Gateway (JWT auth, rate limiting, reverse proxy) | `go-chi/chi` middleware composability, HS256 JWT, `httputil.ReverseProxy` Director, `context.Context` identity propagation, `replace` directive |
+| 12 | [`12-consistent-hash`](./12-consistent-hash/) | `SDE-2` | Consistent hashing ring | Virtual nodes, crc32, binary search, minimal redistribution |
+| 13 | [`13-bloom-filter`](./13-bloom-filter/) | `SDE-2` | Bloom filter + HyperLogLog | Probabilistic membership, cardinality estimation, false positive rates |
+| 14 | [`14-crdt`](./14-crdt/) | `SDE-2` | Conflict-Free Replicated Data Types | G-Counter, PN-Counter, LWW-Register, eventual consistency |
 
 ---
 
