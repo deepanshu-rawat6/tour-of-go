@@ -6,7 +6,7 @@ A raw TCP echo server built with Go's `net` package — no `net/http`, no framew
 
 ```mermaid
 graph TD
-    C1[Client 1] -->|TCP connect| LN[net.Listener\n:9000]
+    C1[Client 1] -->|TCP connect| LN[net.Listener\n:8080]
     C2[Client 2] --> LN
     C3[Client N] --> LN
     LN -->|Accept| G1[goroutine\nio.Copy conn→conn]
@@ -27,7 +27,7 @@ graph TD
 ## Quick Start
 
 ```bash
-make run-server   # starts echo server on :9000
+make run-server   # starts echo server on :8080
 make run-client   # connects and sends "hello, tcp-server!"
 make test         # runs tests with -race
 ```

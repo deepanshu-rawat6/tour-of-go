@@ -1,4 +1,4 @@
-// Command server starts a raw TCP echo server on :9000.
+// Command server starts a raw TCP echo server on :8080.
 package main
 
 import (
@@ -7,6 +7,6 @@ import (
 )
 
 func main() {
-	s := server.New(":9000")
+	s := server.New(":8080")
 	log.Fatal(s.Start())
 }

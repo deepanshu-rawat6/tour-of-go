@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	addr := ":9000"
+	addr := ":8080"
 	if len(os.Args) > 1 {
 		addr = os.Args[1]
 	}

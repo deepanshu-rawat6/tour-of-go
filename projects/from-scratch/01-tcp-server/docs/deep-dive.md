@@ -25,7 +25,7 @@ The server's core is an infinite loop that blocks on `ln.Accept()` until a clien
 
 ```mermaid
 graph TD
-    BIND[net.Listen\nbind :9000] --> LOOP[Accept loop]
+    BIND[net.Listen\nbind :8080] --> LOOP[Accept loop]
     LOOP -->|blocks until client connects| ACCEPT[ln.Accept\nreturns net.Conn]
     ACCEPT --> GOROUTINE[go handle conn\nnew goroutine per connection]
     GOROUTINE --> LOOP
