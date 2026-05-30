@@ -52,32 +52,34 @@ graph TD
 ## 🟢 Phase 1: Go Internals & Runtime Mechanics
 *Understand the language "magic" and avoid common pitfalls.*
 
-1.  [**Go Quirks & Twisters**](./go-internals/quirks/README.md) - Nil interfaces, variable shadowing, and slice capacity traps.
-2.  [**Deep Dive into `defer`**](./go-internals/defer/README.md) - Rules of defer, LIFO execution, and resource cleanup.
-3.  [**Interface Memory Layout**](./go-internals/interfaces/README.md) - Detailed look at `itab` and data pointers; understanding the cost of abstraction.
-4.  [**Expert Runtime Deep Dive**](./go-internals/expert-deep-dive/README.md) - G-M-P Scheduler, Tricolor GC, Netpoller, and CPU Cache lines.
-5.  [**Reflection & Type Systems**](./go-internals/reflection/README.md) - Using `reflect` and `unsafe` for generic libraries and ORMs.
-6.  [**cgo & FFI (Foreign Function Interface)**](./go-internals/cgo/README.md) - The cost of calling C code and overhead in drivers (sqlite3, networking).
-7.  [**Assembly in Go (Plan9)**](./go-internals/assembly/README.md) - Talking directly to the CPU with Go's unique assembly syntax.
-8.  [**Concurrency Orchestration**](./go-internals/concurrency-deep-dive/README.md) - `errgroup`, `sync.Pool`, and Load Shedding.
-9.  [**Production Go**](./go-internals/production-go/README.md) - HTTP timeouts, pprof profiling, escape analysis, `sync/atomic`, lock-free patterns, graceful shutdown.
-10. [**Testing Patterns**](./go-internals/testing-patterns/README.md) - Table-driven tests, mocks, testcontainers-go, benchmarks, fuzz testing.
-11. [**Module Patterns**](./go-internals/module-patterns/README.md) - `go.work` workspaces, `internal/` packages, `replace` directives, monorepo strategies.
+> 🏷️ `SDE-1` = expected at SDE-1 level | `SDE-2` = expected at SDE-2 / senior level
+
+1.  `SDE-1` [**Go Quirks & Twisters**](./go-internals/quirks/README.md) - Nil interfaces, variable shadowing, and slice capacity traps.
+2.  `SDE-1` [**Deep Dive into `defer`**](./go-internals/defer/README.md) - Rules of defer, LIFO execution, and resource cleanup.
+3.  `SDE-2` [**Interface Memory Layout**](./go-internals/interfaces/README.md) - Detailed look at `itab` and data pointers; understanding the cost of abstraction.
+4.  `SDE-2` [**Expert Runtime Deep Dive**](./go-internals/expert-deep-dive/README.md) - G-M-P Scheduler, Tricolor GC, Netpoller, and CPU Cache lines.
+5.  `SDE-2` [**Reflection & Type Systems**](./go-internals/reflection/README.md) - Using `reflect` and `unsafe` for generic libraries and ORMs.
+6.  `SDE-2` [**cgo & FFI (Foreign Function Interface)**](./go-internals/cgo/README.md) - The cost of calling C code and overhead in drivers (sqlite3, networking).
+7.  `SDE-2` [**Assembly in Go (Plan9)**](./go-internals/assembly/README.md) - Talking directly to the CPU with Go's unique assembly syntax.
+8.  `SDE-1` [**Concurrency Orchestration**](./go-internals/concurrency-deep-dive/README.md) - `errgroup`, `sync.Pool`, and Load Shedding.
+9.  `SDE-1` [**Production Go**](./go-internals/production-go/README.md) - HTTP timeouts, pprof profiling, escape analysis, `sync/atomic`, lock-free patterns, graceful shutdown.
+10. `SDE-1` [**Testing Patterns**](./go-internals/testing-patterns/README.md) - Table-driven tests, mocks, testcontainers-go, benchmarks, fuzz testing.
+11. `SDE-1` [**Module Patterns**](./go-internals/module-patterns/README.md) - `go.work` workspaces, `internal/` packages, `replace` directives, monorepo strategies.
 
 ---
 
 ## 🔵 Phase 2: Idiomatic Design Patterns
 *Learn to write clean, testable, and maintainable Go code.*
 
-1.  [**Basic Go Patterns**](./design-patterns/patterns/README.md) - Functional Options, Generators, and Worker Pools.
-2.  [**Error Handling Mastery**](./design-patterns/error-handling/README.md) - Beyond `if err != nil`; using `errors.Is`/`As` and carrying "Platform Context" (Retryable vs. Fatal).
-3.  [**Plugin Architecture**](./design-patterns/plugins/README.md) - Using `hashicorp/go-plugin` (RPC) or WASM for extensible systems.
-4.  [**Data Access Object (DAO) & Repository**](./design-patterns/dao/README.md) - Layering business logic to swap databases (MySQL vs. MongoDB) seamlessly.
-5.  [**Industry-Standard Patterns**](./design-patterns/industry-patterns/README.md) - Middleware, Strategy, and Circuit Breakers.
-6.  [**Engineering Best Practices**](./design-patterns/additional-patterns/README.md) - Dependency Injection, Observer, and Factory patterns.
-7.  [**Concurrency Patterns**](./design-patterns/concurrency-patterns/README.md) - Pipeline, fan-out/fan-in, and context propagation.
-8.  [**The Twelve-Factor App**](./design-patterns/twelve-factor/README.md) - Cloud-native principles applied to Go: env config, stateless processes, port binding, disposability.
-9.  [**API Design**](./design-patterns/api-design/README.md) - REST best practices, versioning, pagination (cursor vs offset), error responses (RFC 7807), OpenAPI.
+1.  `SDE-1` [**Basic Go Patterns**](./design-patterns/patterns/README.md) - Functional Options, Generators, and Worker Pools.
+2.  `SDE-1` [**Error Handling Mastery**](./design-patterns/error-handling/README.md) - Beyond `if err != nil`; using `errors.Is`/`As` and carrying "Platform Context" (Retryable vs. Fatal).
+3.  `SDE-2` [**Plugin Architecture**](./design-patterns/plugins/README.md) - Using `hashicorp/go-plugin` (RPC) or WASM for extensible systems.
+4.  `SDE-1` [**Data Access Object (DAO) & Repository**](./design-patterns/dao/README.md) - Layering business logic to swap databases (MySQL vs. MongoDB) seamlessly.
+5.  `SDE-1` [**Industry-Standard Patterns**](./design-patterns/industry-patterns/README.md) - Middleware, Strategy, and Circuit Breakers.
+6.  `SDE-1` [**Engineering Best Practices**](./design-patterns/additional-patterns/README.md) - Dependency Injection, Observer, and Factory patterns.
+7.  `SDE-2` [**Concurrency Patterns**](./design-patterns/concurrency-patterns/README.md) - Pipeline, fan-out/fan-in, and context propagation.
+8.  `SDE-1` [**The Twelve-Factor App**](./design-patterns/twelve-factor/README.md) - Cloud-native principles applied to Go: env config, stateless processes, port binding, disposability.
+9.  `SDE-1` [**API Design**](./design-patterns/api-design/README.md) - REST best practices, versioning, pagination (cursor vs offset), error responses (RFC 7807), OpenAPI.
 
 ---
 
@@ -86,38 +88,48 @@ graph TD
 
 **Fundamentals (start here):**
 
-1.  [**Networking Fundamentals**](./system-design/networking/README.md) - DNS resolution, TCP/TLS handshakes, HTTP/2 multiplexing, mTLS certificate rotation.
-2.  [**Consistency Models**](./system-design/consistency-models/README.md) - Strong vs eventual vs causal, linearizability, quorum reads/writes, CAP theorem.
-3.  [**Database Internals**](./system-design/database-internals/README.md) - B-tree, LSM-tree storage engines, query optimization, connection pooling, sharding strategies.
-4.  [**Database Migrations**](./system-design/database-migrations/README.md) - Zero-downtime schema changes, expand-contract pattern, golang-migrate.
-5.  [**Auth Deep Dive**](./system-design/auth-deep-dive/README.md) - OAuth2 flows, PKCE, JWT best practices, refresh token rotation, session management.
-6.  [**Message Queue Patterns**](./system-design/message-queue-patterns/README.md) - Kafka vs NATS vs SQS vs RabbitMQ, ordering, exactly-once, DLQ, backpressure.
-7.  [**Capacity Planning**](./system-design/capacity-planning/README.md) - Back-of-envelope calculations, Little's Law, QPS/storage/bandwidth estimation.
+1.  `SDE-1` [**Networking Fundamentals**](./system-design/networking/README.md) - DNS resolution, TCP/TLS handshakes, HTTP/2 multiplexing, mTLS certificate rotation.
+2.  `SDE-2` [**Consistency Models**](./system-design/consistency-models/README.md) - Strong vs eventual vs causal, linearizability, quorum reads/writes, CAP theorem.
+3.  `SDE-2` [**Database Internals**](./system-design/database-internals/README.md) - B-tree, LSM-tree storage engines, query optimization, connection pooling, sharding strategies.
+4.  `SDE-1` [**Database Migrations**](./system-design/database-migrations/README.md) - Zero-downtime schema changes, expand-contract pattern, golang-migrate.
+5.  `SDE-1` [**Auth Deep Dive**](./system-design/auth-deep-dive/README.md) - OAuth2 flows, PKCE, JWT best practices, refresh token rotation, session management.
+6.  `SDE-1` [**Message Queue Patterns**](./system-design/message-queue-patterns/README.md) - Kafka vs NATS vs SQS vs RabbitMQ, ordering, exactly-once, DLQ, backpressure.
+7.  `SDE-2` [**Capacity Planning**](./system-design/capacity-planning/README.md) - Back-of-envelope calculations, Little's Law, QPS/storage/bandwidth estimation.
+8.  `SDE-1` [**SQL vs NoSQL Decision Guide**](./system-design/sql-vs-nosql/README.md) - When to use PostgreSQL, MongoDB, DynamoDB, Redis — data modeling for each.
+9.  `SDE-1` [**Caching Strategies**](./system-design/caching-strategies/README.md) - Cache-aside, write-through, write-behind, invalidation, thundering herd, singleflight.
+10. `SDE-1` [**Real-Time Communication**](./system-design/realtime-communication/README.md) - WebSocket vs SSE vs Long Polling — when to use each, Go implementations.
 
 **Resilience & Performance:**
 
-8.  [**Rate Limiting Deep Dive**](./system-design/rate-limiting-deep-dive/README.md) - Implementing Token Buckets, Leaky Buckets, and Sliding Windows.
-9.  [**Backpressure & Flow Control**](./system-design/backpressure/README.md) - Adaptive load shedding, bounded channels, semaphores, AIMD, context timeouts.
-10. [**High-Throughput Architecture**](./system-design/high-throughput-systems/README.md) - Sharding, CQRS, WAL, and Batching.
-11. [**Zero-Downtime Deployment**](./system-design/zero-downtime/README.md) - Graceful draining, SIGTERM, and K8s Liveness/Readiness probes.
+11. `SDE-1` [**Rate Limiting Deep Dive**](./system-design/rate-limiting-deep-dive/README.md) - Implementing Token Buckets, Leaky Buckets, and Sliding Windows.
+12. `SDE-1` [**Backpressure & Flow Control**](./system-design/backpressure/README.md) - Adaptive load shedding, bounded channels, semaphores, AIMD, context timeouts.
+13. `SDE-2` [**High-Throughput Architecture**](./system-design/high-throughput-systems/README.md) - Sharding, CQRS, WAL, and Batching.
+14. `SDE-1` [**Zero-Downtime Deployment**](./system-design/zero-downtime/README.md) - Graceful draining, SIGTERM, and K8s Liveness/Readiness probes.
+15. `SDE-1` [**Distributed Locking**](./system-design/distributed-locking/README.md) - Redis SETNX, Redlock algorithm, lease-based locks, fencing tokens.
+16. `SDE-2` [**Change Data Capture (CDC)**](./system-design/cdc/README.md) - WAL-based streaming, Debezium, outbox pattern, event propagation without dual-writes.
 
 **Observability & Operations:**
 
-12. [**Observability Guide**](./system-design/observability-guide/README.md) - Structured logging with `slog`, trace ID propagation, Prometheus metrics, log levels.
-13. [**Distributed Tracing (OpenTelemetry)**](./system-design/tracing/README.md) - Propagating Trace IDs across microservices to find bottlenecks.
-14. [**Incident Response & SRE**](./system-design/incident-response/README.md) - SLI/SLO/SLA, error budgets, burn rate alerts, runbook templates, on-call practices.
+17. `SDE-1` [**Observability Guide**](./system-design/observability-guide/README.md) - Structured logging with `slog`, trace ID propagation, Prometheus metrics, log levels.
+18. `SDE-1` [**Distributed Tracing (OpenTelemetry)**](./system-design/tracing/README.md) - Propagating Trace IDs across microservices to find bottlenecks.
+19. `SDE-1` [**Incident Response & SRE**](./system-design/incident-response/README.md) - SLI/SLO/SLA, error budgets, burn rate alerts, runbook templates, on-call practices.
+20. `SDE-2` [**Chaos Engineering**](./system-design/chaos-engineering/README.md) - Fault injection, game days, Litmus, building confidence in system resilience.
 
 **Infrastructure & Deployment:**
 
-15. [**CI/CD for Go Services**](./system-design/cicd/README.md) - Multi-stage Docker, GitHub Actions, semantic versioning, GoReleaser, deployment strategies.
-16. [**Terraform Basics**](./system-design/terraform-basics/README.md) - Module structure, remote state, workspaces, lifecycle rules, deploying Go services.
-17. [**Helm Charts**](./system-design/helm-charts/README.md) - Chart anatomy, values, Go templates, environment overrides, CI/CD integration.
+21. `SDE-1` [**Docker Deep Dive**](./system-design/docker-deep-dive/README.md) - Layer caching, .dockerignore, health checks, docker-compose, debugging containers.
+22. `SDE-1` [**CI/CD for Go Services**](./system-design/cicd/README.md) - Multi-stage Docker, GitHub Actions, semantic versioning, GoReleaser, deployment strategies.
+23. `SDE-1` [**Kubernetes Core Concepts**](./system-design/kubernetes-core/README.md) - Pods, Services, Deployments, ConfigMaps, Secrets, RBAC, NetworkPolicies, HPA.
+24. `SDE-1` [**Terraform Basics**](./system-design/terraform-basics/README.md) - Module structure, remote state, workspaces, lifecycle rules, deploying Go services.
+25. `SDE-1` [**Helm Charts**](./system-design/helm-charts/README.md) - Chart anatomy, values, Go templates, environment overrides, CI/CD integration.
+26. `SDE-2` [**GitOps (ArgoCD / Flux)**](./system-design/gitops/README.md) - Declarative deployment, sync loops, drift detection, image update automation.
+27. `SDE-2` [**Secrets Management**](./system-design/secrets-management/README.md) - HashiCorp Vault, sealed-secrets, External Secrets Operator, dynamic credentials.
 
 **Advanced (distributed systems & kernel):**
 
-18. [**Service Discovery & Gossip Protocols**](./system-design/discovery/README.md) - How nodes find each other without a central DB (Consul/Serf).
-19. [**Go for Platform Ops & SRE**](./system-design/platform-ops/README.md) - Kubernetes Operators, System Signals, and Prometheus Observability.
-20. [**eBPF with Go**](./system-design/ebpf/README.md) - High-performance networking and security probes in the Linux Kernel.
+28. `SDE-2` [**Service Discovery & Gossip Protocols**](./system-design/discovery/README.md) - How nodes find each other without a central DB (Consul/Serf).
+29. `SDE-2` [**Go for Platform Ops & SRE**](./system-design/platform-ops/README.md) - Kubernetes Operators, System Signals, and Prometheus Observability.
+30. `SDE-2` [**eBPF with Go**](./system-design/ebpf/README.md) - High-performance networking and security probes in the Linux Kernel.
 
 ---
 
