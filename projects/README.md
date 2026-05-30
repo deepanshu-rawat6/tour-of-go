@@ -479,3 +479,43 @@ graph TD
 ```
 
 Go-based LangGraph-equivalent workflow engine. State is serialized as JSONB and persisted to PostgreSQL at the `awaitHuman` node — the process can restart between `Start` and `Resume` with no data loss. pgvector stores runbook embeddings for RAG retrieval. Integration tests use testcontainers-go to spin up `pgvector/pgvector:pg16` automatically.
+
+---
+
+### 21. saga-orchestrator
+
+```mermaid
+graph TD
+    API[HTTP API\nPOST /orders] --> ORCH[Saga Orchestrator]
+    ORCH --> SM[State Machine\nstep tracking]
+    SM --> LOG[Saga Log\npersist state]
+    
+    ORCH -->|1| S1[OrderService.Create]
+    ORCH -->|2| S2[PaymentService.Charge]
+    ORCH -->|3| S3[InventoryService.Reserve]
+    ORCH -->|4| S4[ShippingService.Schedule]
+    
+    S3 -->|fail| COMP[Compensator\nreverse order]
+    COMP -->|undo 2| C2[PaymentService.Refund]
+    COMP -->|undo 1| C1[OrderService.Cancel]
+```
+
+Saga pattern orchestrator for distributed transactions. Executes steps sequentially, compensates in reverse on failure. Demonstrates both choreography (event-driven) and orchestration (central coordinator) approaches.
+
+---
+
+### 22. event-sourced-ledger
+
+```mermaid
+graph TD
+    CMD[Command\nDeposit / Transfer] --> AGG[Account Aggregate\nvalidate + emit]
+    AGG --> ES[(Event Store\nappend-only\noptimistic concurrency)]
+    
+    ES --> P1[Balance Projection\naccount → balance]
+    ES --> P2[History Projection\naccount → events]
+    
+    QUERY[Query\nGetBalance] --> P1
+    QUERY --> P2
+```
+
+Financial ledger built with Event Sourcing + CQRS. Every state change is an immutable event in an append-only store. Read models (projections) are rebuilt by replaying the event stream. Optimistic concurrency prevents conflicting writes.

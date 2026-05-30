@@ -39,26 +39,40 @@ Welcome to the deep-dive series. This guide is organized sequentially to take yo
 ## 🔴 Phase 3: System Design & Platform Ops
 *Architecting for scale, reliability, and high throughput.*
 
-1.  [**eBPF with Go**](./system-design/ebpf/README.md) - High-performance networking and security probes in the Linux Kernel.
-2.  [**Service Discovery & Gossip Protocols**](./system-design/discovery/README.md) - How nodes find each other without a central DB (Consul/Serf).
-3.  [**Zero-Downtime Deployment**](./system-design/zero-downtime/README.md) - Graceful draining, SIGTERM, and K8s Liveness/Readiness probes.
-4.  [**Distributed Tracing (OpenTelemetry)**](./system-design/tracing/README.md) - Propagating Trace IDs across microservices to find bottlenecks.
-5.  [**Rate Limiting Deep Dive**](./system-design/rate-limiting-deep-dive/README.md) - Implementing Token Buckets, Leaky Buckets, and Sliding Windows.
-6.  [**High-Throughput Architecture**](./system-design/high-throughput-systems/README.md) - Sharding, CQRS, WAL, and Batching.
-7.  [**Go for Platform Ops & SRE**](./system-design/platform-ops/README.md) - Kubernetes Operators, System Signals, and Prometheus Observability.
-8.  [**Database Internals**](./system-design/database-internals/README.md) - B-tree, LSM-tree storage engines, query optimization, connection pooling, sharding strategies.
-9.  [**CI/CD for Go Services**](./system-design/cicd/README.md) - Multi-stage Docker, GitHub Actions, semantic versioning, GoReleaser, deployment strategies.
-10. [**Observability Guide**](./system-design/observability-guide/README.md) - Structured logging with `slog`, trace ID propagation, Prometheus metrics, log levels.
-11. [**Networking Fundamentals**](./system-design/networking/README.md) - DNS resolution, TCP/TLS handshakes, HTTP/2 multiplexing, mTLS certificate rotation.
-12. [**Incident Response & SRE**](./system-design/incident-response/README.md) - SLI/SLO/SLA, error budgets, burn rate alerts, runbook templates, on-call practices.
-13. [**Database Migrations**](./system-design/database-migrations/README.md) - Zero-downtime schema changes, expand-contract pattern, golang-migrate.
-14. [**Backpressure & Flow Control**](./system-design/backpressure/README.md) - Adaptive load shedding, bounded channels, semaphores, AIMD, context timeouts.
-15. [**Auth Deep Dive**](./system-design/auth-deep-dive/README.md) - OAuth2 flows, PKCE, JWT best practices, refresh token rotation, session management.
-16. [**Message Queue Patterns**](./system-design/message-queue-patterns/README.md) - Kafka vs NATS vs SQS vs RabbitMQ, ordering, exactly-once, DLQ, backpressure.
-17. [**Capacity Planning**](./system-design/capacity-planning/README.md) - Back-of-envelope calculations, Little's Law, QPS/storage/bandwidth estimation.
-18. [**Consistency Models**](./system-design/consistency-models/README.md) - Strong vs eventual vs causal, linearizability, quorum reads/writes, CAP theorem.
-19. [**Terraform Basics**](./system-design/terraform-basics/README.md) - Module structure, remote state, workspaces, lifecycle rules, deploying Go services.
-20. [**Helm Charts**](./system-design/helm-charts/README.md) - Chart anatomy, values, Go templates, environment overrides, CI/CD integration.
+**Fundamentals (start here):**
+
+1.  [**Networking Fundamentals**](./system-design/networking/README.md) - DNS resolution, TCP/TLS handshakes, HTTP/2 multiplexing, mTLS certificate rotation.
+2.  [**Consistency Models**](./system-design/consistency-models/README.md) - Strong vs eventual vs causal, linearizability, quorum reads/writes, CAP theorem.
+3.  [**Database Internals**](./system-design/database-internals/README.md) - B-tree, LSM-tree storage engines, query optimization, connection pooling, sharding strategies.
+4.  [**Database Migrations**](./system-design/database-migrations/README.md) - Zero-downtime schema changes, expand-contract pattern, golang-migrate.
+5.  [**Auth Deep Dive**](./system-design/auth-deep-dive/README.md) - OAuth2 flows, PKCE, JWT best practices, refresh token rotation, session management.
+6.  [**Message Queue Patterns**](./system-design/message-queue-patterns/README.md) - Kafka vs NATS vs SQS vs RabbitMQ, ordering, exactly-once, DLQ, backpressure.
+7.  [**Capacity Planning**](./system-design/capacity-planning/README.md) - Back-of-envelope calculations, Little's Law, QPS/storage/bandwidth estimation.
+
+**Resilience & Performance:**
+
+8.  [**Rate Limiting Deep Dive**](./system-design/rate-limiting-deep-dive/README.md) - Implementing Token Buckets, Leaky Buckets, and Sliding Windows.
+9.  [**Backpressure & Flow Control**](./system-design/backpressure/README.md) - Adaptive load shedding, bounded channels, semaphores, AIMD, context timeouts.
+10. [**High-Throughput Architecture**](./system-design/high-throughput-systems/README.md) - Sharding, CQRS, WAL, and Batching.
+11. [**Zero-Downtime Deployment**](./system-design/zero-downtime/README.md) - Graceful draining, SIGTERM, and K8s Liveness/Readiness probes.
+
+**Observability & Operations:**
+
+12. [**Observability Guide**](./system-design/observability-guide/README.md) - Structured logging with `slog`, trace ID propagation, Prometheus metrics, log levels.
+13. [**Distributed Tracing (OpenTelemetry)**](./system-design/tracing/README.md) - Propagating Trace IDs across microservices to find bottlenecks.
+14. [**Incident Response & SRE**](./system-design/incident-response/README.md) - SLI/SLO/SLA, error budgets, burn rate alerts, runbook templates, on-call practices.
+
+**Infrastructure & Deployment:**
+
+15. [**CI/CD for Go Services**](./system-design/cicd/README.md) - Multi-stage Docker, GitHub Actions, semantic versioning, GoReleaser, deployment strategies.
+16. [**Terraform Basics**](./system-design/terraform-basics/README.md) - Module structure, remote state, workspaces, lifecycle rules, deploying Go services.
+17. [**Helm Charts**](./system-design/helm-charts/README.md) - Chart anatomy, values, Go templates, environment overrides, CI/CD integration.
+
+**Advanced (distributed systems & kernel):**
+
+18. [**Service Discovery & Gossip Protocols**](./system-design/discovery/README.md) - How nodes find each other without a central DB (Consul/Serf).
+19. [**Go for Platform Ops & SRE**](./system-design/platform-ops/README.md) - Kubernetes Operators, System Signals, and Prometheus Observability.
+20. [**eBPF with Go**](./system-design/ebpf/README.md) - High-performance networking and security probes in the Linux Kernel.
 
 ---
 
@@ -104,29 +118,43 @@ Follow this sequential roadmap to transition from a Go developer to a **Platform
 6.  **Reflection & Unsafe**: Learn when to break the type system to build high-performance tools (ORMs, Encoders) and the safety risks involved.
 7.  **cgo & FFI Boundaries**: Understand the 50x cost of context-switching between Go and C. Learn to batch calls to minimize this overhead.
 8.  **Plan9 Assembly**: Learn to read Go's assembly to verify compiler optimizations and write micro-optimized SIMD code.
+9.  **Production Go**: HTTP timeout tuning, pprof profiling, escape analysis, `sync/atomic` for lock-free patterns, graceful multi-component shutdown.
+10. **Testing Patterns**: Table-driven tests, interface mocking, testcontainers for integration tests, benchmarks, and fuzz testing.
+11. **Module Patterns**: `go.work` workspaces, `internal/` package boundaries, `replace` directives, and monorepo versioning.
 
 ---
 
 ### 🔵 Stage 2: Resilient Architecture (The Idiomatic Series)
 *Transition from "making it work" to "making it maintainable and resilient."*
 
-9.  **Advanced Concurrency Orchestration**: Master `errgroup` for lifecycle management and `sync.Pool` to reduce GC pressure in high-frequency paths.
-10. **Error Handling Mastery**: Move beyond `if err != nil`. Implement error wrapping with `%w` and build custom error types that distinguish between "Retryable" and "Fatal" states.
-11. **Functional Options & Configuration**: Use the Functional Options pattern to build clean, extensible APIs for your platform components.
-12. **Plugin Architectures**: Learn to build extensible systems using gRPC/RPC (HashiCorp) or WASM, allowing users to extend your core binary safely.
-13. **Data Layering (DAO/Repository)**: Decouple your domain logic from persistence. Learn to swap databases (e.g., SQL to Mongo) without touching a single line of business logic.
-14. **Resiliency Patterns**: Implement Circuit Breakers, Retries with Exponential Backoff, and Load Shedding to protect your services from cascading failures.
+12. **Advanced Concurrency Orchestration**: Master `errgroup` for lifecycle management and `sync.Pool` to reduce GC pressure in high-frequency paths.
+13. **Error Handling Mastery**: Move beyond `if err != nil`. Implement error wrapping with `%w` and build custom error types that distinguish between "Retryable" and "Fatal" states.
+14. **Functional Options & Configuration**: Use the Functional Options pattern to build clean, extensible APIs for your platform components.
+15. **Plugin Architectures**: Learn to build extensible systems using gRPC/RPC (HashiCorp) or WASM, allowing users to extend your core binary safely.
+16. **Data Layering (DAO/Repository)**: Decouple your domain logic from persistence. Learn to swap databases (e.g., SQL to Mongo) without touching a single line of business logic.
+17. **Resiliency Patterns**: Implement Circuit Breakers, Retries with Exponential Backoff, and Load Shedding to protect your services from cascading failures.
+18. **The Twelve-Factor App**: Apply cloud-native principles — env-based config, stateless processes, port binding, disposability, dev/prod parity.
+19. **API Design**: REST versioning, cursor-based pagination, RFC 7807 error responses, OpenAPI documentation, rate limit headers.
 
 ---
 
 ### 🔴 Stage 3: Platform Engineering & SRE (The Scale Series)
 *Architecting for the cloud-native era and high-throughput environments.*
 
-15. **eBPF Observability**: Use Go to load probes into the Linux Kernel. Master deep-kernel networking, security auditing, and zero-overhead tracing.
-16. **Service Discovery & Gossip**: Understand how nodes find each other in a decentralized cluster using SWIM/Gossip protocols (Serf/Consul).
-17. **Zero-Downtime Logic**: Master the Kubernetes lifecycle. Implement graceful connection draining and Liveness/Readiness probes that actually reflect system health.
-18. **Distributed Tracing (OpenTelemetry)**: Learn to propagate Trace IDs across service boundaries to map request journeys and find 99th-percentile latency bottlenecks.
-19. **Advanced Rate Limiting**: Implement Token Buckets and Sliding Windows to protect your APIs from "Thundering Herd" problems.
-20. **High-Throughput Optimizations**: Master Write-Ahead Logging (WAL), CQRS, and Sharding strategies for building databases or high-speed message brokers.
-21. **Operator Pattern & Controllers**: Learn to extend Kubernetes by writing custom Controllers and Operators in Go to manage complex infrastructure automatically.
+20. **Networking Fundamentals**: DNS resolution, TCP/TLS handshakes, HTTP/2 multiplexing, connection pooling, mTLS certificate rotation.
+21. **Consistency Models**: Strong vs eventual vs causal consistency, linearizability, quorum reads/writes, CAP theorem trade-offs.
+22. **Database Internals**: B-tree and LSM-tree storage engines, query optimization with EXPLAIN, connection pooling, sharding strategies.
+23. **Auth & Security**: OAuth2 + PKCE flows, JWT best practices, refresh token rotation, session management, RBAC.
+24. **Message Queue Patterns**: Kafka vs NATS vs SQS vs RabbitMQ, delivery semantics, ordering guarantees, DLQ, backpressure.
+25. **Capacity Planning**: Back-of-envelope calculations, Little's Law, QPS/storage/bandwidth estimation for system design.
+26. **Rate Limiting & Backpressure**: Token Buckets, Sliding Windows, adaptive load shedding (AIMD), bounded channels, context timeouts.
+27. **High-Throughput Optimizations**: Master Write-Ahead Logging (WAL), CQRS, Event Sourcing, and Sharding strategies.
+28. **Observability**: Structured logging with `slog`, trace ID propagation, Prometheus metrics, distributed tracing with OpenTelemetry.
+29. **Incident Response & SRE**: SLI/SLO/SLA definitions, error budgets, burn rate alerts, runbook design, on-call practices.
+30. **Zero-Downtime Deployment**: Graceful connection draining, SIGTERM handling, K8s Liveness/Readiness probes, rolling updates.
+31. **CI/CD**: Multi-stage Docker builds, GitHub Actions pipelines, GoReleaser, semantic versioning, canary deployments.
+32. **Infrastructure as Code**: Terraform module structure, remote state, workspaces. Helm chart anatomy, values, templates.
+33. **Service Discovery & Gossip**: Decentralized node discovery using SWIM/Gossip protocols (Serf/Consul).
+34. **Operator Pattern & Controllers**: Extend Kubernetes by writing custom Controllers and Operators in Go.
+35. **eBPF Observability**: Load probes into the Linux Kernel for deep-kernel networking, security auditing, and zero-overhead tracing.
 
