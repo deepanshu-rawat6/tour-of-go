@@ -81,6 +81,7 @@ graph TD
 | FS-12 | [`from-scratch/12-consistent-hash`](./from-scratch/12-consistent-hash/) | `SDE-2` | Consistent hashing ring | Virtual nodes, crc32, binary search, minimal redistribution |
 | FS-13 | [`from-scratch/13-bloom-filter`](./from-scratch/13-bloom-filter/) | `SDE-2` | Bloom filter + HyperLogLog | Probabilistic membership, cardinality estimation |
 | FS-14 | [`from-scratch/14-crdt`](./from-scratch/14-crdt/) | `SDE-2` | CRDTs | G-Counter, PN-Counter, LWW-Register, eventual consistency |
+| FS-15 | [`from-scratch/15-commit-log`](./from-scratch/15-commit-log/) | `SDE-2` | Log-structured message broker (Mini-Kafka) | Append-only segments, mmap index, sendfile zero-copy, consumer offsets |
 
 ---
 

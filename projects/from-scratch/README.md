@@ -23,6 +23,8 @@ graph LR
     C --> CH[12-consistent-hash\nvirtual nodes · ring]
     C --> BF[13-bloom-filter\nprobabilistic DS]
     CH --> CRDT[14-crdt\neventual consistency]
+| 15 | [`15-commit-log`](./15-commit-log/) | `SDE-2` | Log-structured message broker (Mini-Kafka) | Append-only segments, mmap index, sendfile zero-copy, consumer offsets |
+    M & C --> CL[15-commit-log\nmmap · sendfile · segments]
 ```
 
 ---
@@ -45,6 +47,7 @@ graph LR
 | 12 | [`12-consistent-hash`](./12-consistent-hash/) | `SDE-2` | Consistent hashing ring | Virtual nodes, crc32, binary search, minimal redistribution |
 | 13 | [`13-bloom-filter`](./13-bloom-filter/) | `SDE-2` | Bloom filter + HyperLogLog | Probabilistic membership, cardinality estimation, false positive rates |
 | 14 | [`14-crdt`](./14-crdt/) | `SDE-2` | Conflict-Free Replicated Data Types | G-Counter, PN-Counter, LWW-Register, eventual consistency |
+| 15 | [`15-commit-log`](./15-commit-log/) | `SDE-2` | Log-structured message broker (Mini-Kafka) | Append-only segments, mmap index, sendfile zero-copy, consumer offsets |
 
 ---
 
@@ -294,3 +297,23 @@ graph TD
 ```
 
 Conflict-Free Replicated Data Types. G-Counter (grow-only), PN-Counter (inc+dec), LWW-Register (last-writer-wins). All converge without coordination.
+
+---
+
+### 15. Commit Log (Mini-Kafka)
+
+```mermaid
+graph TD
+    PROD[Producer] -->|PRODUCE topic 0 msg| TCP[TCP Server\n:9092]
+    TCP --> BROKER[Broker]
+    BROKER --> PART[Partition\nappend-only]
+    PART --> SEG[Segment\n.log + .index]
+    SEG --> DISK[(Disk\nsequential writes)]
+    
+    CONS[Consumer] -->|CONSUME topic 0 offset| TCP
+    TCP -->|sendfile zero-copy| CONS
+    
+    IDX[mmap'd Index\noffset → byte position] --> SEG
+```
+
+Persistent append-only commit log. Messages survive restarts. Consumers pull at their own pace from any offset. mmap'd index for O(1) lookups, sendfile for zero-copy network transfer.
