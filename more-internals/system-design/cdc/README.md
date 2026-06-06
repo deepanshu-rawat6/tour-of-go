@@ -8,17 +8,17 @@ Track row-level changes in a database and stream them to other systems in real-t
 
 ```mermaid
 graph TD
-    subgraph Dual-Write Problem ❌
-        APP1[App] -->|1. write| DB1[(Database)]
-        APP1 -->|2. publish| KAFKA1[Kafka]
-        Note1[If step 2 fails:\nsystems are inconsistent]
+    subgraph DualWrite["Dual-Write Problem"]
+        APP1["App"] -->|"1. write"| DB1[("Database")]
+        APP1 -->|"2. publish"| KAFKA1["Kafka"]
+        Note1["If step 2 fails: systems are inconsistent"]
     end
-    
-    subgraph CDC Solution ✅
-        APP2[App] -->|write only here| DB2[(Database)]
-        DB2 -->|WAL stream| CDC[CDC Connector\nDebezium]
-        CDC --> KAFKA2[Kafka]
-        Note2[Single source of truth\nautomatic propagation]
+
+    subgraph CDCSolution["CDC Solution"]
+        APP2["App"] -->|"write only here"| DB2[("Database")]
+        DB2 -->|"WAL stream"| CDC2["CDC Connector Debezium"]
+        CDC2 --> KAFKA2["Kafka"]
+        Note2["Single source of truth, automatic propagation"]
     end
 ```
 
@@ -28,8 +28,8 @@ graph TD
 
 ```mermaid
 graph LR
-    DB[(PostgreSQL\nWAL / logical replication)] --> DEBEZIUM[Debezium\nConnector]
-    DEBEZIUM --> KAFKA[Kafka\ntopic per table]
+    DB[("PostgreSQL WAL / logical replication")] --> DEBEZIUM["Debezium Connector"]
+    DEBEZIUM --> KAFKA["Kafka: topic per table"]
     KAFKA --> ES[Elasticsearch\nsearch index]
     KAFKA --> CACHE[Redis\ncache invalidation]
     KAFKA --> DW[Data Warehouse\nanalytics]

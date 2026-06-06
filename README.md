@@ -1,8 +1,8 @@
-# Tour of Go
+# backend-platform-notes
 
 ![go-mascot](./.img/go.png)
 
-A hands-on Go learning journal — from language basics to production-grade platform engineering, distributed systems, FinOps tooling, systems programming, and infrastructure automation.
+A hands-on engineering reference — Go from basics to internals, distributed systems, Kubernetes architecture, AWS infrastructure, and SRE practices.
 
 ---
 
@@ -74,6 +74,27 @@ graph TD
 | Capacity planning | SDE-2 | `more-internals/system-design/capacity-planning/` |
 | GitOps | SDE-2 | `more-internals/system-design/gitops/` |
 | Chaos engineering | SDE-2 | `more-internals/system-design/chaos-engineering/` |
+
+### 🟠 Step 3.5: DevOps, Kubernetes & AWS
+
+Deep-dive reference for Kubernetes internals, AWS architecture, and SRE practices. See **[`devops/`](./devops/README.md)** for the full index.
+
+| Topic | Where |
+|-------|-------|
+| K8s architecture (control plane, nodes, components) | `devops/kubernetes/README.md` |
+| `kubectl apply` end-to-end flow | `devops/kubernetes/README.md` |
+| Scheduler internals (Filter → Score, worked example) | `devops/kubernetes/README.md` |
+| Taints, tolerations, node affinity, GPU node groups | `devops/kubernetes/README.md` |
+| EKS architecture (AWS-managed vs customer-managed) | `devops/kubernetes/eks-architecture.md` |
+| VPC, public/private subnets, route tables | `devops/aws/README.md` |
+| Security Groups vs NACLs (stateful vs stateless) | `devops/aws/README.md` |
+| NAT Gateway, IGW, VPC Peering, Transit Gateway | `devops/aws/README.md` |
+| IAM, ELB/ALB/NLB, Route53, ECS vs EKS | `devops/aws/services-overview.md` |
+| 5XX debugging runbook (K8s + EKS) | `devops/sre/README.md` |
+| OOM recovery (singleton + distributed) | `devops/sre/README.md` |
+| Leader election with `client-go` Lease API | `devops/sre/README.md` |
+
+---
 
 ### 🟣 Step 4: Build Projects
 
