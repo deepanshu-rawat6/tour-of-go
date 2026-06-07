@@ -57,16 +57,16 @@ A **process** is an instance of a running program. It has its own virtual addres
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Created: fork() or clone()
-    Created --> Ready: kernel schedules it
-    Ready --> Running: CPU assigned by scheduler
-    Running --> Ready: preempted (time slice expired)
-    Running --> Sleeping: waiting on IO, lock, or timer
-    Sleeping --> Ready: IO complete, event triggered
-    Running --> Stopped: SIGSTOP or SIGTSTP (Ctrl+Z)
-    Stopped --> Ready: SIGCONT
-    Running --> Zombie: process exits, parent has not called wait()
-    Zombie --> [*]: parent calls wait(), entry reaped
+    [*] --> Created : fork() / clone()
+    Created --> Ready : scheduled by kernel
+    Ready --> Running : CPU assigned
+    Running --> Ready : preempted (timeslice expired)
+    Running --> Sleeping : waiting on I/O or lock
+    Sleeping --> Ready : I/O complete / event
+    Running --> Stopped : SIGSTOP / Ctrl+Z
+    Stopped --> Ready : SIGCONT
+    Running --> Zombie : exited, parent not wait()
+    Zombie --> [*] : parent calls wait()
 ```
 
 **Process States (from `ps` output):**
