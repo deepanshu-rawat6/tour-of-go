@@ -2,6 +2,17 @@
 
 Everything — containers, Kubernetes, networking, storage — is built on Linux. This is the foundation layer.
 
+| File | Topics |
+|------|--------|
+| [README.md](./README.md) | Kernel architecture, processes, memory, filesystem, load average, file descriptors, top metrics, /proc and /sys |
+| [networking.md](./networking.md) | TCP/IP stack, sockets, accept queue, TCP states, TIME_WAIT, netfilter/iptables, kernel tuning |
+| [io-models.md](./io-models.md) | Blocking I/O, select/poll, epoll, Go netpoller, io_uring |
+| [scheduler.md](./scheduler.md) | CFS, vruntime, nice values, CPU affinity, context switches, Go GMP model |
+| [boot.md](./boot.md) | BIOS/UEFI, GRUB, initramfs, systemd, unit files |
+| [security.md](./security.md) | Capabilities, setuid, seccomp, AppArmor, SELinux, defense in depth |
+| [containers-evolution.md](./containers-evolution.md) | chroot, BSD Jails, namespaces, cgroups, LXC, Docker |
+| [commands.md](./commands.md) | grep, sed, awk, find, networking, processes, monitoring cheat sheet |
+
 ---
 
 ## Linux Kernel Architecture

@@ -59,16 +59,26 @@ graph TD
 
 | Document | Topics |
 |----------|--------|
-| [linux/README.md](./linux/README.md) | Kernel architecture, processes, memory management, filesystem, inodes, load average, file descriptors, OOM killer, signals, top metrics, /proc and /sys |
-| [linux/containers-evolution.md](./linux/containers-evolution.md) | chroot (1979), BSD Jails (2000), Linux namespaces, cgroups v1/v2, LXC (2008), Docker (2013) — full evolution with mermaid diagrams |
-| [linux/commands.md](./linux/commands.md) | grep, sed, awk, find, networking, processes, disk, system monitoring, cron, one-liners |
+| [linux/README.md](./linux/README.md) | Kernel architecture, processes, memory, filesystem, load average, OOM killer, signals, /proc and /sys |
+| [linux/networking.md](./linux/networking.md) | TCP/IP stack, sockets, accept queue, TIME_WAIT, netfilter/conntrack, kernel tuning |
+| [linux/io-models.md](./linux/io-models.md) | Blocking I/O, epoll (O(1) internals), Go netpoller, io_uring |
+| [linux/scheduler.md](./linux/scheduler.md) | CFS vruntime, nice values, CPU affinity, context switches, Go GMP model |
+| [linux/boot.md](./linux/boot.md) | BIOS/UEFI, GRUB, initramfs, systemd unit files |
+| [linux/security.md](./linux/security.md) | Capabilities, seccomp, AppArmor, SELinux, container security |
+| [linux/containers-evolution.md](./linux/containers-evolution.md) | chroot, BSD Jails, namespaces, cgroups, LXC, Docker evolution |
+| [linux/commands.md](./linux/commands.md) | grep, sed, awk, find, networking, monitoring cheat sheet |
 
 ### Kubernetes
 
 | Document | Topics |
 |----------|--------|
-| [kubernetes/README.md](./kubernetes/README.md) | Full control plane & node architecture, `kubectl apply` flow, scheduler filtering/scoring, taints, tolerations, node affinity, GPU node group scenario |
-| [kubernetes/eks-architecture.md](./kubernetes/eks-architecture.md) | EKS managed control plane, customer VPC worker nodes, VPC CNI, IRSA, managed node groups, Fargate |
+| [kubernetes/README.md](./kubernetes/README.md) | Architecture (control plane + nodes), `kubectl apply` flow, scheduler (filter/score/worked example), taints, tolerations, node affinity, GPU node groups |
+| [kubernetes/networking.md](./kubernetes/networking.md) | Services (ClusterIP iptables internals), DNS, Ingress, IngressGroup (EKS), NetworkPolicy, LoadBalancer vs Ingress, internet-to-pod full flow, kube-proxy crash behavior, CoreDNS crash impact |
+| [kubernetes/workloads.md](./kubernetes/workloads.md) | Pod lifecycle, probes (liveness/readiness/startup), QoS classes, rolling updates, rollbacks, StatefulSet, DaemonSet, Jobs, CronJobs |
+| [kubernetes/storage.md](./kubernetes/storage.md) | PV/PVC/StorageClass, dynamic provisioning, access modes, reclaim policies, CSI drivers, volume snapshots |
+| [kubernetes/autoscaling.md](./kubernetes/autoscaling.md) | HPA (formula + scaling behavior), VPA, KEDA (scale to zero, SQS/Kafka triggers), Cluster Autoscaler, Karpenter |
+| [kubernetes/rbac.md](./kubernetes/rbac.md) | API Server auth chain, ServiceAccount, Role/ClusterRole, RoleBinding, RBAC debug commands |
+| [kubernetes/eks-architecture.md](./kubernetes/eks-architecture.md) | EKS managed control plane, cross-account ENI, VPC CNI, IRSA, managed node groups, Fargate, add-ons, control plane logs |
 
 ### AWS
 

@@ -237,3 +237,656 @@ spec:
 ```
 
 **Important:** If you apply a NetworkPolicy to a pod, ALL traffic not explicitly allowed is denied. Don't forget to allow DNS (port 53 UDP) in egress — pods will break without it.
+
+---
+
+## Internet to Pod: The Complete Request Journey
+
+### Full Component Flow
+
+```mermaid
+graph TD
+    classDef internet fill:#2c3e50,stroke:#1a252f,color:#fff,rx:8
+    classDef aws     fill:#ff9900,stroke:#cc7a00,color:#000,rx:8
+    classDef ingress fill:#9b59b6,stroke:#8e44ad,color:#fff,rx:8
+    classDef svc     fill:#3498db,stroke:#2980b9,color:#fff,rx:8
+    classDef proxy   fill:#e67e22,stroke:#d35400,color:#fff,rx:8
+    classDef kernel  fill:#8e44ad,stroke:#6c3483,color:#fff,rx:8
+    classDef cni     fill:#1abc9c,stroke:#16a085,color:#fff,rx:8
+    classDef pod     fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef note    fill:#ecf0f1,stroke:#bdc3c7,color:#2c3e50,rx:6
+
+    INTERNET["Internet
+User sends HTTPS request"]:::internet
+
+    ALB["AWS ALB
+Terminates TLS
+Forwards to Ingress Controller pod IP
+ip target type = direct pod IP via VPC CNI"]:::aws
+
+    INGRESS["Ingress Controller
+nginx / traefik / AWS ALB Controller
+Matches host + path rules
+Routes to the correct Service"]:::ingress
+
+    SVC["Service ClusterIP
+10.96.45.20:80
+Virtual IP — no process listens here
+Stable endpoint for pods"]:::svc
+
+    PROXY["kube-proxy
+Watches EndpointSlice from API Server
+Programs iptables / IPVS rules into kernel
+Does NOT handle traffic itself"]:::proxy
+
+    KERNEL["Linux Kernel
+iptables PREROUTING chain
+DNAT: ClusterIP → Pod IP
+Round-robin via probability rules"]:::kernel
+
+    CNI["CNI Plugin
+aws-node / calico / cilium
+Sets up veth pair at pod start
+Assigns pod IP, configures routes
+NOT in the live packet path"]:::cni
+
+    POD1["Pod 1
+10.0.1.5:8080"]:::pod
+    POD2["Pod 2
+10.0.2.7:8080"]:::pod
+    POD3["Pod 3
+10.0.3.9:8080"]:::pod
+
+    N1["ALB → Ingress: direct pod IP
+No iptables DNAT on this leg"]:::note
+    N2["Ingress → ClusterIP: kube-proxy rules
+handle DNAT to pod IP"]:::note
+    N3["Who selects the pod?
+The KERNEL, via iptables rules
+kube-proxy only programs the rules"]:::note
+    N4["CNI sets up pod network at startup
+Not involved during request handling"]:::note
+
+    INTERNET --> ALB
+    ALB --> INGRESS
+    ALB -. "how?" .-> N1
+    INGRESS --> SVC
+    SVC -. "who selects pod?" .-> N3
+    PROXY -->|"programs rules into"| KERNEL
+    SVC --> KERNEL
+    KERNEL -->|"33%"| POD1
+    KERNEL -->|"33%"| POD2
+    KERNEL -->|"33%"| POD3
+    CNI -. "sets up networking at pod start" .-> N4
+    CNI --> POD1
+    CNI --> POD2
+    CNI --> POD3
+```
+
+### What Happens if kube-proxy Crashes?
+
+```mermaid
+graph LR
+    classDef bad    fill:#e74c3c,stroke:#c0392b,color:#fff,rx:8
+    classDef ok     fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef warn   fill:#f39c12,stroke:#d68910,color:#000,rx:8
+    classDef kernel fill:#8e44ad,stroke:#6c3483,color:#fff,rx:8
+    classDef time   fill:#2c3e50,stroke:#1a252f,color:#fff,rx:6
+
+    CRASH["kube-proxy crashes"]:::bad
+
+    CRASH --> T1
+
+    subgraph T1["Immediately"]
+        K1["iptables rules stay in kernel"]:::kernel
+        K2["Existing TCP connections unaffected"]:::ok
+        K3["New connections to current Services still work"]:::ok
+        K4["kube-proxy DaemonSet: restarting"]:::warn
+    end
+
+    CRASH --> T2
+
+    subgraph T2["While crashed: silent degradation"]
+        B1["New Service created: no rules, unreachable"]:::bad
+        B2["Pod removed: stale IP in rules, traffic fails"]:::bad
+        B3["Pod added: new IP never programmed, gets no traffic"]:::warn
+        B4["Rolling deploy: old pod IPs kept, new pods ignored"]:::warn
+    end
+
+    T1 --> T3
+
+    subgraph T3["Recovery (~5-30s)"]
+        R1["DaemonSet restartPolicy Always brings it back"]:::ok
+        R2["kube-proxy re-syncs full state from API Server"]:::ok
+        R3["All missed EndpointSlice updates applied"]:::ok
+    end
+```
+
+**Key insight:** kube-proxy writes rules into the kernel and steps aside. The kernel does the actual packet routing. Crashing kube-proxy removes the rule-updater, not the rules themselves — so existing traffic survives but the system can't adapt to changes.
+
+
+---
+
+## Who Actually Decides Which Pod Gets the Request?
+
+**Not the Service. Not kube-proxy directly. The Linux kernel does — via rules kube-proxy programmed.**
+
+```mermaid
+graph TD
+    classDef kernel fill:#e74c3c,stroke:#c0392b,color:#fff,rx:8
+    classDef proxy fill:#e67e22,stroke:#d35400,color:#fff,rx:8
+    classDef ctrl fill:#3498db,stroke:#2980b9,color:#fff,rx:8
+    classDef pod fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef svc fill:#9b59b6,stroke:#8e44ad,color:#fff,rx:8
+
+    API["API Server
+EndpointSlice updated:
+pod-a:8080, pod-b:8080, pod-c:8080"]:::ctrl
+    KP["kube-proxy
+watches EndpointSlice changes
+programs iptables/IPVS rules"]:::proxy
+    RULES["Linux Kernel
+iptables NAT rules:
+KUBE-SVC-XXX → random select KUBE-SEP
+KUBE-SEP → DNAT to pod IP:port"]:::kernel
+    CONN["Incoming connection
+dst: ClusterIP 10.96.45.20:80"]:::svc
+    POD_A["Pod A: 10.0.1.5:8080"]:::pod
+    POD_B["Pod B: 10.0.2.7:8080"]:::pod
+    POD_C["Pod C: 10.0.3.9:8080"]:::pod
+
+    API -->|"watch event"| KP
+    KP -->|"iptables-restore / ipvsadm"| RULES
+    CONN -->|"hits PREROUTING chain"| RULES
+    RULES -->|"33% probability"| POD_A
+    RULES -->|"33% probability"| POD_B
+    RULES -->|"33% probability"| POD_C
+```
+
+**Selection mechanism:**
+- **iptables mode:** `KUBE-SVC-XXX` chain has N `KUBE-SEP-*` jumps with decreasing probability: first rule has `1/N` probability (via `--probability`), second has `1/(N-1)`, last has 100%. Net result: uniform random selection. Stateless — no session affinity by default.
+- **IPVS mode:** Kernel's IPVS virtual server with configurable algorithms: round-robin, least-connections, source-hash (for session affinity). O(1) lookup vs O(N) iptables scan — scales better above ~1000 services.
+
+---
+
+## What the CNI Plugin Does (and When)
+
+CNI is not in the request path at all for established connections. It sets up the network plumbing when a pod starts.
+
+```mermaid
+graph LR
+    classDef cni fill:#1abc9c,stroke:#16a085,color:#fff,rx:8
+    classDef pod fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef kernel fill:#e74c3c,stroke:#c0392b,color:#fff,rx:8
+
+    subgraph PodStart["At pod creation time (CNI called by kubelet)"]
+        CNI["CNI Plugin
+(flannel/calico/cilium/aws-node)"]:::cni
+        CNI --> VETH["Create veth pair:
+veth0 inside pod namespace
+vethXXX on host bridge"]:::cni
+        CNI --> IP["Assign pod IP
+from node's CIDR block"]:::cni
+        CNI --> ROUTE["Add routes:
+pod subnet → overlay tunnel
+or VPC route table (EKS)"]:::cni
+        CNI --> DONE["Pod network ready
+CNI exits — job done"]:::pod
+    end
+
+    subgraph RequestTime["At request time (CNI not involved)"]
+        PKT["Packet arrives at pod veth0"]:::kernel
+        PKT --> KERNEL_FWD["Linux kernel forwards via
+routing table set up by CNI
+CNI plugin itself is NOT running"]:::kernel
+    end
+```
+
+**CNI is a one-shot setup tool, not a running daemon in the packet path.** (Exception: Cilium with eBPF bypasses iptables and does handle packets via its kernel programs, but that's a different architecture.)
+
+---
+
+## If kube-proxy Crashes
+
+```mermaid
+graph LR
+    classDef bad   fill:#e74c3c,stroke:#c0392b,color:#fff,rx:8
+    classDef ok    fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef warn  fill:#f39c12,stroke:#d68910,color:#000,rx:8
+    classDef time  fill:#2c3e50,stroke:#1a252f,color:#fff,rx:6
+    classDef kern  fill:#9b59b6,stroke:#8e44ad,color:#fff,rx:8
+
+    T0["t = 0
+kube-proxy process dies"]:::bad
+
+    T0 --> T1
+
+    subgraph T1["t = 0 to ~30s"]
+        K1["iptables/IPVS rules still in kernel"]:::kern
+        K2["Existing TCP connections: unaffected"]:::ok
+        K3["New connections to existing Services: still work"]:::ok
+        K4["kube-proxy DaemonSet: restarting"]:::warn
+    end
+
+    T1 --> T2
+
+    subgraph T2["t = 30s
+kube-proxy recovers"]
+        R1["kube-proxy restarts (restartPolicy: Always)"]:::ok
+        R2["Re-syncs full iptables state from API Server"]:::ok
+        R3["Any missed EndpointSlice updates applied"]:::ok
+    end
+
+    T1 --> T3
+
+    subgraph T3["t = 0 to recovery — what silently degrades"]
+        B1["New Service created: no iptables rule, unreachable"]:::bad
+        B2["Pod scaled down: stale IP kept in rules, connections fail"]:::bad
+        B3["Pod scaled up: new pod IP never added, gets no traffic"]:::warn
+        B4["Rolling deploy: traffic still hits terminating pods"]:::warn
+    end
+```
+
+**Why existing traffic survives:** iptables rules are programmed into the Linux kernel's netfilter tables — they live in kernel memory, not in the kube-proxy process. Killing kube-proxy removes the programmer, not the rules.
+
+**Why new things break:** kube-proxy watches the API Server for `EndpointSlice` and `Service` changes. While it's down, changes queue up unprocessed. The kernel has no way to know pods changed — it keeps routing to whatever IPs were last programmed.
+
+**In production:** kube-proxy is a `DaemonSet` with `restartPolicy: Always`. Typical restart time is 5–30 seconds. During that window, the degradation above applies. No manual intervention needed unless the node itself is unhealthy.
+
+**Summary:** kube-proxy crash ≠ immediate outage. The kernel rules persist. But the system degrades over time as pods churn — stale endpoints accumulate, new services are unreachable. In production, kube-proxy runs as a DaemonSet with `restartPolicy: Always` so it recovers in seconds.
+
+**Vanilla K8s vs EKS behavior is identical here** — both rely on the same kernel iptables/IPVS mechanism. EKS just manages the kube-proxy DaemonSet as a managed add-on that auto-heals.
+
+---
+
+## What if CoreDNS Crashes?
+
+CoreDNS is the cluster DNS server. Every pod's `/etc/resolv.conf` points to the CoreDNS ClusterIP (`10.96.0.10` typically).
+
+```mermaid
+graph TD
+    classDef ok fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef warn fill:#f39c12,stroke:#d68910,color:#000,rx:8
+    classDef bad fill:#e74c3c,stroke:#c0392b,color:#fff,rx:8
+    classDef eks fill:#ff9900,stroke:#cc7a00,color:#000,rx:8
+
+    COREDNS_CRASH["CoreDNS pod(s) crash"]:::bad
+
+    subgraph VanillaK8s["Vanilla Kubernetes"]
+        V1["New DNS queries fail immediately
+NXDOMAIN or timeout"]:::bad
+        V2["my-svc.namespace.svc.cluster.local → fails
+pod-to-pod by service name → broken"]:::bad
+        V3["Connections using already-resolved IPs
+continue to work (OS DNS cache)"]:::ok
+        V4["Pods with long-lived connections
+unaffected until reconnect"]:::ok
+        V5["CoreDNS is a Deployment (default 2 replicas)
+both pods must crash for full DNS failure"]:::warn
+        V6["Recovery: K8s restarts CoreDNS pods
+typically within 30-60s"]:::ok
+        V1 --> V3
+        V2 --> V4
+        V5 --> V6
+    end
+
+    subgraph EKSCluster["EKS Cluster"]
+        E1["Same immediate impact as vanilla
+DNS queries fail if all CoreDNS pods down"]:::bad
+        E2["CoreDNS is a managed EKS add-on
+AWS monitors and auto-heals the Deployment"]:::eks
+        E3["EKS runs CoreDNS on separate managed nodes
+in some configurations"]:::eks
+        E4["Node-local DNS cache (NodeLocal DNSCache)
+can be added to reduce blast radius:
+caches DNS at node level
+pods hit local cache first"]:::ok
+        E1 --> E2
+        E2 --> E4
+    end
+
+    COREDNS_CRASH --> VanillaK8s
+    COREDNS_CRASH --> EKSCluster
+```
+
+### CoreDNS Failure Impact by Connection Type
+
+| Connection type | CoreDNS crashes | Why |
+|----------------|----------------|-----|
+| Existing TCP connections (DB, gRPC) | ✅ Unaffected | Already connected — no DNS needed |
+| New connections using service name | ❌ Fails | Must resolve `my-svc.ns.svc.cluster.local` |
+| New connections using pod IP directly | ✅ Works | No DNS lookup needed |
+| HTTP/1.1 with `Connection: close` | ❌ Fails on next request | Re-resolves DNS each connection |
+| HTTP/2 and gRPC (persistent) | ✅ Survives until reconnect | Multiplexed on one TCP connection |
+
+### CoreDNS Resilience Patterns
+
+```bash
+# 1. Always run 2+ CoreDNS replicas (default in K8s)
+kubectl get deployment coredns -n kube-system
+
+# 2. Spread CoreDNS pods across nodes with anti-affinity (default)
+kubectl get pod -n kube-system -l k8s-app=kube-dns -o wide
+
+# 3. NodeLocal DNSCache DaemonSet — biggest resilience improvement
+# Each node runs a local DNS cache at 169.254.20.10
+# Pods hit local node cache instead of CoreDNS pods directly
+# CoreDNS crash only affects cache misses, not hits
+
+# 4. Set ndots:3 in pod spec to reduce unnecessary search domain queries
+# Default ndots:5 causes 5 DNS queries before falling back to bare name
+spec:
+  dnsConfig:
+    options:
+      - name: ndots
+        value: "3"
+
+# 5. Diagnose CoreDNS issues
+kubectl logs -n kube-system -l k8s-app=kube-dns --tail=50
+kubectl exec -it <pod> -- nslookup kubernetes.default
+kubectl exec -it <pod> -- cat /etc/resolv.conf
+```
+
+### EKS-Specific: CoreDNS Add-on
+
+In EKS, CoreDNS is a **managed add-on**. AWS ensures it stays running and applies updates. But "managed" does not mean "immune to crashes" — if all CoreDNS pods crash simultaneously (OOM, node failure), DNS still goes down. The EKS control plane cannot restart application-plane pods (it manages the K8s API server, not your workload pods).
+
+**EKS CoreDNS best practices:**
+- Enable **NodeLocal DNSCache** — reduces CoreDNS load by ~60-80% and provides node-level fault tolerance
+- Set `minReplicas: 2` in the CoreDNS HPA (EKS auto-scales CoreDNS based on node count)
+- Use **PodDisruptionBudget** on CoreDNS to prevent both pods from being evicted simultaneously during node drains
+
+---
+
+## Why Ingress Exists (LoadBalancer vs Ingress)
+
+### The Problem: One LoadBalancer Per Service
+
+```mermaid
+graph TD
+    classDef lb    fill:#e74c3c,stroke:#c0392b,color:#fff,rx:8
+    classDef svc   fill:#3498db,stroke:#2980b9,color:#fff,rx:8
+    classDef cost  fill:#e67e22,stroke:#d35400,color:#fff,rx:8
+    classDef ok    fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef ing   fill:#9b59b6,stroke:#8e44ad,color:#fff,rx:8
+
+    subgraph Without["Without Ingress: 10 services = 10 cloud LBs"]
+        LB1["ALB 1
+$18/mo
+1.2.3.4"]:::lb --> SVC1["api-service"]:::svc
+        LB2["ALB 2
+$18/mo
+1.2.3.5"]:::lb --> SVC2["dashboard-service"]:::svc
+        LB3["ALB 3
+$18/mo
+1.2.3.6"]:::lb --> SVC3["admin-service"]:::svc
+        LBN["... 7 more ALBs
+$126/mo wasted"]:::cost
+    end
+
+    subgraph WithIngress["With Ingress: 1 LB for everything"]
+        ALB["ALB
+$18/mo
+1.2.3.4
+Single entry point"]:::ing
+        IC["Ingress Controller
+nginx / traefik / AWS ALB Controller"]:::ing
+        ALB --> IC
+        IC -->|"api.myapp.com"| S1["api-service"]:::ok
+        IC -->|"myapp.com/dashboard"| S2["dashboard-service"]:::ok
+        IC -->|"myapp.com/admin"| S3["admin-service"]:::ok
+    end
+```
+
+### LoadBalancer vs Ingress: Feature Comparison
+
+```mermaid
+graph LR
+    classDef lb   fill:#e74c3c,stroke:#c0392b,color:#fff,rx:8
+    classDef ing  fill:#9b59b6,stroke:#8e44ad,color:#fff,rx:8
+    classDef feat fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef miss fill:#95a5a6,stroke:#7f8c8d,color:#fff,rx:8
+
+    subgraph LBType["Service type LoadBalancer"]
+        LB_IP["1 external IP per Service"]:::lb
+        LB_TLS["No TLS termination built-in"]:::miss
+        LB_ROUTE["No host or path routing"]:::miss
+        LB_COST["Cost: 1 cloud LB per Service"]:::lb
+        LB_SIMPLE["Simple: works out of the box"]:::feat
+    end
+
+    subgraph IngressType["Ingress"]
+        ING_IP["1 external IP for all Services"]:::feat
+        ING_TLS["TLS termination in one place"]:::feat
+        ING_HOST["Host-based routing: api.myapp.com vs app.myapp.com"]:::feat
+        ING_PATH["Path-based routing: /api, /dashboard, /admin"]:::feat
+        ING_COST["Cost: 1 cloud LB regardless of Service count"]:::feat
+        ING_CTRL["Requires: Ingress Controller (nginx, traefik, ALB)"]:::ing
+    end
+```
+
+### Ingress is Just a Spec — The Controller Implements It
+
+```mermaid
+graph TD
+    classDef spec  fill:#3498db,stroke:#2980b9,color:#fff,rx:8
+    classDef ctrl  fill:#9b59b6,stroke:#8e44ad,color:#fff,rx:8
+    classDef cloud fill:#ff9900,stroke:#cc7a00,color:#000,rx:8
+
+    SPEC["Ingress resource (Kubernetes spec)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+Rules: host/path → service mapping
+Just configuration — does nothing by itself"]:::spec
+
+    SPEC -->|"implemented by"| NGINX["nginx Ingress Controller
+Open source, most common
+Annotation-heavy for advanced routing"]:::ctrl
+    SPEC -->|"implemented by"| TRAEFIK["Traefik
+Auto-discovers Ingress resources
+Good for dynamic environments"]:::ctrl
+    SPEC -->|"implemented by"| ALB_CTRL["AWS Load Balancer Controller
+Creates real ALB per Ingress
+Native AWS integration (WAF, ACM certs)"]:::cloud
+    SPEC -->|"implemented by"| AGIC["Azure Application Gateway
+Ingress Controller (AGIC)
+Azure-native"]:::cloud
+    SPEC -->|"implemented by"| GW["Gateway API (successor)
+More expressive, less annotation mess
+Separates infra vs app routing concerns"]:::ctrl
+```
+
+**The annotation problem:** Each controller extends Ingress with controller-specific annotations. Advanced routing in nginx requires things like:
+
+```yaml
+annotations:
+  nginx.ingress.kubernetes.io/rewrite-target: /$2
+  nginx.ingress.kubernetes.io/use-regex: "true"
+  nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  nginx.ingress.kubernetes.io/rate-limit: "100"
+  nginx.ingress.kubernetes.io/ssl-redirect: "true"
+```
+
+These annotations are nginx-specific. Switching to Traefik means rewriting all annotations. This is why **Gateway API** was created — it expresses advanced routing in proper typed resources (`HTTPRoute`, `TLSRoute`, `GRPCRoute`) instead of freeform annotations, and cleanly separates infrastructure concerns (which LB/controller) from application concerns (which path goes where).
+
+### When to Use What
+
+| | LoadBalancer Service | Ingress | Gateway API |
+|--|---------------------|---------|-------------|
+| Use case | Single service needing external access (e.g. one gRPC service with static IP) | Multiple HTTP/HTTPS services through one LB | Same as Ingress but with complex routing, multi-team clusters |
+| TLS | Manual (external LB handles it) | Controller handles cert from Secret | Native TLS policy resources |
+| Cost | High (1 LB per service) | Low (1 LB total) | Low (1 LB total) |
+| Complexity | Low | Medium | Higher (newer, less tooling) |
+| Non-HTTP protocols | Yes (NLB for TCP/UDP) | HTTP/HTTPS only (mostly) | TCP/UDP via `TCPRoute` |
+
+---
+
+## IngressGroup — Sharing One ALB Across Multiple Ingress Resources (EKS)
+
+### The Problem Without IngressGroup
+
+By default, AWS Load Balancer Controller creates **one ALB per Ingress resource**. If you have 5 teams each managing their own Ingress, you get 5 ALBs.
+
+```mermaid
+graph TD
+    classDef lb   fill:#e74c3c,stroke:#c0392b,color:#fff,rx:8
+    classDef ing  fill:#9b59b6,stroke:#8e44ad,color:#fff,rx:8
+    classDef svc  fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef cost fill:#e67e22,stroke:#d35400,color:#fff,rx:8
+
+    subgraph Without["Without IngressGroup: 1 ALB per Ingress"]
+        ALB1["ALB 1
+team-payments"]:::lb --> ING1["Ingress: payments-ingress"]:::ing
+        ALB2["ALB 2
+team-orders"]:::lb --> ING2["Ingress: orders-ingress"]:::ing
+        ALB3["ALB 3
+team-admin"]:::lb --> ING3["Ingress: admin-ingress"]:::ing
+        COST["3 ALBs x $18/mo = $54/mo
++ 3 DNS entries to manage"]:::cost
+    end
+```
+
+### With IngressGroup: One ALB, Multiple Ingresses
+
+```mermaid
+graph TD
+    classDef lb    fill:#ff9900,stroke:#cc7a00,color:#000,rx:8
+    classDef ctrl  fill:#3498db,stroke:#2980b9,color:#fff,rx:8
+    classDef ing   fill:#9b59b6,stroke:#8e44ad,color:#fff,rx:8
+    classDef svc   fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef ns    fill:#1abc9c,stroke:#16a085,color:#fff,rx:8
+
+    ALB["Single ALB: shared-alb
+One DNS, one cert, one $18/mo"]:::lb
+    LBC["AWS Load Balancer Controller
+Merges all grouped Ingresses
+into ALB listener rules"]:::ctrl
+
+    ALB --> LBC
+
+    subgraph NS1["namespace: payments"]
+        ING1["Ingress: payments-ingress
+group.name: platform-alb
+group.order: 10"]:::ing
+        SVC1["payments-svc"]:::svc
+        ING1 --> SVC1
+    end
+
+    subgraph NS2["namespace: orders"]
+        ING2["Ingress: orders-ingress
+group.name: platform-alb
+group.order: 20"]:::ing
+        SVC2["orders-svc"]:::svc
+        ING2 --> SVC2
+    end
+
+    subgraph NS3["namespace: admin"]
+        ING3["Ingress: admin-ingress
+group.name: platform-alb
+group.order: 30"]:::ing
+        SVC3["admin-svc"]:::svc
+        ING3 --> SVC3
+    end
+
+    LBC -->|"api.example.com/payments"| ING1
+    LBC -->|"api.example.com/orders"| ING2
+    LBC -->|"admin.example.com"| ING3
+```
+
+### Ingress YAML with IngressGroup
+
+```yaml
+# namespace: payments — team manages only this file
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: payments-ingress
+  namespace: payments
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/group.name: platform-alb       # shared ALB name
+    alb.ingress.kubernetes.io/group.order: "10"              # rule priority (lower = higher prio)
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:...
+spec:
+  rules:
+    - host: api.example.com
+      http:
+        paths:
+          - path: /payments
+            pathType: Prefix
+            backend:
+              service:
+                name: payments-svc
+                port:
+                  number: 80
+---
+# namespace: orders — different team, different namespace, SAME ALB
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: orders-ingress
+  namespace: orders
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/group.name: platform-alb       # same group = same ALB
+    alb.ingress.kubernetes.io/group.order: "20"
+spec:
+  rules:
+    - host: api.example.com
+      http:
+        paths:
+          - path: /orders
+            pathType: Prefix
+            backend:
+              service:
+                name: orders-svc
+                port:
+                  number: 80
+```
+
+**What the ALB Controller does:** it watches all Ingress resources across all namespaces, groups them by `group.name`, and synthesizes a single ALB with combined listener rules. Rules are ordered by `group.order` — conflicts between teams are resolved by priority.
+
+### Routing Types You Can Use in IngressGroup
+
+All standard ALB routing works — the grouping is just about which ALB the rules land on:
+
+| Routing type | Annotation / spec | Example |
+|-------------|-------------------|---------|
+| Host-based | `spec.rules[].host` | `api.example.com` vs `admin.example.com` |
+| Path-based | `spec.rules[].http.paths[].path` | `/payments` vs `/orders` |
+| Path type | `pathType: Exact / Prefix` | Exact match vs prefix |
+| Header-based | `alb.ingress.kubernetes.io/conditions.*` | `X-Version: v2` |
+| Query string | `alb.ingress.kubernetes.io/conditions.*` | `?env=canary` |
+| Weighted routing | `alb.ingress.kubernetes.io/actions.*` | 90% v1, 10% v2 (canary) |
+
+### Is IngressGroup AWS LBC Only?
+
+```mermaid
+graph LR
+    classDef aws   fill:#ff9900,stroke:#cc7a00,color:#000,rx:8
+    classDef nginx fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef gw    fill:#3498db,stroke:#2980b9,color:#fff,rx:8
+    classDef note  fill:#ecf0f1,stroke:#bdc3c7,color:#2c3e50,rx:6
+
+    subgraph AWSLBC["AWS LBC: IngressGroup annotation"]
+        A1["group.name: platform-alb"]:::aws
+        A2["Explicit grouping needed because
+each Ingress = 1 real AWS ALB by default"]:::note
+    end
+
+    subgraph NGINX["nginx / Traefik: implicit sharing"]
+        N1["All Ingresses handled by one nginx process"]:::nginx
+        N2["One external LB in front of nginx pod(s)
+naturally shared — no annotation needed"]:::note
+    end
+
+    subgraph GatewayAPI["Gateway API: the proper standard"]
+        G1["HTTPRoute resources reference a shared Gateway"]:::gw
+        G2["Works across controllers: nginx, Envoy, Istio, ALB
+No annotation mess, team isolation built-in"]:::note
+    end
+```
+
+**Summary:** IngressGroup is AWS LBC-specific because only AWS LBC creates real external ALBs per Ingress. nginx/Traefik already share infrastructure naturally. Gateway API solves the same multi-team sharing problem in a standardized, controller-agnostic way — which is why it's the future direction.
