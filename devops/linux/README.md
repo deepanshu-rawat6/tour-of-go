@@ -172,6 +172,84 @@ A zombie has finished (`exit()` called) but its entry remains in the process tab
 - **Fix:** Kill the parent (or fix it to `wait()` properly). When parent dies, `init` (PID 1) adopts and reaps the zombie.
 - In containers: if PID 1 doesn't reap children, zombies accumulate. Use a proper init process (tini, dumb-init).
 
+#### Zombies in General Linux vs Containers
+
+**General Linux:** `init` (PID 1 = systemd) automatically adopts and reaps orphaned zombies. Even if a parent process dies without calling `wait()`, systemd picks up the zombie and reaps it within seconds. Zombies are transient and self-healing.
+
+**Containers — it's a real problem:**
+
+A container's PID 1 is typically your app process (`node server.js`, `./myapp`, `python app.py`). Your app is not designed to be an init process. It doesn't:
+- Call `waitpid()` in a loop to reap children
+- Handle `SIGCHLD` signals from dying child processes
+
+So when your app spawns children (shell commands via exec, subprocess calls, CGI handlers) and those children exit, they become zombies — and they stay zombies forever because PID 1 never reaps them.
+
+Over time they accumulate. Each holds a PID. If the PID namespace exhausts (default max 32768 PIDs), the container can't fork new processes → crashes.
+
+**What you see in a leaking container:**
+
+```
+ps aux
+PID  PPID  S  CMD
+1    0     S  node server.js          ← PID 1, your app
+847  1     Z  [sh] <defunct>          ← zombie
+1203 1     Z  [sh] <defunct>          ← zombie
+1891 1     Z  [sh] <defunct>          ← zombie
+```
+
+**Fix: use tini or dumb-init as PID 1.** They're minimal init processes that do exactly one thing: reap zombies and forward signals to your app.
+
+#### What is tini?
+
+`tini` (**T**iny **ini**t) is a ~20KB static binary that runs as PID 1 inside a container. It does two things only:
+1. **Reaps zombie children** — calls `waitpid()` in a loop whenever it gets `SIGCHLD`
+2. **Forwards signals** — passes `SIGTERM`, `SIGINT`, etc. to your app process
+
+It's not a full init system (no service management, no logging, no dependency resolution). Just the bare minimum to make your container behave correctly.
+
+`dumb-init` (by Yelp) does the same thing. Use either — `tini` ships inside Docker itself (`docker run --init` uses it).
+
+#### Fix Options
+
+**Option 1 — tini in Dockerfile (recommended, works everywhere):**
+```dockerfile
+FROM node:18
+RUN apt-get update && apt-get install -y --no-install-recommends tini
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["node", "server.js"]
+# tini is now PID 1, node is PID 2
+# tini reaps zombies and forwards SIGTERM → node
+```
+
+**Option 2 — Docker `--init` flag (dev/local only):**
+```bash
+docker run --init myimage
+# Docker injects its bundled tini as PID 1 automatically
+# Not available in Kubernetes — don't rely on this in prod
+```
+
+**Option 3 — Kubernetes (shareProcessNamespace):**
+```yaml
+# k8s doesn't have --init. Options:
+# a) Bake tini into your image (Option 1) — preferred
+# b) Use shareProcessNamespace so the pause container can reap
+spec:
+  shareProcessNamespace: true   # all containers share one PID namespace
+  containers:
+    - name: app
+      image: myimage
+```
+
+**Option 4 — dumb-init (alternative to tini):**
+```dockerfile
+FROM python:3.11
+RUN pip install dumb-init
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["python", "app.py"]
+```
+
+**Signal forwarding also matters:** without tini, `docker stop` sends `SIGTERM` to PID 1 (your app). If your app doesn't handle `SIGTERM`, Docker waits 30s then sends `SIGKILL` — no graceful shutdown. With tini, `SIGTERM` → tini → your app, and tini waits for your app to exit cleanly before terminating.
+
 ### Signals
 
 | Signal | Number | Default Action | Catchable? | Use |
