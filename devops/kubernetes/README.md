@@ -283,16 +283,578 @@ spec:
       effect: "NoSchedule"
 ```
 
-### Node Affinity (pod-side attraction)
+### nodeSelector (simplest node targeting)
 
-| Mode | Meaning |
-|------|---------|
-| `requiredDuringSchedulingIgnoredDuringExecution` | Hard rule — pod won't schedule if no node matches. |
-| `preferredDuringSchedulingIgnoredDuringExecution` | Soft rule — scheduler tries to match but places elsewhere if needed. |
+`nodeSelector` is the original, simple way to constrain a pod to nodes with specific labels. It's a hard requirement — no match, no schedule.
 
-`IgnoredDuringExecution` means if the node's labels change after the pod is running, the pod is NOT evicted.
+```yaml
+spec:
+  nodeSelector:
+    hardware: gpu          # pod only schedules on nodes with this exact label
+    zone: us-east-1a       # AND this label (all keys must match)
+```
+
+```bash
+kubectl label node gpu-node-1 hardware=gpu zone=us-east-1a
+```
+
+**Limitation:** AND-only logic, no OR, no `NotIn`, no expressions. That's why `nodeAffinity` exists.
 
 ---
+
+### Node Affinity (pod-side attraction)
+
+`nodeAffinity` is `nodeSelector` with full expression power. Two modes:
+
+| Mode | Keyword | Behavior |
+|------|---------|----------|
+| **Hard** | `requiredDuringSchedulingIgnoredDuringExecution` | Pod won't schedule if no node matches. Like `nodeSelector` but with expressions. |
+| **Soft** | `preferredDuringSchedulingIgnoredDuringExecution` | Scheduler *tries* to match, places elsewhere if needed. Uses a weight (1–100). |
+
+`IgnoredDuringExecution` — if the node's labels change after the pod is running, the pod is **not** evicted.
+
+#### Hard affinity (must match)
+
+```yaml
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: hardware
+          operator: In          # In | NotIn | Exists | DoesNotExist | Gt | Lt
+          values: ["gpu", "gpu-high"]
+        - key: zone
+          operator: In
+          values: ["us-east-1a", "us-east-1b"]
+```
+
+Multiple `matchExpressions` in the same term = AND. Multiple `nodeSelectorTerms` = OR (any term can match).
+
+#### Soft affinity (prefer, but not required)
+
+```yaml
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 80              # higher weight = stronger preference (1-100)
+      preference:
+        matchExpressions:
+        - key: zone
+          operator: In
+          values: ["us-east-1a"]   # prefer AZ-a
+    - weight: 20
+      preference:
+        matchExpressions:
+        - key: hardware
+          operator: In
+          values: ["ssd"]          # also prefer SSD nodes, but less important
+```
+
+The scheduler adds the weights of matching preferences to a node's score. The highest-scoring node wins — but any node can still be chosen if none match.
+
+#### Combining hard + soft
+
+```yaml
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:   # MUST be on gpu nodes
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: hardware
+          operator: In
+          values: ["gpu"]
+    preferredDuringSchedulingIgnoredDuringExecution:  # PREFER AZ-a within gpu nodes
+    - weight: 100
+      preference:
+        matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: ["us-east-1a"]
+```
+
+---
+
+### nodeSelector vs nodeAffinity
+
+| | `nodeSelector` | `nodeAffinity` |
+|--|---------------|---------------|
+| **Logic** | AND only, exact match | AND / OR, full expressions |
+| **Operators** | `=` only | `In`, `NotIn`, `Exists`, `DoesNotExist`, `Gt`, `Lt` |
+| **Soft preference** | No | Yes (`preferred...`) |
+| **Multiple terms (OR)** | No | Yes (multiple `nodeSelectorTerms`) |
+| **Future-proof** | Being deprecated eventually | Recommended |
+
+Use `nodeSelector` only for simple single-label targeting. Use `nodeAffinity` for everything else.
+
+---
+
+### DaemonSet: run on all nodes despite taints
+
+There is **no global taint**. Taints are per-node. If you have multiple node groups each with different taints, the DaemonSet needs a toleration for each — or use the wildcard:
+
+```yaml
+spec:
+  tolerations:
+  - operator: "Exists"    # matches ALL keys, values, and effects — tolerate everything
+```
+
+This is what system DaemonSets (kube-proxy, CNI, node-exporter) use to guarantee they run on every node.
+
+**Note on `NoExecute`:** The wildcard also tolerates `NoExecute` without a `tolerationSeconds`, so the pod is never evicted. Fine for infrastructure DaemonSets, but be intentional about it.
+
+### DaemonSet: exclude specific nodes
+
+Since DaemonSets target all nodes by default, exclusion is done by **not scheduling**, not by taint:
+
+```yaml
+# Option 1: opt-in label — only schedule on nodes that have the label
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: daemonset/my-agent
+                operator: Exists   # label must exist (any value)
+```
+
+```bash
+# Only label the nodes you want the DaemonSet on
+kubectl label node node-1 node-2 daemonset/my-agent=enabled
+# node-3 has no label → DaemonSet pod never scheduled there
+```
+
+```yaml
+# Option 2: add a dedicated taint to nodes to exclude, don't tolerate it
+# (don't add this taint to the DaemonSet tolerations)
+kubectl taint node node-3 skip-my-agent=true:NoSchedule
+```
+
+---
+
+---
+
+## Pod Affinity & Pod Anti-Affinity
+
+While `nodeAffinity` attracts/repels pods to/from **nodes**, `podAffinity` and `podAntiAffinity` attract/repel pods relative to **other pods** — based on what's already running on a node (or in a topology zone).
+
+The scheduler checks the labels of **existing pods** on nodes to decide placement.
+
+### podAffinity — co-locate with other pods
+
+**Use case:** Place a caching sidecar or a latency-sensitive service on the same node as the pods it serves.
+
+```yaml
+affinity:
+  podAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:   # hard
+    - labelSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values: ["redis"]
+      topologyKey: "kubernetes.io/hostname"   # "same node"
+```
+
+`topologyKey` defines what "together" means:
+| `topologyKey` | Meaning |
+|--------------|---------|
+| `kubernetes.io/hostname` | Same node |
+| `topology.kubernetes.io/zone` | Same AZ |
+| `topology.kubernetes.io/region` | Same region |
+
+### podAntiAffinity — spread away from other pods
+
+**Use case:** Ensure replicas of the same app land on different nodes (or AZs) for HA.
+
+#### Hard anti-affinity (guaranteed spread)
+
+```yaml
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values: ["api-server"]
+      topologyKey: "kubernetes.io/hostname"   # no two api-server pods on same node
+```
+
+Pod stays **Pending** if the only available nodes already have a matching pod. Use with caution on small clusters.
+
+#### Soft anti-affinity (prefer spread, allow stacking if necessary)
+
+```yaml
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values: ["api-server"]
+        topologyKey: "topology.kubernetes.io/zone"   # prefer different AZs
+```
+
+If no other AZ is available, pods still schedule — no Pending.
+
+### Hard vs Soft summary
+
+| | Hard (`required...`) | Soft (`preferred...`) |
+|--|---------------------|----------------------|
+| **Affinity** | Must co-locate, else Pending | Prefer co-location, not required |
+| **AntiAffinity** | Must spread, else Pending | Prefer spread, stacking allowed |
+| **Risk** | Pods stuck Pending if unsatisfiable | Safe fallback |
+| **Use for** | Security isolation, strict HA | Best-effort AZ spread, latency opt |
+
+### Common patterns
+
+```yaml
+# Pattern 1: spread replicas across nodes (hard) — HA guarantee
+podAntiAffinity:
+  requiredDuringSchedulingIgnoredDuringExecution:
+  - labelSelector:
+      matchLabels:
+        app: my-service
+    topologyKey: "kubernetes.io/hostname"
+
+# Pattern 2: prefer different AZs (soft) — safe for small clusters
+podAntiAffinity:
+  preferredDuringSchedulingIgnoredDuringExecution:
+  - weight: 100
+    podAffinityTerm:
+      labelSelector:
+        matchLabels:
+          app: my-service
+      topologyKey: "topology.kubernetes.io/zone"
+
+# Pattern 3: co-locate app with its cache (hard)
+podAffinity:
+  requiredDuringSchedulingIgnoredDuringExecution:
+  - labelSelector:
+      matchLabels:
+        app: redis-cache
+    topologyKey: "kubernetes.io/hostname"
+```
+
+### Real-world Examples
+
+#### Example 1 — `nodeSelector`: run only on SSD nodes
+
+```yaml
+# kubectl label node node-1 node-2 disk=ssd
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      nodeSelector:
+        disk: ssd
+      containers:
+      - name: postgres
+        image: postgres:16
+```
+
+#### Example 2 — `nodeAffinity` hard: restrict to specific AZs
+
+```yaml
+# Scenario: data residency — must stay in us-east-1a or us-east-1b
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: [us-east-1a, us-east-1b]
+  containers:
+  - name: api
+    image: my-org/api:v2
+```
+
+#### Example 3 — `nodeAffinity` soft: prefer spot, fall back to on-demand
+
+```yaml
+# kubectl label node spot-node-{1..5} node-lifecycle=spot
+# kubectl label node od-node-{1..3}   node-lifecycle=on-demand
+spec:
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: node-lifecycle
+            operator: In
+            values: [spot]
+      - weight: 20
+        preference:
+          matchExpressions:
+          - key: node-lifecycle
+            operator: In
+            values: [on-demand]
+  containers:
+  - name: worker
+    image: my-org/worker:v1
+```
+
+#### Example 4 — `podAntiAffinity` hard: one replica per node
+
+```yaml
+# Scenario: 3 replicas, guaranteed on different nodes
+# ⚠️ Needs at least 3 nodes — 4th replica goes Pending if only 3 exist
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-server
+  template:
+    metadata:
+      labels:
+        app: api-server
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: api-server
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: api
+        image: my-org/api:v2
+        ports:
+        - containerPort: 8080
+```
+
+#### Example 5 — `podAntiAffinity` soft: prefer different AZs
+
+```yaml
+# Scenario: 6 replicas, prefer spread across AZs but don't block
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: payment-service
+              topologyKey: topology.kubernetes.io/zone
+      containers:
+      - name: payment
+        image: my-org/payment:v3
+```
+
+#### Example 6 — `podAffinity` hard: co-locate app with its local cache
+
+```yaml
+# Scenario: app must land on same node as redis-cache DaemonSet pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: realtime-processor
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: realtime-processor
+  template:
+    metadata:
+      labels:
+        app: realtime-processor
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: redis-cache
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: processor
+        image: my-org/processor:v1
+```
+
+#### Example 7 — DaemonSet on ALL nodes (multiple tainted node groups)
+
+```yaml
+# Scenario: Fluentd must run everywhere
+# Node groups: team=gpu:NoSchedule, team=spot:NoSchedule, dedicated=infra:NoSchedule
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluentd
+spec:
+  selector:
+    matchLabels:
+      app: fluentd
+  template:
+    metadata:
+      labels:
+        app: fluentd
+    spec:
+      tolerations:
+      - operator: Exists        # tolerate ALL taints on ALL nodes
+      containers:
+      - name: fluentd
+        image: fluent/fluentd-kubernetes-daemonset:v1
+        volumeMounts:
+        - name: varlog
+          mountPath: /var/log
+      volumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+```
+
+#### Example 8 — DaemonSet on SOME nodes (opt-in label)
+
+```yaml
+# Scenario: GPU metrics exporter — only on gpu nodes
+# kubectl label node gpu-node-{1..3} collect-gpu-metrics=true
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: gpu-metrics-exporter
+spec:
+  selector:
+    matchLabels:
+      app: gpu-metrics-exporter
+  template:
+    metadata:
+      labels:
+        app: gpu-metrics-exporter
+    spec:
+      tolerations:
+      - key: hardware
+        operator: Equal
+        value: gpu
+        effect: NoSchedule
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: collect-gpu-metrics
+                operator: Exists
+      containers:
+      - name: exporter
+        image: nvidia/dcgm-exporter:3.1.7
+```
+
+#### Example 9 — everything combined: ML training job
+
+```yaml
+# Must: land on gpu nodes (hard nodeAffinity + toleration)
+# Prefer: AZ-a for cheaper inter-node bandwidth (soft nodeAffinity)
+# Must: no two training pods on same node (hard podAntiAffinity)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-training
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: ml-training
+  template:
+    metadata:
+      labels:
+        app: ml-training
+    spec:
+      tolerations:
+      - key: hardware
+        operator: Equal
+        value: gpu
+        effect: NoSchedule
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: hardware
+                operator: In
+                values: [gpu]
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 60
+            preference:
+              matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values: [us-east-1a]
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: ml-training
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: trainer
+        image: my-org/ml-trainer:v2
+        resources:
+          limits:
+            nvidia.com/gpu: "1"
+            memory: 16Gi
+```
+
+```mermaid
+graph TD
+    classDef blue fill:#3498db,stroke:#2980b9,color:#fff,rx:8
+    classDef green fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef orange fill:#e67e22,stroke:#d35400,color:#fff,rx:8
+    classDef red fill:#e74c3c,stroke:#c0392b,color:#fff,rx:8
+    classDef teal fill:#1abc9c,stroke:#16a085,color:#fff,rx:8
+
+    POD["Pod to schedule"]:::blue
+
+    NODE["Node"]:::green
+    TAINT["Taint on node<br/>NoSchedule / NoExecute"]:::red
+    NODELABEL["Node labels"]:::orange
+
+    OTHERPOD["Other pods on node"]:::teal
+
+    TAINT -->|"blocked unless pod has matching Toleration"| POD
+    NODELABEL -->|"nodeSelector: exact match"| POD
+    NODELABEL -->|"nodeAffinity required: hard rule"| POD
+    NODELABEL -->|"nodeAffinity preferred: soft score"| POD
+    OTHERPOD -->|"podAffinity: attract to nodes with these pods"| POD
+    OTHERPOD -->|"podAntiAffinity required: repel hard"| POD
+    OTHERPOD -->|"podAntiAffinity preferred: repel soft"| POD
+```
 
 ## GPU Node Group Scenario
 
