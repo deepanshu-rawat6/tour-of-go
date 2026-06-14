@@ -10,21 +10,20 @@ Each project builds on the previous one. The series culminates in a URL shortene
 
 ```mermaid
 graph LR
-    T[01-tcp-server\nraw net.Listener] --> H[02-http-server\nHTTP/1.1 on TCP]
-    H --> W[03-websocket-chat\nhub pattern]
-    H --> R[04-rate-limiter\n4 algorithms]
-    H --> L[05-load-balancer\nround-robin + least-conn]
-    T --> M[06-message-queue\npub/sub + TCP]
-    T --> C[07-distributed-cache\nRESP protocol]
-    T --> A[08-log-aggregator\ntail + ship + query]
-    H --> S[09-task-scheduler\ncron + HTTP API]
-    R & C & M & S --> U[10-url-shortener\ncapstone]
-    R & L --> G[11-api-gateway\nchi · JWT · ReverseProxy]
-    C --> CH[12-consistent-hash\nvirtual nodes · ring]
-    C --> BF[13-bloom-filter\nprobabilistic DS]
-    CH --> CRDT[14-crdt\neventual consistency]
-| 15 | [`15-commit-log`](./15-commit-log/) | `SDE-2` | Log-structured message broker (Mini-Kafka) | Append-only segments, mmap index, sendfile zero-copy, consumer offsets |
-    M & C --> CL[15-commit-log\nmmap · sendfile · segments]
+    T[01-tcp-server<br/>raw net.Listener] --> H[02-http-server<br/>HTTP/1.1 on TCP]
+    H --> W[03-websocket-chat<br/>hub pattern]
+    H --> R[04-rate-limiter<br/>4 algorithms]
+    H --> L[05-load-balancer<br/>round-robin + least-conn]
+    T --> M[06-message-queue<br/>pub/sub + TCP]
+    T --> C[07-distributed-cache<br/>RESP protocol]
+    T --> A[08-log-aggregator<br/>tail + ship + query]
+    H --> S[09-task-scheduler<br/>cron + HTTP API]
+    R & C & M & S --> U[10-url-shortener<br/>capstone]
+    R & L --> G[11-api-gateway<br/>chi · JWT · ReverseProxy]
+    C --> CH[12-consistent-hash<br/>virtual nodes · ring]
+    C --> BF[13-bloom-filter<br/>probabilistic DS]
+    CH --> CRDT[14-crdt<br/>eventual consistency]
+    M & C --> CL[15-commit-log<br/>mmap · sendfile · segments]
 ```
 
 ---

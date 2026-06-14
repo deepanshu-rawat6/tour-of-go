@@ -3,15 +3,15 @@ package main
 import (
 	"fmt"
 	"os"
-	"tour_of_go/concurrency"
-	ctx_examples "tour_of_go/context"
-	"tour_of_go/error_handling"
-	"tour_of_go/flow_control_statements"
-	"tour_of_go/generics"
-	"tour_of_go/interfaces"
-	"tour_of_go/methods"
-	"tour_of_go/more_types"
-	"tour_of_go/packages"
+	"tour_of_go/go/concurrency"
+	ctx_examples "tour_of_go/go/context"
+	"tour_of_go/go/error_handling"
+	"tour_of_go/go/flow_control_statements"
+	"tour_of_go/go/generics"
+	"tour_of_go/go/interfaces"
+	"tour_of_go/go/methods"
+	"tour_of_go/go/more_types"
+	"tour_of_go/go/packages"
 )
 
 func main() {

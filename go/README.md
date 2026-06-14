@@ -138,9 +138,9 @@ graph TD
 The theory above is backed by executable Go programs in [`runnable/`](./runnable/README.md):
 
 ```shell
-go run ./more-internals/runnable/concurrency-patterns/   # Pipeline, fan-out/fan-in
-go run ./more-internals/runnable/design-patterns/        # Functional options, circuit breaker, singleflight
-go run ./more-internals/runnable/system-design/          # Token bucket + sliding window rate limiter
+go run ./go/runnable/concurrency-patterns/   # Pipeline, fan-out/fan-in
+go run ./go/runnable/design-patterns/        # Functional options, circuit breaker, singleflight
+go run ./go/runnable/system-design/          # Token bucket + sliding window rate limiter
 ```
 
 ## 🚀 Projects (Runnable Platform Projects)
@@ -155,7 +155,7 @@ Put it all together with standalone mini-projects in [`../projects/`](../project
 | [`secure-api/`](../projects/secure-api/) | SOLID, TDD, Immutability, Security (JWT/OAuth2/mTLS) |
 | [`cache-service/`](../projects/cache-service/) | Caching Strategies (LRU, TTL, cache-aside, write-through, singleflight) |
 | [`rabbitmq-worker/`](../projects/rabbitmq-worker/) | Message Queues (AMQP, DLX, prefetch, manual ack) |
-| [`from-scratch/`](../projects/from-scratch/) | From-Scratch Series: TCP, HTTP, WebSocket, Rate Limiter, Load Balancer, MQ, Cache, Log Aggregator, Scheduler, URL Shortener |
+| [`from-scratch/`](../from-scratch/) | From-Scratch Series: TCP, HTTP, WebSocket, Rate Limiter, Load Balancer, MQ, Cache, Log Aggregator, Scheduler, URL Shortener |
 
 ---
 

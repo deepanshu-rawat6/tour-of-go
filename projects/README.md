@@ -8,7 +8,7 @@ Standalone mini-projects — each is a separate Go module with its own `README.m
 
 ```mermaid
 graph TD
-    BASICS[Go Basics\npackages → concurrency → context] --> INTERNALS[more-internals/\nruntime · design patterns · system design]
+    BASICS[Go Basics\npackages → concurrency → context] --> INTERNALS[go/<br/>runtime · design patterns · system design]
     INTERNALS --> P1[grpc-service\nProtobuf + RPC]
     INTERNALS --> P2[otel-tracing\nDistributed tracing]
     INTERNALS --> P3[k8s-controller\nOperator pattern]
@@ -27,7 +27,7 @@ graph TD
     INTERNALS --> P16[secure-api\nSOLID · TDD · JWT · mTLS]
     INTERNALS --> P17[cache-service\nLRU · cache-aside · Redis]
     INTERNALS --> P18[rabbitmq-worker\nAMQP · DLX · prefetch]
-    INTERNALS --> FS[from-scratch/\nTCP → HTTP → WS → cache → URL shortener]
+    INTERNALS --> FS[from-scratch/<br/>TCP → HTTP → WS → cache → URL shortener]
     P4 --> P19[idempotent-payments\nIdempotency keys · SELECT FOR UPDATE · pgx]
     P4 --> P20[triage-engine\nLangGraph-equiv · pgvector RAG · HITL · testcontainers]
     P4 --> P21[saga-orchestrator\nSaga pattern · compensation · choreography]
@@ -67,21 +67,21 @@ graph TD
 
 | # | Project | Level | What you build | Key concepts |
 |---|---------|-------|---------------|--------------|
-| FS-01 | [`from-scratch/01-tcp-server`](./from-scratch/01-tcp-server/) | `SDE-1` | Raw TCP echo server | `net.Listener`, goroutine-per-conn, `io.Copy` |
-| FS-02 | [`from-scratch/02-http-server`](./from-scratch/02-http-server/) | `SDE-1` | HTTP/1.1 parser on TCP + stdlib | Request line parsing, routing, response writing |
-| FS-03 | [`from-scratch/03-websocket-chat`](./from-scratch/03-websocket-chat/) | `SDE-1` | Multi-room WebSocket chat | Hub pattern, broadcast, room isolation |
-| FS-04 | [`from-scratch/04-rate-limiter`](./from-scratch/04-rate-limiter/) | `SDE-1` | All 4 rate limiting algorithms | Token bucket, leaky bucket, fixed window, sliding window |
-| FS-05 | [`from-scratch/05-load-balancer`](./from-scratch/05-load-balancer/) | `SDE-1` | L7 reverse proxy | Round-robin, least-connections, health checks |
-| FS-06 | [`from-scratch/06-message-queue`](./from-scratch/06-message-queue/) | `SDE-1` | In-memory pub/sub + TCP server | Broker, topics, fan-out, custom text protocol |
-| FS-07 | [`from-scratch/07-distributed-cache`](./from-scratch/07-distributed-cache/) | `SDE-1` | Redis-compatible KV store | RESP protocol, TTL eviction, `redis-cli` compatible |
-| FS-08 | [`from-scratch/08-log-aggregator`](./from-scratch/08-log-aggregator/) | `SDE-1` | Log tail → ship → aggregate → query | File tailer, TCP shipper, in-memory store, HTTP search |
-| FS-09 | [`from-scratch/09-task-scheduler`](./from-scratch/09-task-scheduler/) | `SDE-1` | Cron-like task scheduler | Cron parser, tick loop, HTTP API |
-| FS-10 | [`from-scratch/10-url-shortener`](./from-scratch/10-url-shortener/) | `SDE-1` | URL shortener (capstone) | Integrates FS-04 + FS-07 + FS-06 + FS-09 |
-| FS-11 | [`from-scratch/11-api-gateway`](./from-scratch/11-api-gateway/) | `SDE-1` | Edge API Gateway | chi middleware, JWT, ReverseProxy, context propagation |
-| FS-12 | [`from-scratch/12-consistent-hash`](./from-scratch/12-consistent-hash/) | `SDE-2` | Consistent hashing ring | Virtual nodes, crc32, binary search, minimal redistribution |
-| FS-13 | [`from-scratch/13-bloom-filter`](./from-scratch/13-bloom-filter/) | `SDE-2` | Bloom filter + HyperLogLog | Probabilistic membership, cardinality estimation |
-| FS-14 | [`from-scratch/14-crdt`](./from-scratch/14-crdt/) | `SDE-2` | CRDTs | G-Counter, PN-Counter, LWW-Register, eventual consistency |
-| FS-15 | [`from-scratch/15-commit-log`](./from-scratch/15-commit-log/) | `SDE-2` | Log-structured message broker (Mini-Kafka) | Append-only segments, mmap index, sendfile zero-copy, consumer offsets |
+| FS-01 | [`from-scratch/01-tcp-server`](../from-scratch/01-tcp-server/) | `SDE-1` | Raw TCP echo server | `net.Listener`, goroutine-per-conn, `io.Copy` |
+| FS-02 | [`from-scratch/02-http-server`](../from-scratch/02-http-server/) | `SDE-1` | HTTP/1.1 parser on TCP + stdlib | Request line parsing, routing, response writing |
+| FS-03 | [`from-scratch/03-websocket-chat`](../from-scratch/03-websocket-chat/) | `SDE-1` | Multi-room WebSocket chat | Hub pattern, broadcast, room isolation |
+| FS-04 | [`from-scratch/04-rate-limiter`](../from-scratch/04-rate-limiter/) | `SDE-1` | All 4 rate limiting algorithms | Token bucket, leaky bucket, fixed window, sliding window |
+| FS-05 | [`from-scratch/05-load-balancer`](../from-scratch/05-load-balancer/) | `SDE-1` | L7 reverse proxy | Round-robin, least-connections, health checks |
+| FS-06 | [`from-scratch/06-message-queue`](../from-scratch/06-message-queue/) | `SDE-1` | In-memory pub/sub + TCP server | Broker, topics, fan-out, custom text protocol |
+| FS-07 | [`from-scratch/07-distributed-cache`](../from-scratch/07-distributed-cache/) | `SDE-1` | Redis-compatible KV store | RESP protocol, TTL eviction, `redis-cli` compatible |
+| FS-08 | [`from-scratch/08-log-aggregator`](../from-scratch/08-log-aggregator/) | `SDE-1` | Log tail → ship → aggregate → query | File tailer, TCP shipper, in-memory store, HTTP search |
+| FS-09 | [`from-scratch/09-task-scheduler`](../from-scratch/09-task-scheduler/) | `SDE-1` | Cron-like task scheduler | Cron parser, tick loop, HTTP API |
+| FS-10 | [`from-scratch/10-url-shortener`](../from-scratch/10-url-shortener/) | `SDE-1` | URL shortener (capstone) | Integrates FS-04 + FS-07 + FS-06 + FS-09 |
+| FS-11 | [`from-scratch/11-api-gateway`](../from-scratch/11-api-gateway/) | `SDE-1` | Edge API Gateway | chi middleware, JWT, ReverseProxy, context propagation |
+| FS-12 | [`from-scratch/12-consistent-hash`](../from-scratch/12-consistent-hash/) | `SDE-2` | Consistent hashing ring | Virtual nodes, crc32, binary search, minimal redistribution |
+| FS-13 | [`from-scratch/13-bloom-filter`](../from-scratch/13-bloom-filter/) | `SDE-2` | Bloom filter + HyperLogLog | Probabilistic membership, cardinality estimation |
+| FS-14 | [`from-scratch/14-crdt`](../from-scratch/14-crdt/) | `SDE-2` | CRDTs | G-Counter, PN-Counter, LWW-Register, eventual consistency |
+| FS-15 | [`from-scratch/15-commit-log`](../from-scratch/15-commit-log/) | `SDE-2` | Log-structured message broker (Mini-Kafka) | Append-only segments, mmap index, sendfile zero-copy, consumer offsets |
 
 ---
 

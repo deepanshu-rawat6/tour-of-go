@@ -11,17 +11,17 @@ A hands-on engineering reference — Go from basics to internals, distributed sy
 ```mermaid
 graph TD
     subgraph SDE-1 Foundation
-        BASICS[Go Basics\npackages → context] --> PATTERNS[Design Patterns\nerror handling · 12-factor · API design]
-        PATTERNS --> INFRA[Infrastructure\nDocker · CI/CD · K8s · Terraform · Helm]
-        PATTERNS --> BACKEND[Backend Fundamentals\nauth · caching · MQ · SQL vs NoSQL]
-        BACKEND --> PROJECTS_1[Projects: SDE-1\ngrpc · cache · secure-api · from-scratch 01-11]
+        BASICS[Go Basics<br/>packages → context] --> PATTERNS[Design Patterns<br/>error handling · 12-factor · API design]
+        PATTERNS --> INFRA[Infrastructure<br/>Docker · CI/CD · K8s · Terraform · Helm]
+        PATTERNS --> BACKEND[Backend Fundamentals<br/>auth · caching · MQ · SQL vs NoSQL]
+        BACKEND --> PROJECTS_1[Projects: SDE-1<br/>grpc · cache · secure-api · from-scratch 01-11]
     end
     
     subgraph SDE-2 Advanced
-        INFRA --> PLATFORM[Platform Engineering\nGitOps · secrets · chaos engineering]
-        BACKEND --> DISTRIBUTED[Distributed Systems\nconsistency · CDC · Raft · sagas · event sourcing]
-        DISTRIBUTED --> PROJECTS_2[Projects: SDE-2\nraft-kv · saga · event-sourced · xdp-firewall]
-        PLATFORM --> INTERNALS[Go Internals\nG-M-P scheduler · GC · eBPF · assembly]
+        INFRA --> PLATFORM[Platform Engineering<br/>GitOps · secrets · chaos engineering]
+        BACKEND --> DISTRIBUTED[Distributed Systems<br/>consistency · CDC · Raft · sagas · event sourcing]
+        DISTRIBUTED --> PROJECTS_2[Projects: SDE-2<br/>raft-kv · saga · event-sourced · xdp-firewall]
+        PLATFORM --> INTERNALS[Go Internals<br/>G-M-P scheduler · GC · eBPF · assembly]
     end
 ```
 
@@ -32,48 +32,48 @@ graph TD
 ### 🟢 Step 1: Go Language (SDE-1)
 
 ```
-1. packages              → Variables, functions, types, constants
-2. flow_control_statements → For, if, switch, defer
-3. more_types            → Pointers, structs, slices, maps, closures
-4. methods               → Value/pointer receivers, fmt.Stringer
-5. interfaces            → Implicit satisfaction, type assertions, embedding
-6. error_handling        → Custom errors, wrapping (%w), panic/recover
-7. generics              → Type parameters, constraints, generic types
-8. concurrency           → Goroutines, channels, select, mutex, worker pool
-9. context               → Cancellation, timeouts, request-scoped values
+1. go/packages              → Variables, functions, types, constants
+2. go/flow_control_statements → For, if, switch, defer
+3. go/more_types            → Pointers, structs, slices, maps, closures
+4. go/methods               → Value/pointer receivers, fmt.Stringer
+5. go/interfaces            → Implicit satisfaction, type assertions, embedding
+6. go/error_handling        → Custom errors, wrapping (%w), panic/recover
+7. go/generics              → Type parameters, constraints, generic types
+8. go/concurrency           → Goroutines, channels, select, mutex, worker pool
+9. go/context               → Cancellation, timeouts, request-scoped values
 ```
 
 ### 🔵 Step 2: Production Skills (SDE-1)
 
 | Topic | Where |
 |-------|-------|
-| Testing (table-driven, mocks, fuzz) | `more-internals/go-internals/testing-patterns/` |
-| Production Go (timeouts, pprof, graceful shutdown) | `more-internals/go-internals/production-go/` |
-| Module patterns (go.work, internal/) | `more-internals/go-internals/module-patterns/` |
-| Error handling mastery | `more-internals/design-patterns/error-handling/` |
-| API design (REST, pagination, OpenAPI) | `more-internals/design-patterns/api-design/` |
-| 12-Factor App | `more-internals/design-patterns/twelve-factor/` |
+| Testing (table-driven, mocks, fuzz) | `go/go-internals/testing-patterns/` |
+| Production Go (timeouts, pprof, graceful shutdown) | `go/go-internals/production-go/` |
+| Module patterns (go.work, internal/) | `go/go-internals/module-patterns/` |
+| Error handling mastery | `go/design-patterns/error-handling/` |
+| API design (REST, pagination, OpenAPI) | `go/design-patterns/api-design/` |
+| 12-Factor App | `go/design-patterns/twelve-factor/` |
 
 ### 🔴 Step 3: System Design & DevOps (SDE-1 → SDE-2)
 
 | Topic | Level | Where |
 |-------|-------|-------|
-| Docker deep dive | SDE-1 | `more-internals/system-design/docker-deep-dive/` |
-| CI/CD pipelines | SDE-1 | `more-internals/system-design/cicd/` |
-| Kubernetes core | SDE-1 | `more-internals/system-design/kubernetes-core/` |
-| Auth (OAuth2, JWT) | SDE-1 | `more-internals/system-design/auth-deep-dive/` |
-| Caching strategies | SDE-1 | `more-internals/system-design/caching-strategies/` |
-| SQL vs NoSQL | SDE-1 | `more-internals/system-design/sql-vs-nosql/` |
-| Message queues | SDE-1 | `more-internals/system-design/message-queue-patterns/` |
-| Rate limiting & backpressure | SDE-1 | `more-internals/system-design/backpressure/` |
-| Observability & tracing | SDE-1 | `more-internals/system-design/observability-guide/` |
-| Consistency models | SDE-2 | `more-internals/system-design/consistency-models/` |
-| Database internals | SDE-2 | `more-internals/system-design/database-internals/` |
-| Distributed locking | SDE-1 | `more-internals/system-design/distributed-locking/` |
-| CDC (Change Data Capture) | SDE-2 | `more-internals/system-design/cdc/` |
-| Capacity planning | SDE-2 | `more-internals/system-design/capacity-planning/` |
-| GitOps | SDE-2 | `more-internals/system-design/gitops/` |
-| Chaos engineering | SDE-2 | `more-internals/system-design/chaos-engineering/` |
+| Docker deep dive | SDE-1 | `system-design/docker-deep-dive/` |
+| CI/CD pipelines | SDE-1 | `system-design/cicd/` |
+| Kubernetes core | SDE-1 | `system-design/kubernetes-core/` |
+| Auth (OAuth2, JWT) | SDE-1 | `system-design/auth-deep-dive/` |
+| Caching strategies | SDE-1 | `system-design/caching-strategies/` |
+| SQL vs NoSQL | SDE-1 | `system-design/sql-vs-nosql/` |
+| Message queues | SDE-1 | `system-design/message-queue-patterns/` |
+| Rate limiting & backpressure | SDE-1 | `system-design/backpressure/` |
+| Observability & tracing | SDE-1 | `system-design/observability-guide/` |
+| Consistency models | SDE-2 | `system-design/consistency-models/` |
+| Database internals | SDE-2 | `system-design/database-internals/` |
+| Distributed locking | SDE-1 | `system-design/distributed-locking/` |
+| CDC (Change Data Capture) | SDE-2 | `system-design/cdc/` |
+| Capacity planning | SDE-2 | `system-design/capacity-planning/` |
+| GitOps | SDE-2 | `system-design/gitops/` |
+| Chaos engineering | SDE-2 | `system-design/chaos-engineering/` |
 
 ### 🟠 Step 3.5: DevOps, Kubernetes & AWS
 
@@ -117,7 +117,7 @@ Start with from-scratch series (01-11 for SDE-1), then tackle platform projects.
 
 ## Advanced Guides & Internals
 
-For the full deep-dive series with **SDE-1/SDE-2 level markers** on every topic, see the [**Master Table of Contents**](./more-internals/README.md).
+For the full deep-dive series with **SDE-1/SDE-2 level markers** on every topic, see the [**Master Table of Contents**](./go/README.md).
 
 ---
 
@@ -141,9 +141,9 @@ See **[`projects/README.md`](./projects/README.md)** for the full project index 
 ## Adding New Topics
 
 ```shell
-mkdir mytopic
+mkdir go/mytopic
 ```
 
-Create `mytopic/mytopic.go` with `Run()` and `RunExample(name string)` functions, then register in `main.go` with a `case "mytopic":` block.
+Create `go/mytopic/mytopic.go` with `Run()` and `RunExample(name string)` functions, then register in `main.go` with a `case "mytopic":` block and import `tour_of_go/go/mytopic`.
 
 ---

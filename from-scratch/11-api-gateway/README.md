@@ -87,7 +87,7 @@ make test
 This project imports `04-rate-limiter` directly via a `replace` directive in `go.mod`:
 
 ```
-replace tour_of_go/projects/from-scratch/04-rate-limiter => ../04-rate-limiter
+replace tour_of_go/from-scratch/04-rate-limiter => ../04-rate-limiter
 ```
 
 The gateway depends on the `ratelimit.Limiter` interface — it never knows it's using a token bucket. Swapping to a sliding window requires changing one line in `main.go`.
