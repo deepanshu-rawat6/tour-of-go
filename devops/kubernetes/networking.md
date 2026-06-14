@@ -21,6 +21,190 @@ graph TD
     SVC --> P3["Pod 3 10.0.3.9:8080"]:::pod
 ```
 
+### Where does the Service / ClusterIP actually live?
+
+**Nowhere physically.** The `Service` object lives in **etcd** (control plane). The ClusterIP (`10.96.45.20`) is a **virtual IP — no process binds to it, no node owns it**. Nothing is listening on that IP.
+
+It exists purely as **iptables NAT rules on every single worker node**, programmed by `kube-proxy`. When a packet is sent to `10.96.45.20:80`, the Linux kernel's netfilter intercepts it in the PREROUTING chain and rewrites the destination to a real pod IP before the packet ever leaves the sending node.
+
+```
+Control Plane (etcd):
+  Stores the Service object definition
+  { name: my-svc, clusterIP: 10.96.45.20, port: 80, targetPort: 8080, selector: app=my-svc }
+
+kube-proxy (DaemonSet on every node):
+  Watches API server for Service/EndpointSlice changes
+  Translates them into iptables/IPVS rules on the local node
+
+Every worker node's kernel:
+  Has iptables rule: "if dst=10.96.45.20:80, DNAT to one of [10.0.1.5, 10.0.2.7, 10.0.3.9]:8080"
+  ← THIS is where the ClusterIP "lives"
+```
+
+```mermaid
+graph LR
+    classDef cp fill:#326ce5,stroke:#254ea8,color:#fff,rx:8
+    classDef node fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef virtual fill:#e74c3c,stroke:#c0392b,color:#fff,rx:8
+
+    subgraph ControlPlane["Control Plane"]
+        ETCD["etcd<br/>Service object stored here"]:::cp
+        API["API Server"]:::cp
+    end
+
+    subgraph Node1["Worker Node 1"]
+        KP1["kube-proxy<br/>watches API server"]:::node
+        IPT1["iptables rules<br/>10.96.45.20:80 → DNAT"]:::virtual
+        POD1["Pod 1<br/>10.0.1.5:8080"]:::node
+        KP1 --> IPT1
+    end
+
+    subgraph Node2["Worker Node 2"]
+        KP2["kube-proxy"]:::node
+        IPT2["iptables rules<br/>10.96.45.20:80 → DNAT"]:::virtual
+        POD2["Pod 2<br/>10.0.2.7:8080"]:::node
+        KP2 --> IPT2
+    end
+
+    ETCD --> API
+    API -->|"EndpointSlice updates"| KP1
+    API -->|"EndpointSlice updates"| KP2
+```
+
+**Key insight:** The packet never travels to a "Service node". The DNAT happens **on the same node that originated the packet**, before it even hits the network. The ClusterIP is just a convenient fiction that the kernel intercepts and rewrites locally.
+
+### How the target node is decided
+
+No single component explicitly picks a node. The iptables rule selects a **pod IP** — the node is a side-effect of which pod was chosen. The pod IP → node mapping is handled by the CNI routing table.
+
+The packet header changes at each hop — here's the concrete walkthrough:
+
+```
+Step 1 — Pod A originates the request
+  src: 10.0.1.5:54321   dst: 10.96.45.20:80     ← ClusterIP (nothing listening here)
+
+Step 2 — iptables DNAT fires on Node 1 (BEFORE packet leaves the node)
+  src: 10.0.1.5:54321   dst: 10.0.2.7:8080      ← rewritten to real pod IP
+  iptables picked Pod 2 (10.0.2.7) randomly from the EndpointSlice
+
+Step 3 — Kernel routing table lookup: where is 10.0.2.7?
+  CNI told every node: "10.0.2.0/24 is reachable via Node 2 (192.168.1.12)"
+  route: 10.0.2.0/24 → 192.168.1.12
+
+Step 4 — Packet travels to Node 2 over the physical/overlay network
+  outer: src=192.168.1.11 (Node 1)  dst=192.168.1.12 (Node 2)
+  inner: src=10.0.1.5:54321         dst=10.0.2.7:8080
+
+Step 5 — Node 2 delivers to Pod 2 via its veth pair
+  Pod 2 sees: src=10.0.1.5:54321   dst=10.0.2.7:8080  (its own IP)
+
+Step 6 — Response travels back; conntrack on Node 1 reverses the DNAT
+  Pod A sees: src=10.96.45.20:80   dst=10.0.1.5:54321  ← looks like ClusterIP replied
+```
+
+```mermaid
+sequenceDiagram
+    participant A as Pod A (Node 1)
+    participant K1 as Node 1 kernel
+    participant K2 as Node 2 kernel
+    participant B as Pod 2 (Node 2)
+
+    A->>K1: dst=10.96.45.20:80
+    Note over K1: DNAT: dst → 10.0.2.7:8080
+    Note over K1: route: 10.0.2.0/24 → Node 2
+    K1->>K2: dst=10.0.2.7:8080
+    K2->>B: deliver via veth
+    B-->>K2: src=10.0.2.7:8080
+    K2-->>K1: response
+    Note over K1: un-DNAT via conntrack<br/>src → 10.96.45.20:80
+    K1-->>A: src=10.96.45.20:80
+```
+
+```
+1. iptables DNAT on the sending node
+   dst=10.96.45.20:80 → randomly selects Pod 2 (10.0.2.7:8080)
+
+2. Kernel looks up 10.0.2.7 in the routing table
+   CNI programmed: "10.0.2.0/24 lives on Node 2 via eth0"
+
+3. Packet sent to Node 2's physical IP over the pod network
+   (VXLAN tunnel / BGP direct route / WireGuard — depends on CNI)
+
+4. Node 2 receives it, kernel delivers to Pod 2's veth interface
+```
+
+```mermaid
+graph TD
+    classDef kern fill:#e67e22,stroke:#d35400,color:#fff,rx:8
+    classDef cni fill:#3498db,stroke:#2980b9,color:#fff,rx:8
+    classDef node fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+
+    PKT["Packet to 10.96.45.20:80<br/>(from any pod on Node 1)"]
+    DNAT["iptables DNAT on Node 1<br/>select pod IP at random"]:::kern
+    ROUTE["CNI routing table<br/>10.0.2.0/24 → Node 2"]:::cni
+    NODE2["Node 2<br/>deliver to Pod 2 veth"]:::node
+
+    PKT --> DNAT --> ROUTE --> NODE2
+```
+
+**Who programs what:**
+
+| Component | Responsibility |
+|-----------|---------------|
+| `kube-proxy` | ClusterIP → pod IP (iptables/IPVS DNAT rules) |
+| CNI plugin | Pod IP → node (routing table: which node owns which pod CIDR) |
+| `kube-controller-manager` | Keeps EndpointSlices up to date as pods come/go |
+
+The CNI advertises each node's pod subnet to all other nodes — via BGP (Calico), VXLAN overlay (Flannel), or eBPF direct (Cilium). kube-proxy never touches node routing; it only knows ClusterIP → pod IP.
+
+### Full flow: Ingress → Pod
+
+```
+1. External request arrives at the Load Balancer (AWS ALB/NLB)
+
+2. LB forwards to NodePort on one of the nodes, say Node A (192.168.1.11:30080)
+
+3. Node A kernel: iptables DNAT fires
+   dst=10.96.45.20:80 → picks Pod B (10.0.2.7:8080) at random
+   Pod B lives on Node B (192.168.1.12)
+
+4. Node A kernel routing table lookup: "who owns 10.0.2.7?"
+   CNI route: 10.0.2.0/24 → Node B (192.168.1.12)
+   Packet leaves Node A over the CNI network (VXLAN/BGP)
+
+5. Packet arrives at Node B
+   Node B delivers to Pod B via its veth pair
+
+6. Pod B processes, sends response back
+
+7. Response: Node B → Node A
+   Node A conntrack reverses the DNAT
+   src rewritten back to ClusterIP — caller sees consistent response
+
+Special case: if DNAT had picked Pod A (also on Node A)
+   packet never leaves Node A — CNI routes it via local veth only
+```
+
+```mermaid
+sequenceDiagram
+    participant LB as Load Balancer
+    participant NA as Node A (192.168.1.11)
+    participant CNI as CNI Network
+    participant NB as Node B (192.168.1.12)
+    participant PB as Pod B (10.0.2.7)
+
+    LB->>NA: dst=NodeA:30080
+    Note over NA: DNAT: dst → 10.0.2.7:8080<br/>route: 10.0.2.0/24 → Node B
+    NA->>CNI: dst=10.0.2.7:8080<br/>(VXLAN/BGP tunnel)
+    CNI->>NB: deliver to Node B
+    NB->>PB: veth → Pod B
+    PB-->>NB: response
+    NB-->>CNI: back to Node A
+    CNI-->>NA: response
+    Note over NA: conntrack un-DNAT<br/>src → ClusterIP
+    NA-->>LB: response to LB
+```
+
 ---
 
 ## ClusterIP Internals — How kube-proxy Programs iptables
@@ -890,3 +1074,92 @@ No annotation mess, team isolation built-in"]:::note
 ```
 
 **Summary:** IngressGroup is AWS LBC-specific because only AWS LBC creates real external ALBs per Ingress. nginx/Traefik already share infrastructure naturally. Gateway API solves the same multi-team sharing problem in a standardized, controller-agnostic way — which is why it's the future direction.
+
+---
+
+## Good to Know
+
+### Why pods need their own IPs (not just node IPs)
+
+A node has one IP (e.g. `192.168.1.11`). If 50 pods run on it and all share that IP, the only way to address individual pods is port mapping — manually assigning a unique host port per pod (`-p 8081:8080`, `-p 8082:8080`…). That's Docker's original model and it breaks at scale.
+
+Kubernetes gives **every pod its own IP**, so:
+
+```
+Pod A: 10.0.1.5:8080    ← directly addressable
+Pod B: 10.0.1.6:8080    ← same port, different IP — no conflict
+Pod C: 10.0.1.7:8080
+```
+
+Pods talk to each other directly by IP with no NAT. No port mapping table to manage. The complexity of managing a separate IP range is the price of a **flat network** where any pod can reach any other pod directly.
+
+### Three separate IP ranges — why
+
+```
+Node IPs:    192.168.1.0/24    assigned by VPC/datacenter
+Pod IPs:     10.0.0.0/16       assigned by CNI, flat across all nodes
+ClusterIPs:  10.96.0.0/12      virtual, assigned by kube-apiserver
+```
+
+Non-overlapping ranges let the kernel route unambiguously — "this is a pod, this is a node, this is a service" purely from the IP prefix. If pods shared the node CIDR, physical routers would need to know exactly which pod lives on which node, and they'd clash with the existing network.
+
+### Each node has its own virtual network
+
+The cluster pod CIDR is sliced into per-node subnets by the CNI:
+
+```
+Cluster CIDR: 10.0.0.0/16
+
+Node 1: 10.0.1.0/24   → pods on Node 1 get IPs from here
+Node 2: 10.0.2.0/24   → pods on Node 2 get IPs from here
+Node 3: 10.0.3.0/24   → pods on Node 3 get IPs from here
+```
+
+Inside each node, CNI creates a virtual bridge (`cni0`):
+
+```
+Node 1
+├── eth0: 192.168.1.11       ← physical NIC (talks to other nodes)
+└── cni0 bridge: 10.0.1.1   ← virtual switch for local pods
+    ├── veth ──── Pod A: 10.0.1.5
+    ├── veth ──── Pod B: 10.0.1.6
+    └── veth ──── Pod C: 10.0.1.7
+```
+
+Each pod gets a `veth` pair — one end inside the pod's network namespace, the other plugged into the bridge. Pods on the same node talk via the bridge without leaving the host.
+
+Cross-node traffic is where CNI stitches the isolated per-node networks together:
+
+| CNI | How it connects nodes |
+|-----|-----------------------|
+| **Flannel** | Wraps packets in UDP (VXLAN tunnel) over eth0 |
+| **Calico** | Advertises pod subnets via BGP — packets route natively |
+| **Cilium** | Bypasses bridge entirely, routes in kernel with eBPF maps |
+
+```mermaid
+graph LR
+    classDef pod fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef bridge fill:#3498db,stroke:#2980b9,color:#fff,rx:8
+    classDef nic fill:#e67e22,stroke:#d35400,color:#fff,rx:8
+    classDef cni fill:#9b59b6,stroke:#8e44ad,color:#fff,rx:8
+
+    subgraph Node1["Node 1 (192.168.1.11)"]
+        PA["Pod A 10.0.1.5"]:::pod
+        PB["Pod B 10.0.1.6"]:::pod
+        BR1["cni0 bridge 10.0.1.1"]:::bridge
+        ETH1["eth0 192.168.1.11"]:::nic
+        PA & PB --> BR1 --> ETH1
+    end
+
+    subgraph Node2["Node 2 (192.168.1.12)"]
+        PC["Pod C 10.0.2.5"]:::pod
+        PD["Pod D 10.0.2.6"]:::pod
+        BR2["cni0 bridge 10.0.2.1"]:::bridge
+        ETH2["eth0 192.168.1.12"]:::nic
+        PC & PD --> BR2 --> ETH2
+    end
+
+    ETH1 <-->|"CNI network<br/>(VXLAN / BGP / eBPF)"| ETH2
+```
+
+Pod A → Pod C: `cni0 bridge → eth0 → CNI network → eth0 (Node 2) → cni0 bridge → Pod C`. From Pod A's perspective it's just a direct IP connection to `10.0.2.5`.
