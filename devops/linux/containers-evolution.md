@@ -565,3 +565,159 @@ graph TD
 ```
 
 This full stack is why containers are lightweight: there's no hypervisor, no guest OS kernel, no hardware emulation. The app runs directly on the host kernel, just with a restricted view and resource limits enforced by kernel primitives.
+
+---
+
+## Docker Image Size Optimization
+
+### Why it matters
+Larger images = slower CI builds, slower pod startup (image pull), more ECR/registry storage cost, larger attack surface.
+
+### Step 1: Use a minimal base image
+
+```dockerfile
+# BAD: ubuntu base is ~70MB, has shell, package manager, utilities
+FROM ubuntu:22.04
+
+# BETTER: debian-slim strips docs, locales, apt cache (~30MB)
+FROM debian:bookworm-slim
+
+# BEST for Go/Rust: scratch (0MB — just your binary)
+FROM scratch
+
+# BEST for most apps: distroless (no shell, no package manager, ~2MB base)
+FROM gcr.io/distroless/static-debian12      # static binaries (Go, Rust)
+FROM gcr.io/distroless/base-debian12        # glibc dynamic binaries
+FROM gcr.io/distroless/java21-debian12      # Java
+FROM gcr.io/distroless/nodejs20-debian12    # Node.js
+```
+
+### Step 2: Multi-stage build (most impactful for compiled languages)
+
+```dockerfile
+# Go example — build stage has all tools, final stage has only the binary
+FROM golang:1.22-alpine AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download                      # cache dependency layer
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o server .
+#   -s: strip symbol table
+#   -w: strip DWARF debug info
+#   Result: binary ~30% smaller
+
+FROM gcr.io/distroless/static-debian12   # final image: zero shell, zero tools
+COPY --from=builder /app/server /server
+EXPOSE 8080
+ENTRYPOINT ["/server"]
+# Final image size: ~10-15MB vs ~800MB if using golang base directly
+```
+
+```dockerfile
+# Node.js example
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production             # install only prod deps
+
+FROM node:20-alpine                      # or distroless/nodejs
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+COPY . .
+USER node                                # never run as root
+CMD ["node", "server.js"]
+```
+
+### Step 3: Optimize layer caching (order matters)
+
+```dockerfile
+# BAD: COPY . . before dependency install — any source change busts dep cache
+FROM golang:1.22-alpine
+COPY . .
+RUN go mod download
+
+# GOOD: copy dependency files first, source code last
+FROM golang:1.22-alpine
+COPY go.mod go.sum ./        # only changes when deps change
+RUN go mod download           # cached unless go.mod/go.sum change
+COPY . .                      # source changes bust only this layer onward
+RUN go build -o server .
+```
+
+### Step 4: Minimize layers and clean up in one RUN
+
+```dockerfile
+# BAD: each RUN is a layer; apt cache stays in image
+RUN apt-get update
+RUN apt-get install -y curl git
+RUN rm -rf /var/lib/apt/lists/*    # too late — previous layer already has the cache
+
+# GOOD: one RUN, clean up in same layer
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl git && \
+    rm -rf /var/lib/apt/lists/*
+#   --no-install-recommends: skips suggested packages
+```
+
+### Step 5: .dockerignore
+
+```dockerignore
+# .dockerignore — same syntax as .gitignore
+.git
+.github
+**/*.md
+**/*_test.go
+**/*.test
+node_modules
+dist
+coverage
+*.log
+.env
+.DS_Store
+```
+
+Without `.dockerignore`, `COPY . .` sends everything (including `node_modules`, `.git` history) to the Docker build context — slows builds and bloats cache.
+
+### Step 6: Use specific tags, not `latest`
+
+```dockerfile
+# BAD: latest changes silently, breaks reproducibility
+FROM node:latest
+
+# GOOD: pinned tag = reproducible builds
+FROM node:20.11.1-alpine3.19
+```
+
+### Step 7: Don't run as root
+
+```dockerfile
+# Create non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+
+# distroless already has nonroot user
+FROM gcr.io/distroless/static-debian12:nonroot
+```
+
+### Summary: checklist
+
+| Technique | Typical saving |
+|-----------|---------------|
+| Switch from `ubuntu` to `alpine` base | 60-80MB |
+| Multi-stage build (Go/Java/Rust) | 200-800MB |
+| `-ldflags="-s -w"` on Go binary | 20-30% of binary size |
+| `--no-install-recommends` on apt | 10-50MB |
+| `.dockerignore` | Build context speed, not final size |
+| `npm ci --only=production` | 50-200MB (no devDependencies) |
+| `distroless` vs `alpine` final | 5-10MB + no shell (security) |
+| Layer ordering (cache deps first) | Build time, not final size |
+
+### Check actual image size
+
+```bash
+docker images my-org/app:v1
+docker history my-org/app:v1    # size per layer
+
+# dive — interactive layer explorer (install separately)
+dive my-org/app:v1
+```

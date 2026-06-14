@@ -324,3 +324,176 @@ templates:
       Application {{.app.metadata.name}} sync failed.
       Error: {{.app.status.conditions[0].message}}
 ```
+
+---
+
+## Multi-Cluster Deployments
+
+### Where does ArgoCD live?
+
+ArgoCD is installed in **one cluster** — the "management cluster" (or hub cluster). It then connects to N target clusters and deploys into them. ArgoCD itself never needs to run in every cluster.
+
+```mermaid
+graph TD
+    classDef blue fill:#3498db,stroke:#2980b9,color:#fff,rx:8
+    classDef green fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
+    classDef orange fill:#e67e22,stroke:#d35400,color:#fff,rx:8
+    classDef k8s fill:#326ce5,stroke:#254ea8,color:#fff,rx:8
+
+    GIT["Git repo: manifests per cluster"]:::green
+
+    subgraph MGMT["Management Cluster (ArgoCD lives here)"]
+        ARGO["ArgoCD<br/>argocd-server<br/>argocd-application-controller"]:::blue
+    end
+
+    subgraph C1["Cluster 1: production-us"]
+        APP1["Deployed apps"]:::k8s
+    end
+    subgraph C2["Cluster 2: production-eu"]
+        APP2["Deployed apps"]:::k8s
+    end
+    subgraph C3["Cluster 3: staging"]
+        APP3["Deployed apps"]:::k8s
+    end
+
+    GIT -->|watches| ARGO
+    ARGO -->|kubectl API via kubeconfig/ServiceAccount| C1
+    ARGO -->|kubectl API| C2
+    ARGO -->|kubectl API| C3
+```
+
+**Connectivity:** ArgoCD connects to target clusters using a ServiceAccount token. It uses the Kubernetes API — needs network access from the management cluster to target cluster API servers (typically via private endpoint, VPN, or VPC peering).
+
+### Step 1: Register target clusters
+
+```bash
+# Login to ArgoCD CLI
+argocd login <argocd-server-host>
+
+# Add each target cluster (uses your current kubeconfig context)
+argocd cluster add production-us-context --name production-us
+argocd cluster add production-eu-context --name production-eu
+argocd cluster add staging-context       --name staging
+
+# Verify
+argocd cluster list
+# SERVER                          NAME             STATUS
+# https://prod-us.eks.amazonaws.com   production-us    Successful
+# https://prod-eu.eks.amazonaws.com   production-eu    Successful
+# https://staging.eks.amazonaws.com   staging          Successful
+```
+
+This creates a Secret in the `argocd` namespace with the cluster credentials.
+
+### Step 2: One Application per cluster (manual)
+
+```yaml
+# app-production-us.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp-production-us
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/my-org/k8s-manifests
+    targetRevision: main
+    path: apps/myapp/overlays/production-us   # kustomize overlay per cluster
+  destination:
+    server: https://prod-us.eks.amazonaws.com  # target cluster API
+    namespace: myapp
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+```
+
+Repeat for each cluster. This works but doesn't scale — 3 clusters × 10 apps = 30 Application manifests.
+
+### Step 3: ApplicationSet — the scalable way
+
+`ApplicationSet` is an ArgoCD controller that generates `Application` objects automatically from a template + generator. One manifest, N applications.
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: myapp
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - cluster: production-us
+        url: https://prod-us.eks.amazonaws.com
+        env: production
+      - cluster: production-eu
+        url: https://prod-eu.eks.amazonaws.com
+        env: production
+      - cluster: staging
+        url: https://staging.eks.amazonaws.com
+        env: staging
+  template:
+    metadata:
+      name: "myapp-{{cluster}}"          # generates: myapp-production-us, myapp-production-eu, myapp-staging
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/my-org/k8s-manifests
+        targetRevision: main
+        path: "apps/myapp/overlays/{{cluster}}"   # per-cluster kustomize overlay
+      destination:
+        server: "{{url}}"
+        namespace: myapp
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+```
+
+This generates 3 `Application` objects automatically. Add a 4th cluster → add one list element.
+
+### Git repo structure for multi-cluster
+
+```
+k8s-manifests/
+├── apps/
+│   └── myapp/
+│       ├── base/                    # shared manifests (Deployment, Service)
+│       │   ├── deployment.yaml
+│       │   └── kustomization.yaml
+│       └── overlays/
+│           ├── production-us/       # cluster-specific patches
+│           │   ├── kustomization.yaml
+│           │   └── patch-replicas.yaml   # replicas: 10
+│           ├── production-eu/
+│           │   ├── kustomization.yaml
+│           │   └── patch-replicas.yaml   # replicas: 5
+│           └── staging/
+│               ├── kustomization.yaml
+│               └── patch-replicas.yaml   # replicas: 2
+```
+
+### Progressive delivery across clusters
+
+Deploy to staging first, promote to prod after health check:
+
+```yaml
+# Use sync waves: staging syncs first, prod only after staging is healthy
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"    # staging: wave 1 (first)
+    # prod clusters: wave 2 (after wave 1 healthy)
+```
+
+Or use ArgoCD's **Rollout** integration with Argo Rollouts for canary/blue-green per cluster.
+
+### Hub-spoke vs. standalone ArgoCD per cluster
+
+| | Hub (one ArgoCD, N clusters) | Standalone (ArgoCD per cluster) |
+|--|-----------------------------|---------------------------------|
+| **Ops overhead** | One ArgoCD to maintain | N ArgoCD instances |
+| **Blast radius** | ArgoCD cluster down = no deploys to any cluster | One cluster's ArgoCD down = only that cluster affected |
+| **Network** | Needs API access to all target clusters | Only needs access to own cluster |
+| **Use case** | Small/medium orgs, central platform team | Large orgs, strict isolation, air-gapped clusters |

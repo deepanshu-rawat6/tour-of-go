@@ -786,3 +786,528 @@ sum(rate(http_requests_total[1h]))
 | Tools | K8s HPA, ECS Autoscaling, ASG | Change instance type |
 
 **Best practice:** Design stateless services (session in Redis, not in-process memory) so horizontal scaling works cleanly. Vertical scale is the emergency lever when you can't distribute state.
+
+---
+
+## CrashLoopBackOff: Debugging Runbook
+
+`CrashLoopBackOff` means the container starts, crashes (exits non-zero), Kubernetes restarts it, it crashes again — and Kubernetes applies exponential backoff between restarts (10s → 20s → 40s → 80s → 160s → 5min cap). It will keep retrying indefinitely.
+
+**It is not a single cause — it's a symptom.** The exit code tells you where to look first.
+
+### Step 1: Get the exit code and last logs
+
+```bash
+# See restart count and status
+kubectl get pod <pod> -n <ns>
+
+# Last crash reason + exit code
+kubectl describe pod <pod> -n <ns>
+# Look for: Last State, Exit Code, Reason (OOMKilled / Error / Completed)
+
+# Logs from the crashed container (not the current one)
+kubectl logs <pod> -n <ns> --previous
+
+# If multi-container pod
+kubectl logs <pod> -n <ns> -c <container-name> --previous
+```
+
+### Step 2: Diagnose by exit code
+
+| Exit Code | Meaning | Where to look |
+|-----------|---------|---------------|
+| `1` | App error / panic / unhandled exception | `--previous` logs — missing env var, failed DB connect, bad config |
+| `2` | Misuse of shell / script error | Entrypoint/command misconfigured |
+| `137` | `SIGKILL` — OOM killed by kernel | Memory limit too low, memory leak |
+| `139` | Segfault | Corrupt binary, wrong arch (arm vs amd64) |
+| `143` | `SIGTERM` not handled — graceful shutdown timeout | App ignores SIGTERM, preStop hook too short |
+| `125` | Docker/container runtime error | Bad image, missing binary in container |
+| `126` | Permission denied on entrypoint | File not executable, wrong user |
+| `127` | Entrypoint binary not found | Typo in `command`, wrong base image |
+
+### Step 3: Work through the cause tree
+
+```
+CrashLoopBackOff
+├── Exit 137 (OOMKilled)
+│   ├── memory.limit too low → increase resources.limits.memory
+│   ├── memory leak → profile with pprof, check goroutine count
+│   └── JVM heap not set → add -Xmx flag
+│
+├── Exit 1 (App panic/error)
+│   ├── Missing env var → kubectl describe pod, check envFrom / env
+│   ├── Can't connect to DB/Redis on startup → wrong SERVICE_NAME, wrong port
+│   ├── Failed DB migration (runs in same container) → separate init container
+│   ├── Config file not found → ConfigMap not mounted, wrong mountPath
+│   └── Secret not found → Secret doesn't exist in namespace
+│
+├── Exit 127 (binary not found)
+│   ├── Wrong command/args in Deployment spec
+│   └── Multi-stage build forgot to copy the binary
+│
+├── Exit 1 but logs are empty
+│   ├── App crashes before logger initializes → add stderr logging early
+│   ├── Init container failing → kubectl logs <pod> -c <init-container>
+│   └── readinessProbe killing pod before app fully starts
+│
+└── Liveness probe killing healthy pod
+    ├── initialDelaySeconds too short → app not ready when probe fires
+    ├── Probe endpoint wrong → 404 returns, pod killed
+    └── timeoutSeconds too low → slow startup looks like failure
+```
+
+### Common contributors and fixes
+
+#### 1. Missing / wrong environment variable
+
+```bash
+kubectl describe pod <pod> -n <ns> | grep -A5 "Environment"
+# Or check what the app is actually seeing:
+kubectl exec <pod> -n <ns> -- env | grep DB_
+
+# Fix: check ConfigMap and Secret refs in Deployment
+```
+
+```yaml
+# Common mistake: referencing a Secret that doesn't exist in this namespace
+env:
+- name: DB_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: db-secret      # does this Secret exist in the same namespace?
+      key: password
+```
+
+```bash
+kubectl get secret db-secret -n <ns>   # 404 here = pod will CrashLoop
+```
+
+#### 2. Can't connect to dependency on startup
+
+App tries to connect to DB/Redis/external API during `init()` or startup, fails, panics.
+
+```bash
+# Test connectivity from inside a debug pod in same namespace
+kubectl run debug --rm -it --image=busybox -n <ns> -- sh
+wget -qO- http://my-service:5432   # or nc -zv my-service 5432
+```
+
+**Fix:** Add startup retry logic — don't fail fast on first connection attempt. Or use an init container to wait for the dependency:
+
+```yaml
+initContainers:
+- name: wait-for-db
+  image: busybox
+  command: ['sh', '-c', 'until nc -z postgres-svc 5432; do echo waiting; sleep 2; done']
+```
+
+#### 3. OOMKilled — memory limit too low
+
+```bash
+kubectl describe pod <pod> | grep -A3 "Last State"
+# Last State: Terminated  Reason: OOMKilled
+
+# Check current memory usage before the crash
+kubectl top pod <pod> -n <ns>
+
+# Check limits
+kubectl get pod <pod> -o jsonpath='{.spec.containers[0].resources}'
+```
+
+**Fix:**
+```yaml
+resources:
+  requests:
+    memory: "256Mi"
+  limits:
+    memory: "512Mi"   # increase this, or remove limit to use node memory
+```
+
+For Go apps: `GOGC` env var controls GC aggressiveness. `GOMEMLIMIT` (Go 1.19+) sets a soft memory ceiling before GC kicks in aggressively:
+
+```yaml
+env:
+- name: GOMEMLIMIT
+  value: "450MiB"   # slightly below the k8s limit
+```
+
+#### 4. Liveness probe killing the pod
+
+Pod shows `CrashLoopBackOff` but logs look fine — the liveness probe is the killer.
+
+```bash
+kubectl describe pod <pod> | grep -A10 "Liveness"
+# Events: Liveness probe failed: ... Killing container with id...
+```
+
+```yaml
+# Fix: give app time to start before first probe
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 30    # wait 30s before first check
+  periodSeconds: 10
+  failureThreshold: 3        # need 3 consecutive failures before kill
+  timeoutSeconds: 5          # give it 5s to respond
+```
+
+#### 5. Init container failing silently
+
+```bash
+# Init containers show separately
+kubectl get pod <pod> -n <ns>
+# Init:0/1 means init container hasn't completed
+
+kubectl logs <pod> -n <ns> -c <init-container-name>
+kubectl logs <pod> -n <ns> -c <init-container-name> --previous
+```
+
+#### 6. Wrong image / wrong arch
+
+```bash
+kubectl describe pod <pod> | grep -A5 "Events"
+# exec format error → image built for wrong arch (amd64 image on arm node or vice versa)
+
+# Fix: build multi-arch image
+docker buildx build --platform linux/amd64,linux/arm64 -t my-org/app:v1 --push .
+```
+
+### Quick checklist
+
+```
+□ kubectl logs <pod> --previous          → read the actual crash message
+□ kubectl describe pod <pod>             → exit code, events, probe config
+□ kubectl get events -n <ns> --sort-by=.lastTimestamp  → cluster-level events
+□ exit code 137?                         → OOMKilled, check memory limits
+□ exit code 1, empty logs?               → init container? probe killing it?
+□ env vars correct?                      → describe pod, check secret/configmap exists
+□ can pod reach its dependencies?        → debug pod with nc/wget
+□ liveness probe initialDelaySeconds?    → might be firing too early
+□ init containers healthy?               → kubectl logs -c <init-container>
+□ image right arch?                      → exec format error in events
+```
+
+---
+
+## Pod Stuck in `Pending`
+
+Pod is created but never scheduled — it's sitting in the scheduler queue with no node assigned.
+
+```bash
+kubectl describe pod <pod> -n <ns>
+# Look at Events section at the bottom — FailedScheduling with reason
+```
+
+### Cause tree
+
+| Event message | Root cause | Fix |
+|--------------|-----------|-----|
+| `0/3 nodes are available: 3 Insufficient cpu` | No node has enough CPU | Scale up node group, lower requests, or check if requests are over-specified |
+| `0/3 nodes are available: 3 Insufficient memory` | No node has enough memory | Same as above |
+| `0/3 nodes are available: 3 node(s) had taint... that the pod didn't tolerate` | Missing toleration | Add toleration for the taint |
+| `0/3 nodes are available: 3 node(s) didn't match Pod's node affinity/selector` | nodeAffinity/nodeSelector mismatch | Check labels on nodes vs pod spec |
+| `0/3 nodes are available: 3 node(s) had untolerated taint + 0 didn't match affinity` | Both issues at once | Fix both |
+| `unbound immediate PersistentVolumeClaims` | PVC not bound to a PV | See PVC stuck section below |
+| `didn't match pod anti-affinity rules` | Hard anti-affinity unsatisfiable | Not enough nodes, or switch to soft |
+
+```bash
+# Check actual node capacity vs allocatable
+kubectl describe nodes | grep -A5 "Allocated resources"
+
+# Check what's consuming resources
+kubectl top nodes
+kubectl top pods -A --sort-by=memory
+
+# Check if cluster autoscaler is blocked
+kubectl logs -n kube-system -l app=cluster-autoscaler | tail -50
+```
+
+---
+
+## `ImagePullBackOff` / `ErrImagePull`
+
+Container image can't be pulled. `ErrImagePull` is the first attempt; `ImagePullBackOff` is repeated failure with backoff.
+
+```bash
+kubectl describe pod <pod> -n <ns>
+# Events: Failed to pull image "...", reason in the message
+```
+
+### Cause tree
+
+| Error message | Cause | Fix |
+|--------------|-------|-----|
+| `unauthorized: authentication required` | No pull secret / wrong creds | Add `imagePullSecrets` to pod spec |
+| `not found` / `manifest unknown` | Tag doesn't exist | `docker pull <image>` locally to verify |
+| `no basic auth credentials` | ECR token expired (12hr TTL) | Refresh ECR token, or use IRSA + ECR pull-through |
+| `exec format error` | Wrong arch (arm image on amd64 node) | Build multi-arch image |
+| `connection refused` / timeout | Node can't reach registry | Check node's internet access / NAT GW / VPC endpoint for ECR |
+| `ImagePullBackOff` on private registry | `imagePullSecrets` missing or wrong namespace | Secret must be in same namespace as pod |
+
+```bash
+# Test pulling manually on the node
+kubectl debug node/<node-name> -it --image=busybox
+# inside: docker pull <image> or crictl pull <image>
+
+# Check if imagePullSecret exists in the right namespace
+kubectl get secret regcred -n <ns>
+
+# For ECR: check node IAM role has ecr:GetAuthorizationToken
+aws iam simulate-principal-policy \
+  --policy-source-arn <node-role-arn> \
+  --action-names ecr:GetAuthorizationToken
+```
+
+---
+
+## Pod Stuck in `Terminating`
+
+`kubectl delete pod` was run but pod stays in Terminating state indefinitely.
+
+```bash
+kubectl describe pod <pod> -n <ns>
+# Look for: finalizers, volumes not unmounting, preStop hook hanging
+```
+
+### Causes
+
+**1. Finalizer not being removed**
+```bash
+kubectl get pod <pod> -n <ns> -o json | jq '.metadata.finalizers'
+# If a controller crashed and never removed the finalizer, pod hangs
+
+# Force remove finalizer (only if you're sure the controller is gone)
+kubectl patch pod <pod> -n <ns> -p '{"metadata":{"finalizers":[]}}' --type=merge
+```
+
+**2. preStop hook hanging**
+```yaml
+# preStop has a hard deadline of terminationGracePeriodSeconds (default 30s)
+# If hook runs longer, pod is force killed after the grace period
+lifecycle:
+  preStop:
+    exec:
+      command: ["/bin/sh", "-c", "sleep 5"]  # must complete within grace period
+```
+
+**3. Volume not unmounting (PVC)**
+```bash
+kubectl describe pod <pod> | grep -A5 "Volumes"
+# "Unable to unmount volumes" in events = storage driver issue
+
+# Force delete as last resort (may leave volume in bad state)
+kubectl delete pod <pod> -n <ns> --grace-period=0 --force
+```
+
+**4. Node is NotReady / unreachable**
+```bash
+# If node went offline, pods on it stay Terminating until node comes back or is deleted
+kubectl get node <node>
+kubectl delete node <node>   # removes the node object, pods get rescheduled
+```
+
+---
+
+## Node `NotReady`
+
+```bash
+kubectl get nodes
+# NAME        STATUS      ROLES    AGE
+# node-1      NotReady    <none>   2d
+
+kubectl describe node <node-name>
+# Look at: Conditions, Events, kubelet logs
+```
+
+### Cause tree
+
+```
+Node NotReady
+├── kubelet stopped
+│   └── ssh to node: systemctl status kubelet
+│       journalctl -u kubelet -n 100
+│
+├── Disk pressure (DiskPressure=True)
+│   ├── Node full of logs/images → kubelet evicts pods
+│   └── Fix: kubectl drain + increase disk, or add imagePrunner CronJob
+│       docker system prune / crictl rmi --prune
+│
+├── Memory pressure (MemoryPressure=True)
+│   ├── System processes consuming memory
+│   └── Fix: kubectl drain + investigate, check for memory leak in DaemonSets
+│
+├── PID pressure (PIDPressure=True)
+│   ├── Too many processes (fork bomb, runaway threads)
+│   └── Fix: find the pod: kubectl top pods --sort-by=cpu
+│
+├── Network unreachable
+│   ├── CNI plugin crashed → pods can't get IPs
+│   └── kubectl logs -n kube-system -l k8s-app=aws-node (VPC CNI)
+│       kubectl logs -n kube-system -l app=calico-node
+│
+└── Cloud provider issue (EKS)
+    └── EC2 instance health check failing → terminate + replace node
+        aws ec2 describe-instance-status --instance-id <id>
+```
+
+```bash
+# Cordon + drain to safely remove workloads before investigating
+kubectl cordon <node>
+kubectl drain <node> --ignore-daemonsets --delete-emptydir-data
+
+# Check node events
+kubectl get events -n default --field-selector involvedObject.name=<node>
+```
+
+---
+
+## High Latency / Slow Requests
+
+Pod is Running, no crashes, but requests are slow.
+
+### Step 1 — isolate the layer
+
+```bash
+# Is it all pods or specific ones?
+kubectl top pods -n <ns>    # CPU throttled? Memory pressure?
+
+# Check if requests hit a specific pod (check per-pod metrics in Grafana/Datadog)
+# Is load balancer distributing unevenly?
+```
+
+### Step 2 — CPU throttling (most common invisible cause)
+
+```bash
+# Check throttling metrics
+kubectl top pod <pod> -n <ns>
+# If CPU is at limit constantly → throttled
+
+# In Prometheus:
+# container_cpu_cfs_throttled_seconds_total — cumulative throttle time
+# rate(container_cpu_cfs_throttled_periods_total[5m]) / rate(container_cpu_cfs_periods_total[5m])
+# > 0.25 means 25%+ of scheduling periods throttled → very bad for latency
+```
+
+**Fix:** Either raise the CPU limit, or remove it entirely (keep only `requests`). CPU limits cause p99 latency spikes even when average CPU is low.
+
+```yaml
+resources:
+  requests:
+    cpu: "500m"
+  limits:
+    cpu: "2000m"   # raise this, or remove limits entirely for latency-sensitive services
+```
+
+### Step 3 — GC pauses (Go / JVM)
+
+```bash
+# Go: check GC stats via pprof
+kubectl port-forward pod/<pod> 6060:6060
+curl http://localhost:6060/debug/pprof/heap > heap.prof
+go tool pprof heap.prof
+
+# Check GC frequency
+curl http://localhost:6060/debug/vars | jq '.memstats'
+# NumGC high + PauseTotalNs high → GC pressure
+```
+
+**Fix for Go:** Set `GOMEMLIMIT` to give GC headroom before hitting k8s limit.
+
+### Step 4 — connection pool exhaustion
+
+```bash
+# Symptoms: latency spikes at high concurrency, logs show "connection wait timeout"
+# App is waiting for a DB connection from the pool
+
+# Check pool metrics if exposed, or:
+kubectl exec <pod> -- cat /proc/<pid>/net/tcp | wc -l   # open TCP connections
+```
+
+**Fix:** increase pool size, or add read replicas / RDS Proxy.
+
+### Step 5 — DNS resolution slow
+
+```bash
+# DNS latency inside cluster
+kubectl run dnstest --rm -it --image=busybox -- sh
+time nslookup my-service.my-namespace.svc.cluster.local
+
+# CoreDNS performance
+kubectl top pods -n kube-system -l k8s-app=kube-dns
+kubectl logs -n kube-system -l k8s-app=kube-dns | grep -i error
+```
+
+**Fix:** use fully qualified domain names (FQDN) to avoid search domain iteration, or tune CoreDNS replicas.
+
+---
+
+## PVC Stuck in `Pending`
+
+```bash
+kubectl get pvc -n <ns>
+# NAME    STATUS    VOLUME   CAPACITY   STORAGECLASS
+# data    Pending                       gp3
+
+kubectl describe pvc data -n <ns>
+# Events tell you why
+```
+
+| Event | Cause | Fix |
+|-------|-------|-----|
+| `no persistent volumes available` | No PV matches (static provisioning) | Create a PV or switch to dynamic |
+| `storageclass not found` | Wrong `storageClassName` | `kubectl get storageclass` — check name |
+| `waiting for first consumer` | StorageClass has `volumeBindingMode: WaitForFirstConsumer` | Normal — PVC binds when pod is scheduled |
+| `failed to provision volume` | CSI driver error / IAM permissions | Check CSI driver pod logs |
+| `exceeded quota` | ResourceQuota on namespace | `kubectl describe quota -n <ns>` |
+
+```bash
+# Check CSI driver (EBS on EKS)
+kubectl logs -n kube-system -l app=ebs-csi-controller -c ebs-plugin | tail -50
+
+# Check storage classes
+kubectl get storageclass
+
+# Check if IAM role for CSI has ebs:CreateVolume permission
+```
+
+---
+
+## Resource Quota / LimitRange Blocking Pods
+
+```bash
+# Pod fails to create with "exceeded quota" or "must specify limits"
+kubectl describe quota -n <ns>
+kubectl describe limitrange -n <ns>
+
+# Example output:
+# Resource         Used    Hard
+# requests.cpu     1800m   2000m    ← close to limit
+# limits.memory    3Gi     4Gi
+```
+
+**LimitRange** sets defaults and min/max for containers in a namespace. If a pod has no `resources` set and LimitRange requires it, the pod is rejected.
+
+```bash
+# See what defaults are being injected
+kubectl get limitrange -n <ns> -o yaml
+```
+
+---
+
+## Quick Reference: All Pod States
+
+| Status | Meaning | First command |
+|--------|---------|--------------|
+| `Pending` | Not scheduled yet | `kubectl describe pod` → Events: FailedScheduling |
+| `Init:0/1` | Init container running/failed | `kubectl logs <pod> -c <init-container>` |
+| `PodInitializing` | Init done, main container starting | Normal, wait |
+| `Running` but not Ready | Readiness probe failing | `kubectl describe pod` → probe config + app logs |
+| `CrashLoopBackOff` | Container crashing repeatedly | `kubectl logs --previous`, check exit code |
+| `OOMKilled` | Memory limit exceeded | Increase `limits.memory`, check for leak |
+| `Error` | Container exited non-zero once | `kubectl logs <pod>` |
+| `Completed` | Container exited 0 (Job/init) | Normal for Jobs |
+| `Terminating` | Delete issued, waiting grace period | Check finalizers, preStop hook |
+| `ImagePullBackOff` | Can't pull image | `kubectl describe pod` → registry/auth/tag |
+| `ErrImageNeverPull` | `imagePullPolicy: Never` + image missing | Push image to node or change policy |
+| `NodeLost` / `Unknown` | Node unreachable | `kubectl get node`, check cloud console |
