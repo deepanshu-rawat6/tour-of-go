@@ -98,7 +98,20 @@ Deep-dive reference for Kubernetes internals, AWS architecture, and SRE practice
 
 ### 🟣 Step 4: Build Projects
 
-Start with from-scratch series (01-11 for SDE-1), then tackle platform projects. See [projects/README.md](./projects/README.md) for the full index with level markers.
+Two series live at the root:
+
+**From Scratch** (`from-scratch/`) — 15 projects building distributed systems primitives from zero using only the stdlib. Start here for SDE-1.
+
+| Range | What you build |
+|-------|---------------|
+| FS-01 → FS-05 | TCP server → HTTP → WebSocket chat → rate limiter → load balancer |
+| FS-06 → FS-10 | Message queue → distributed cache → log aggregator → task scheduler → URL shortener (capstone) |
+| FS-11 | API gateway (chi, JWT, ReverseProxy) |
+| FS-12 → FS-15 | Consistent hash · Bloom filter · CRDTs · Commit log (SDE-2) |
+
+See **[`from-scratch/README.md`](./from-scratch/README.md)** for the full index with architecture diagrams.
+
+**Platform Projects** (`projects/`) — 22 production-grade projects (gRPC, Raft, eBPF, Kubernetes operators, event sourcing, sagas…). Tackle after from-scratch. See **[`projects/README.md`](./projects/README.md)**.
 
 ---
 
@@ -134,9 +147,13 @@ go run .              # show help
 
 ## Projects
 
-Standalone mini-projects in `projects/` — each is a separate Go module with its own README and docs.
+**From Scratch** (`from-scratch/`) — 15 standalone projects using only the Go stdlib. Each has its own `go.mod`, `README.md`, and `Makefile`.
 
-See **[`projects/README.md`](./projects/README.md)** for the full project index (22 projects + 14 from-scratch) with architecture diagrams and level markers.
+See **[`from-scratch/README.md`](./from-scratch/README.md)** for the full index (FS-01 → FS-15) with architecture diagrams.
+
+**Platform Projects** (`projects/`) — 22 production-grade Go modules. Each is a separate Go module with its own README, docs, and Makefile.
+
+See **[`projects/README.md`](./projects/README.md)** for the full project index with architecture diagrams and level markers.
 
 ## Adding New Topics
 
