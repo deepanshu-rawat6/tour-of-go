@@ -1,111 +1,211 @@
-# DevOps, Linux, Kubernetes & AWS
+# DevOps Reference
 
-Everything runs on Linux. This section covers Linux internals first, then the layers built on top: containers, Kubernetes, AWS, and SRE practices.
+Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — ordered from foundation to advanced.
 
 ---
 
-## Overview
+## Recommended Order
 
-```mermaid
-graph TD
-    classDef linux fill:#e67e22,stroke:#d35400,color:#fff,rx:8
-    classDef k8s fill:#326ce5,stroke:#254ea8,color:#fff,rx:8
-    classDef aws fill:#f39c12,stroke:#d68910,color:#000,rx:8
-    classDef sre fill:#e74c3c,stroke:#c0392b,color:#fff,rx:8
-    classDef iac fill:#9b59b6,stroke:#8e44ad,color:#fff,rx:8
-    classDef cicd fill:#2ecc71,stroke:#27ae60,color:#fff,rx:8
-
-    subgraph Linux
-        L1["Kernel: processes, memory, filesystem, namespaces, cgroups"]:::linux --> L2["Isolation: chroot, BSD Jails, LXC, Docker"]:::linux
-        L2 --> L3["Commands: grep, sed, awk, find, ss, strace, top"]:::linux
-    end
-
-    subgraph Kubernetes
-        K1["Architecture: Control Plane and Node Components"]:::k8s --> K2["kubectl apply: API Server to etcd to Scheduler to kubelet"]:::k8s
-        K2 --> K3["Scheduler: Filter, Score, Worked Example"]:::k8s
-        K3 --> K4["Networking, Workloads, Storage, RBAC, Autoscaling"]:::k8s
-        K4 --> K5["EKS: AWS-managed vs Customer-managed"]:::k8s
-    end
-
-    subgraph AWS
-        A1["VPC: Public vs Private Subnets, Route Tables"]:::aws --> A2["Security Groups vs NACLs: Stateful vs Stateless"]:::aws
-        A2 --> A3["NAT GW, IGW, VPC Peering, Transit Gateway"]:::aws
-        A3 --> A4["IAM, ELB/ALB, Route53, ECS vs EKS"]:::aws
-    end
-
-    subgraph SRE
-        S1["5XX Debugging: K8s Runbook + EKS-Specific"]:::sre --> S2["OOM Recovery: Singleton vs Distributed"]:::sre
-        S2 --> S3["SLI/SLO/Error Budget, MTTD/MTTR, Toil"]:::sre
-        S3 --> S4["Leader Election: client-go Lease API"]:::sre
-    end
-
-    subgraph IaC["Infrastructure as Code"]
-        I1["IaC Concepts: declarative vs imperative, drift, env isolation"]:::iac --> I2["Terraform: workspaces, state ops, lifecycle, DB user example"]:::iac
-        I1 --> I3["CloudFormation: stacks, changesets, nested stacks, StackSets"]:::iac
-    end
-
-    subgraph CICD["CI/CD"]
-        C1["CI/CD Concepts: triggers, secrets, deployment strategies"]:::cicd --> C2["Jenkins: declarative pipeline, ECS agents, withCredentials"]:::cicd
-        C1 --> C3["GitHub Actions: OIDC to AWS, matrix builds, caching"]:::cicd
-        C1 --> C4["ArgoCD: GitOps, sync policies, app-of-apps, multi-cluster"]:::cicd
-    end
+```
+1. Linux fundamentals        → understand what everything runs on
+2. Docker                    → containers before orchestration
+3. Kubernetes                → orchestration, networking, security
+4. CI/CD                     → build and deploy pipelines
+5. IaC                       → Terraform, Helm, CloudFormation
+6. AWS                       → cloud infrastructure
+7. GCP                       → GCP equivalent concepts
+8. Monitoring                → Prometheus, Grafana, OTel, Loki
+9. Performance debugging     → profiling, USE/RED, pprof, eBPF
+10. Git                      → internals, workflows, fixing mistakes
+11. Advanced                 → service mesh, eBPF, chaos, DR
+12. SRE & Debugging          → production incident runbooks
 ```
 
 ---
 
-## Contents
+## 1. Linux
 
-### Linux
+| File | Topics | Level |
+|------|--------|-------|
+| [linux/README.md](./linux/README.md) | Process model, memory, filesystem, signals, load average | SDE-1 |
+| [linux/commands.md](./linux/commands.md) | grep, awk, sed, find, ps, ss, curl, disk management | SDE-1 |
+| [linux/boot.md](./linux/boot.md) | BIOS → GRUB → kernel → initramfs → systemd | SDE-1 |
+| [linux/systemd.md](./linux/systemd.md) | Unit files, service lifecycle, timers, journalctl, systemd-analyze | SDE-1 |
+| [linux/networking.md](./linux/networking.md) | TCP/IP stack, sockets, iptables, netfilter, TIME_WAIT | SDE-1 |
+| [linux/network-tools.md](./linux/network-tools.md) | ss, tcpdump, curl -v, nc, iperf3, mtr, dig, ip, tcp tuning | SDE-1 |
+| [linux/io-models.md](./linux/io-models.md) | Blocking, non-blocking, select/poll/epoll, io_uring | SDE-2 |
+| [linux/scheduler.md](./linux/scheduler.md) | CFS, nice values, cgroups, context switches, GMP model | SDE-2 |
+| [linux/security.md](./linux/security.md) | Capabilities, seccomp, AppArmor, SELinux, namespaces | SDE-2 |
+| [linux/memory-tuning.md](./linux/memory-tuning.md) | /proc/meminfo, swap, OOM killer, dirty pages, huge pages, cgroups v2 | SDE-2 |
+| [linux/strace-perf.md](./linux/strace-perf.md) | strace, perf stat/top/record, flame graphs, Brendan Gregg methodology | SDE-2 |
+| [linux/containers-evolution.md](./linux/containers-evolution.md) | chroot → LXC → Docker → OCI. Image size optimization. | SDE-1 |
 
-| Document | Topics |
-|----------|--------|
-| [linux/README.md](./linux/README.md) | Kernel architecture, processes, memory, filesystem, load average, OOM killer, signals, /proc and /sys |
-| [linux/networking.md](./linux/networking.md) | TCP/IP stack, sockets, accept queue, TIME_WAIT, netfilter/conntrack, kernel tuning |
-| [linux/io-models.md](./linux/io-models.md) | Blocking I/O, epoll (O(1) internals), Go netpoller, io_uring |
-| [linux/scheduler.md](./linux/scheduler.md) | CFS vruntime, nice values, CPU affinity, context switches, Go GMP model |
-| [linux/boot.md](./linux/boot.md) | BIOS/UEFI, GRUB, initramfs, systemd unit files |
-| [linux/security.md](./linux/security.md) | Capabilities, seccomp, AppArmor, SELinux, container security |
-| [linux/containers-evolution.md](./linux/containers-evolution.md) | chroot, BSD Jails, namespaces, cgroups, LXC, Docker evolution |
-| [linux/commands.md](./linux/commands.md) | grep, sed, awk, find, networking, monitoring cheat sheet |
+**Read order:** README → commands → boot → systemd → networking → network-tools → io-models → scheduler → security → memory-tuning → strace-perf → containers-evolution
 
-### Kubernetes
+---
 
-| Document | Topics |
-|----------|--------|
-| [kubernetes/README.md](./kubernetes/README.md) | Architecture (control plane + nodes), `kubectl apply` flow, scheduler (filter/score/worked example), taints, tolerations, node affinity, GPU node groups |
-| [kubernetes/networking.md](./kubernetes/networking.md) | Services (ClusterIP iptables internals), DNS, Ingress, IngressGroup (EKS), NetworkPolicy, LoadBalancer vs Ingress, internet-to-pod full flow, kube-proxy crash behavior, CoreDNS crash impact |
-| [kubernetes/workloads.md](./kubernetes/workloads.md) | Pod lifecycle, probes (liveness/readiness/startup), QoS classes, rolling updates, rollbacks, StatefulSet, DaemonSet, Jobs, CronJobs |
-| [kubernetes/storage.md](./kubernetes/storage.md) | PV/PVC/StorageClass, dynamic provisioning, access modes, reclaim policies, CSI drivers, volume snapshots |
-| [kubernetes/autoscaling.md](./kubernetes/autoscaling.md) | HPA (formula + scaling behavior), VPA, KEDA (scale to zero, SQS/Kafka triggers), Cluster Autoscaler, Karpenter |
-| [kubernetes/rbac.md](./kubernetes/rbac.md) | API Server auth chain, ServiceAccount, Role/ClusterRole, RoleBinding, RBAC debug commands |
-| [kubernetes/eks-architecture.md](./kubernetes/eks-architecture.md) | EKS managed control plane, cross-account ENI, VPC CNI, IRSA, managed node groups, Fargate, add-ons, control plane logs |
+## 2. Docker
 
-### AWS
+| File | Topics | Level |
+|------|--------|-------|
+| [docker/README.md](./docker/README.md) | Architecture (dockerd→containerd→runc), image layers COW, commands, Dockerfile, Compose, runtime flags, storage drivers, build cache, health checks | SDE-1 |
+| [docker/networking.md](./docker/networking.md) | bridge/host/overlay/macvlan/none, iptables NAT, container DNS, port publishing internals, deep mode comparison | SDE-1/2 |
+| [docker/buildkit.md](./docker/buildkit.md) | Parallel stages, cache mounts, secret mounts, SSH agent, multi-platform buildx, inline cache | SDE-1/2 |
+| [docker/docker-security.md](./docker/docker-security.md) | Rootless Docker, docker.sock danger, image scanning, cosign/Sigstore, cap-drop, BuildKit secrets | SDE-2 |
+| [docker/debugging.md](./docker/debugging.md) | 10 scenarios: exit codes, OOM, port issues, networking, build cache, image size, volumes, compose, disk | SDE-1 |
 
-| Document | Topics |
-|----------|--------|
-| [aws/README.md](./aws/README.md) | VPC architecture, public vs private subnets, Security Groups vs NACLs (stateful/stateless), NAT Gateway, IGW, Route Tables, VPC Peering, Transit Gateway |
-| [aws/services-overview.md](./aws/services-overview.md) | IAM (roles, policies, IRSA), ELB/ALB/NLB, Route53, ECS vs EKS |
+**Read order:** README → networking → buildkit → docker-security → debugging
 
-### SRE
+---
 
-| Document | Topics |
-|----------|--------|
-| [sre/README.md](./sre/README.md) | 5XX debugging runbook (generic K8s + EKS-specific), OOM-killed recovery, singleton vs distributed pods, leader election with `client-go`, SLI/SLO/error budget, MTTD/MTTR, toil, incident response, RED method, scaling |
+## 3. Kubernetes
 
-### Infrastructure as Code
+| File | Topics | Level |
+|------|--------|-------|
+| [kubernetes/README.md](./kubernetes/README.md) | Architecture, kubectl apply flow, scheduler internals, taints, nodeAffinity, podAffinity/anti-affinity, GPU scenarios | SDE-1/2 |
+| [kubernetes/kubectl-cheatsheet.md](./kubernetes/kubectl-cheatsheet.md) | Context switching, pod/deployment/debug operations, one-liners, jsonpath | SDE-1 |
+| [kubernetes/workloads.md](./kubernetes/workloads.md) | Pod lifecycle, probes, QoS, Deployments, StatefulSets, DaemonSets, Jobs | SDE-1 |
+| [kubernetes/networking.md](./kubernetes/networking.md) | Services, ClusterIP/iptables, DNS, Ingress, NetworkPolicy, CNI, per-node virtual networks | SDE-1/2 |
+| [kubernetes/resource-limits.md](./kubernetes/resource-limits.md) | Requests vs limits, CPU throttling math, OOMKill, QoS classes, LimitRange, ResourceQuota, VPA | SDE-1/2 |
+| [kubernetes/storage.md](./kubernetes/storage.md) | PV/PVC/StorageClass, dynamic provisioning, CSI, volume snapshots | SDE-1 |
+| [kubernetes/autoscaling.md](./kubernetes/autoscaling.md) | HPA, VPA, KEDA, Cluster Autoscaler, Karpenter | SDE-2 |
+| [kubernetes/rbac.md](./kubernetes/rbac.md) | ServiceAccount, Role/ClusterRole, RoleBinding, auth chain | SDE-1 |
+| [kubernetes/helm.md](./kubernetes/helm.md) | Chart structure, templating, hooks, library charts, Helmfile, debugging | SDE-1/2 |
+| [kubernetes/eks-architecture.md](./kubernetes/eks-architecture.md) | EKS managed control plane, VPC CNI, IRSA, node groups, Fargate | SDE-1/2 |
 
-| Document | Topics |
-|----------|--------|
-| [iac/README.md](./iac/README.md) | Why IaC, declarative vs imperative, tools comparison (Terraform/CFN/CDK/Pulumi), state management, drift, env isolation (directories/workspaces/Terragrunt), secrets, count vs for_each, lifecycle rules |
-| [iac/terraform/README.md](./iac/terraform/README.md) | Core commands, workspaces, state ops (import/state rm/-replace), DB user example with for_each, HCL patterns, version history |
-| [iac/cloudformation/README.md](./iac/cloudformation/README.md) | Stack lifecycle, template structure, change sets, nested stacks, cross-stack references, StackSets, drift detection, custom resources |
+**Read order:** kubectl-cheatsheet → README → workloads → resource-limits → networking → storage → rbac → autoscaling → helm → eks-architecture
 
-### CI/CD
+---
 
-| Document | Topics |
-|----------|--------|
-| [cicd/README.md](./cicd/README.md) | CI vs CD vs GitOps, triggers (push/PR best practice), deployment strategies (rolling/blue-green/canary), secrets in CI, Docker layer caching, debugging flaky pipelines |
-| [cicd/jenkins/README.md](./cicd/jenkins/README.md) | Declarative pipeline, parameters, dynamic env vars, withCredentials, shared libraries, matrix builds, parallel stages, manual approval gates |
-| [cicd/github-actions/README.md](./cicd/github-actions/README.md) | Workflow syntax, OIDC to AWS (no long-lived keys), matrix builds, caching (Go modules + Docker layers), reusable workflows, concurrency control |
-| [cicd/argocd/README.md](./cicd/argocd/README.md) | GitOps pull model, Application CRD, sync policies (manual/auto/self-heal), sync waves and hooks, app-of-apps, multi-cluster with ApplicationSet, Image Updater, rollback |
+## 4. CI/CD
+
+| File | Topics | Level |
+|------|--------|-------|
+| [cicd/README.md](./cicd/README.md) | CI vs CD vs GitOps, pipeline patterns, deployment strategies, secrets | SDE-1 |
+| [cicd/github-actions/README.md](./cicd/github-actions/README.md) | Workflows, OIDC to AWS, matrix builds, caching, reusable workflows | SDE-1 |
+| [cicd/jenkins/README.md](./cicd/jenkins/README.md) | Declarative pipeline, shared libraries, master-agent architecture | SDE-1 |
+| [cicd/jenkins/ecs-agents.md](./cicd/jenkins/ecs-agents.md) | Dynamic Jenkins agents on ECS Fargate, cost optimization | SDE-2 |
+| [cicd/argocd/README.md](./cicd/argocd/README.md) | GitOps, Application CRD, sync waves, multi-cluster with ApplicationSet | SDE-1/2 |
+
+---
+
+## 5. Infrastructure as Code
+
+| File | Topics | Level |
+|------|--------|-------|
+| [iac/README.md](./iac/README.md) | IaC overview, Terraform vs CloudFormation, state, drift | SDE-1 |
+| [iac/terraform/README.md](./iac/terraform/README.md) | HCL, state, modules, workspaces, remote backend, import | SDE-1 |
+| [iac/cloudformation/README.md](./iac/cloudformation/README.md) | Templates, stacks, change sets, nested stacks, CDK | SDE-1 |
+
+---
+
+## 6. AWS
+
+| File | Topics | Level |
+|------|--------|-------|
+| [aws/README.md](./aws/README.md) | VPC, subnets, SGs vs NACLs, NAT GW, IGW, VPC Peering, Transit Gateway | SDE-1 |
+| [aws/services-overview.md](./aws/services-overview.md) | IAM, ALB/NLB, Route 53, ECS vs EKS, TLS/mTLS | SDE-1 |
+| [aws/storage-databases.md](./aws/storage-databases.md) | S3, RDS, Aurora, ElastiCache, DynamoDB, EBS vs EFS | SDE-1 |
+| [aws/databases-deep-dive.md](./aws/databases-deep-dive.md) | Aurora internals, DocumentDB, DynamoDB single-table design, DAX, 8 scenarios | SDE-2 |
+| [aws/messaging-serverless-observability.md](./aws/messaging-serverless-observability.md) | SQS, SNS, EventBridge, Lambda, CloudWatch, Secrets Manager, multi-account, cost | SDE-1/2 |
+
+---
+
+## 7. GCP
+
+| File | Topics | Level |
+|------|--------|-------|
+| [gcp/README.md](./gcp/README.md) | Global VPC, subnets, firewall rules, Cloud NAT, VPC Peering, Shared VPC | SDE-1/2 |
+| [gcp/services-overview.md](./gcp/services-overview.md) | IAM, Workload Identity, Cloud LB, Cloud DNS, Cloud Run vs GKE | SDE-1/2 |
+
+---
+
+## 8. Monitoring & Observability
+
+| File | Topics | Level |
+|------|--------|-------|
+| [monitoring/prometheus.md](./monitoring/prometheus.md) | Architecture, data model (4 types + math), TSDB internals, 12+ PromQL queries, scrape config, recording rules, 5 production alerts, scenarios | SDE-1/2 |
+| [monitoring/alertmanager.md](./monitoring/alertmanager.md) | Routing tree, grouping, inhibition, silences, complete config, debugging | SDE-1/2 |
+| [monitoring/grafana.md](./monitoring/grafana.md) | Panel types, variables, USE/RED/SLO dashboards, provisioning as code | SDE-1/2 |
+| [monitoring/opentelemetry.md](./monitoring/opentelemetry.md) | Three pillars (traces/metrics/logs), OTEL Collector, Go SDK, auto-instrumentation | SDE-2 |
+| [monitoring/loki.md](./monitoring/loki.md) | Architecture, labels vs content, LogQL, Promtail config, trace correlation | SDE-1/2 |
+| [monitoring/performance-debugging.md](./monitoring/performance-debugging.md) | USE method, RED method, 60-second checklist, Go pprof, bpftrace one-liners | SDE-2 |
+| [monitoring/monitoring-scenarios.md](./monitoring/monitoring-scenarios.md) | 10 scenarios: target DOWN, missing metrics, Prometheus OOM, slow PromQL, alert not notifying, alert storm, Grafana no data, Loki missing logs, no OTEL traces, K8s scrape issues | SDE-1/2 |
+| [sre/db-monitoring.md](./sre/db-monitoring.md) | Prometheus + Grafana for PostgreSQL, MySQL, Redis, MongoDB | SDE-2 |
+
+---
+
+## 9. Git
+
+| File | Topics | Level |
+|------|--------|-------|
+| [git/git-internals.md](./git/git-internals.md) | Object model (blob/tree/commit/tag), refs, pack files, merge vs rebase internals, reflog | SDE-1/2 |
+| [git/git-workflows.md](./git/git-workflows.md) | Trunk-based vs GitFlow vs GitHub Flow, monorepo, branch protection, conventional commits | SDE-1 |
+| [git/git-fixes.md](./git/git-fixes.md) | reset modes, amend, reflog recovery, interactive rebase, bisect, detached HEAD, secrets removal | SDE-1 |
+
+---
+
+## 10. Advanced
+
+| File | Topics | Level |
+|------|--------|-------|
+| [advanced/service-mesh.md](./advanced/service-mesh.md) | Istio control/data plane, VirtualService, mTLS, circuit breaking, Linkerd vs Istio | SDE-2 |
+| [advanced/ebpf-observability.md](./advanced/ebpf-observability.md) | eBPF verifier, bpftrace, BCC tools, Cilium, Tetragon, Hubble | SDE-2 |
+| [advanced/chaos-engineering.md](./advanced/chaos-engineering.md) | Litmus Chaos, Chaos Mesh, game days, failure injection patterns | SDE-2 |
+| [advanced/backup-dr.md](./advanced/backup-dr.md) | RTO/RPO math, Velero, etcd backup, PITR, AWS DR patterns, 3-2-1 rule | SDE-2 |
+
+---
+
+## 11. SRE & Debugging
+
+| File | Topics | Level |
+|------|--------|-------|
+| [sre/README.md](./sre/README.md) | Index + quick triage cheatsheets | — |
+| [sre/k8s-debugging.md](./sre/k8s-debugging.md) | 5XX runbooks (K8s + EKS), OOMKilled recovery | SDE-1/2 |
+| [sre/k8s-scenarios.md](./sre/k8s-scenarios.md) | 20 K8s scenarios: CrashLoop, DNS, NetworkPolicy, HPA, rollout, webhooks, etcd, RBAC | SDE-1/2 |
+| [sre/linux-debugging.md](./sre/linux-debugging.md) | 10 Linux scenarios: high CPU, I/O wait, zombies, FD exhaustion, inodes, NFS, OOM, kernel panic | SDE-1/2 |
+| [sre/aws-scenarios.md](./sre/aws-scenarios.md) | 10 AWS scenarios: EC2 SSH, Lambda timeout, ALB 502, S3 denied, RDS refused, EKS nodes, bill | SDE-1/2 |
+| [sre/cicd-scenarios.md](./sre/cicd-scenarios.md) | 8 CI/CD scenarios: GHA OIDC, ArgoCD sync, Jenkins Docker, flaky tests | SDE-1/2 |
+| [sre/iac-scenarios.md](./sre/iac-scenarios.md) | 8 IaC scenarios: tf resource exists, state lock, drift, Helm timeout, CF rollback | SDE-1/2 |
+| [sre/sre-concepts.md](./sre/sre-concepts.md) | SLOs, error budgets, leader election (client-go Lease API) | SDE-2 |
+
+---
+
+## Full Learning Path
+
+```
+── SDE-1 ──────────────────────────────────────────────────
+linux/README.md → linux/commands.md → linux/boot.md
+linux/systemd.md → linux/networking.md → linux/network-tools.md
+linux/containers-evolution.md
+docker/README.md → docker/networking.md → docker/debugging.md
+kubernetes/kubectl-cheatsheet.md → kubernetes/README.md
+kubernetes/workloads.md → kubernetes/resource-limits.md
+kubernetes/networking.md → kubernetes/storage.md → kubernetes/rbac.md
+kubernetes/helm.md
+cicd/README.md → cicd/github-actions → cicd/argocd
+iac/terraform → iac/cloudformation
+aws/README.md → aws/services-overview.md → aws/storage-databases.md
+aws/messaging-serverless-observability.md
+monitoring/prometheus.md → monitoring/alertmanager.md → monitoring/grafana.md
+monitoring/loki.md
+git/git-workflows.md → git/git-fixes.md
+sre/k8s-debugging.md → sre/k8s-scenarios.md (first half)
+sre/aws-scenarios.md
+
+── SDE-2 ──────────────────────────────────────────────────
+linux/io-models.md → linux/scheduler.md → linux/security.md
+linux/memory-tuning.md → linux/strace-perf.md
+docker/buildkit.md → docker/docker-security.md
+kubernetes/autoscaling.md → kubernetes/eks-architecture.md
+aws/databases-deep-dive.md
+monitoring/opentelemetry.md → monitoring/performance-debugging.md
+sre/db-monitoring.md
+gcp/README.md → gcp/services-overview.md
+git/git-internals.md
+advanced/service-mesh.md → advanced/ebpf-observability.md
+advanced/chaos-engineering.md → advanced/backup-dr.md
+sre/k8s-scenarios.md (advanced) → sre/linux-debugging.md
+sre/cicd-scenarios.md → sre/iac-scenarios.md
+sre/sre-concepts.md
+```
