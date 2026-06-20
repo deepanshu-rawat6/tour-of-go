@@ -48,6 +48,8 @@ kubectl exec -n monitoring deploy/prometheus -- \
   wget -qO- http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | select(.health=="down")'
 ```
 
+**Prevention:** Add a `BlackboxProber` synthetic probe to catch targets going down before Prometheus scrape fails. Use `up == 0` as a P2 alert with `for: 5m`. In K8s: ensure ServiceMonitor `namespaceSelector` and `selector` are correct in staging before prod deploy — `up` going to 0 after a deploy means something regressed in the `/metrics` endpoint.
+
 ---
 
 ## Prometheus: Metrics Missing / Gaps in Graphs
@@ -94,6 +96,8 @@ resets(http_requests_total{job="my-app"}[1h])
 # scrape_interval: 30s → use [2m] or [5m] in rate()
 # scrape_interval: 60s → use [5m] in rate()
 ```
+
+**Prevention:** Standardize on a single `scrape_interval` cluster-wide (30s recommended). Document the rule: always use `rate()[Xm]` where X ≥ 2 × scrape_interval. Add recording rules for the most-used `rate()` expressions — recording rules pre-compute at consistent intervals, eliminating scrape-window mismatch gaps.
 
 ---
 
@@ -143,6 +147,8 @@ prometheus_tsdb_head_chunks
 # 4. Increase memory limit and resource requests
 ```
 
+**Prevention:** Monitor `prometheus_tsdb_head_series` — alert when it exceeds 2M series (typical OOM threshold is 3-4M). Add `metric_relabel_configs` to drop unused high-cardinality metrics at ingest time. Use Thanos or Mimir for long-term storage so Prometheus retention can stay at 2-7 days, reducing TSDB head size.
+
 ---
 
 ## Prometheus: PromQL Query Slow / Times Out
@@ -190,6 +196,8 @@ rate(http_requests_total{job="api"}[5m])
 # --query.log-file=/var/log/prometheus/queries.log
 ```
 
+**Prevention:** Create recording rules for any query used in a dashboard panel or alert rule — dashboards hitting raw high-cardinality `rate()` over long ranges are the #1 cause of slow queries. Use Thanos Query Frontend with query splitting and result caching to handle range queries > 1 day without hammering Prometheus directly.
+
 ---
 
 ## AlertManager: Alerts Firing But No Notifications
@@ -236,6 +244,8 @@ amtool alert add alertname=TestAlert severity=warning --annotation summary="test
 kubectl logs -n monitoring deploy/alertmanager | grep -i "error\|warn\|notify"
 ```
 
+**Prevention:** Test the full alerting pipeline end-to-end in staging on every change: fire a synthetic alert via `amtool`, verify it routes to the right receiver. Store AlertManager config in Git with CI validation (`amtool config check`). Use `amtool config routes test` to validate routing logic before deploying.
+
 ---
 
 ## AlertManager: Alert Storm / Too Many Notifications
@@ -273,6 +283,8 @@ inhibit_rules:
     equal: [node]
 ```
 
+**Prevention:** Design `group_by` with `['alertname', 'cluster', 'service']` from day one — never group by individual pod/instance. Add inhibition rules for every parent-child alert relationship (node down → pod alerts, deployment degraded → individual pod alerts). Set `group_wait: 30s` and `group_interval: 5m` to batch rapid-fire alerts into one notification.
+
 ---
 
 ## Grafana: Dashboard Shows "No Data"
@@ -307,6 +319,8 @@ graph TD
 # 5. min_interval in panel > scrape_interval → coarsens data away
 ```
 
+**Prevention:** Use Grafana dashboard-as-code (grafonnet or Terraform grafana provider) — metric name changes in the app trigger a CI check that validates dashboard queries still return data. Pin dashboard variables to specific values in CI snapshot tests. Add `min_interval` equal to your scrape interval in all panels.
+
 ---
 
 ## Grafana: Dashboard Loads Slowly
@@ -338,6 +352,8 @@ graph TD
 #         expr: sum(rate(http_requests_total[5m])) by (service)
 # Dashboard uses: service:http_requests:rate5m (instant, no computation)
 ```
+
+**Prevention:** Every dashboard panel that will be on a TV screen or loaded frequently must use a recording rule — not a raw `rate()` on high-cardinality metrics. Set Grafana `max_data_points` per panel to match expected resolution. Use Thanos Query Frontend with query result caching to serve repeated identical queries from cache.
 
 ---
 
@@ -386,6 +402,8 @@ curl "http://loki:3100/loki/api/v1/query_range" \
   --data-urlencode 'end='$(date +%s%N)
 ```
 
+**Prevention:** Add a log pipeline smoke test in CI: deploy a test pod that writes a known log line, query Loki after 60s and assert the line appears. Monitor `loki_ingester_streams_created_total` and Promtail `promtail_sent_entries_total` — if sent > ingested, pipeline has a drop. Alert on Promtail pod restarts.
+
 ---
 
 ## Loki: High Cardinality Labels Causing OOM
@@ -416,6 +434,8 @@ Good labels (low cardinality):
       namespace:
       level:
 ```
+
+**Prevention:** Enforce a Loki label allowlist in Promtail pipeline config from day one — never expose `container_id`, `pod_ip`, or request-ID-style values as labels. Monitor `loki_ingester_streams_created_total` — alert when unique stream count exceeds 10,000. Review new label additions in code review.
 
 ---
 
@@ -462,6 +482,8 @@ kubectl logs deploy/otel-collector | grep -i "traces\|span\|drop\|error"
 #     verbosity: detailed
 ```
 
+**Prevention:** Add a trace smoke test in CI: send a synthetic span to the collector, query Jaeger API and assert it appears within 30s. Monitor `otelcol_exporter_sent_spans` vs `otelcol_exporter_send_failed_spans` — alert if failed > 0 for > 5 min. Use tail sampling to ensure 100% of error traces are captured regardless of overall sampling rate.
+
 ---
 
 ## Monitoring Stack: Prometheus Can't Scrape K8s Pods
@@ -503,6 +525,8 @@ kubectl auth can-i get pods --as=system:serviceaccount:monitoring:prometheus
 kubectl exec -n monitoring prometheus-0 -- \
   cat /etc/prometheus/config_out/prometheus.env.yaml | grep -A5 "job_name"
 ```
+
+**Prevention:** Use the Prometheus Operator and define ServiceMonitors alongside each service deployment — scrape config travels with the code, not managed separately. Add a CI check that validates ServiceMonitor selector labels match the Service labels in the same PR. Alert on `absent(up{job="my-service"})` — fires if the job disappears entirely from Prometheus's target list.
 
 ---
 

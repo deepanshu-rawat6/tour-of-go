@@ -130,7 +130,10 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 | [monitoring/opentelemetry.md](./monitoring/opentelemetry.md) | Three pillars (traces/metrics/logs), OTEL Collector, Go SDK, auto-instrumentation | SDE-2 |
 | [monitoring/loki.md](./monitoring/loki.md) | Architecture, labels vs content, LogQL, Promtail config, trace correlation | SDE-1/2 |
 | [monitoring/performance-debugging.md](./monitoring/performance-debugging.md) | USE method, RED method, 60-second checklist, Go pprof, bpftrace one-liners | SDE-2 |
-| [monitoring/monitoring-scenarios.md](./monitoring/monitoring-scenarios.md) | 10 scenarios: target DOWN, missing metrics, Prometheus OOM, slow PromQL, alert not notifying, alert storm, Grafana no data, Loki missing logs, no OTEL traces, K8s scrape issues | SDE-1/2 |
+| [monitoring/monitoring-scenarios.md](./monitoring/monitoring-scenarios.md) | 12 scenarios with Prevention: target DOWN, missing metrics, Prometheus OOM, slow PromQL, alert not notifying, alert storm, Grafana no data, Loki missing logs, no OTEL traces, K8s scrape issues | SDE-1/2 |
+| [monitoring/slo-sli.md](./monitoring/slo-sli.md) | SLI/SLO/Error Budget math, multi-window multi-burn-rate alerts, recording rules, Grafana SLO dashboard, decision framework | SDE-2 |
+| [monitoring/alerting-philosophy.md](./monitoring/alerting-philosophy.md) | Four Golden Signals + PromQL, symptoms vs causes, alert fatigue, urgency tiers, runbook structure, USE vs RED vs Golden Signals | SDE-1/2 |
+| [monitoring/thanos-mimir.md](./monitoring/thanos-mimir.md) | Thanos components (sidecar/querier/store/compactor), Mimir distributed TSDB, long-term S3 storage, deduplication, downsampling, when to use each | SDE-2 |
 | [sre/db-monitoring.md](./sre/db-monitoring.md) | Prometheus + Grafana for PostgreSQL, MySQL, Redis, MongoDB | SDE-2 |
 
 ---
