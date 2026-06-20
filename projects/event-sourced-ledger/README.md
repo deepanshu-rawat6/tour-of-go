@@ -2,6 +2,10 @@
 
 A financial ledger built with Event Sourcing + CQRS — every state change is an immutable event, and read models are projections rebuilt from the event stream.
 
+## Docs
+
+- [`docs/deep-dive.md`](./docs/deep-dive.md) — hydration loop, optimistic concurrency with version checks, CQRS projection pattern, snapshot pattern, pitfalls, when to use event sourcing
+
 ---
 
 ## Event Sourcing vs Traditional CRUD

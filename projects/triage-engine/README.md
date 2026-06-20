@@ -4,6 +4,10 @@ A Go-based LangGraph-equivalent workflow engine for triaging support tickets wit
 
 **SDE 2 concepts demonstrated:** State persistence · Human-in-the-loop (HITL) · RAG with pgvector · LLM integration · Hexagonal architecture · Async workflows
 
+## Docs
+
+- [`docs/deep-dive.md`](./docs/deep-dive.md) — graph execution model, pause/resume with JSONB state, pgvector RAG retrieval, testcontainers-go integration testing, HITL design principles, confidence-based routing
+
 ## Architecture
 
 ```

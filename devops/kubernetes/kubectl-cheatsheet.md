@@ -152,6 +152,39 @@ kubectl taint node <node> key=value:NoSchedule
 kubectl taint node <node> key=value:NoSchedule-   # remove
 ```
 
+**Follow-up: `kubectl apply` vs `kubectl replace` vs `kubectl patch`**
+
+| Command | How it works | When to use |
+|---------|-------------|-------------|
+| `kubectl apply -f` | 3-way merge: desired + last-applied + live. Creates if missing. | Default for everything — idempotent, GitOps-safe |
+| `kubectl replace -f` | Full replace of the live object. Fails if resource doesn't exist. | When you want to overwrite completely (no merge) |
+| `kubectl replace --force -f` | Delete + recreate. **Causes downtime.** | Immutable fields changed (e.g., pod selector) |
+| `kubectl patch -p` | Merge-patch a specific field. Does not require full manifest. | Quick in-place fix (replicas, image) without editing a file |
+| `kubectl patch --type=json` | RFC 6902 JSON Patch — precise field operations (add/remove/replace/move) | Scripted automation needing exact field targeting |
+
+**Key rule:** `apply` is declarative and safe for CI/CD. `replace` is imperative and overwrites. `replace --force` destroys pods — never use in production without understanding the downtime.
+
+**Follow-up: `kubectl rollout restart` — what does it do and when to use it?**
+
+```bash
+kubectl rollout restart deployment/<name>   # triggers rolling restart of all pods
+```
+
+It sets an annotation `kubectl.kubernetes.io/restartedAt: <timestamp>` on the pod template, which changes the template hash → Kubernetes treats it as a new spec → triggers a rolling update that replaces all pods one by one.
+
+**When to use:**
+- ConfigMap or Secret was updated (K8s does not auto-restart pods when mounted config changes)
+- Need to force pod re-creation to pick up node-level changes (updated DaemonSet config, rotated certificates)
+- Clearing a stuck state without changing the actual spec
+
+```bash
+# Restart vs delete-pod comparison
+kubectl delete pod <pod>          # restarts ONE pod immediately (abrupt)
+kubectl rollout restart deploy    # restarts ALL pods via rolling update (controlled, respects maxUnavailable)
+```
+
+**Always use `rollout restart` over manually deleting pods** when you want zero-downtime and the PDB/rollingUpdate strategy to apply.
+
 ---
 
 ## 6. Namespace Operations

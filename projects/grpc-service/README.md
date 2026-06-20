@@ -2,6 +2,10 @@
 
 A minimal gRPC server and client in Go demonstrating unary and server-streaming RPCs.
 
+## Docs
+
+- [`docs/deep-dive.md`](./docs/deep-dive.md) — HTTP/2 multiplexing, Protobuf encoding internals, 4 RPC modes, streaming backpressure, connection management, interceptors, status codes
+
 ---
 
 ## Architecture

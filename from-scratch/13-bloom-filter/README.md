@@ -2,6 +2,10 @@
 
 Probabilistic data structures used everywhere in distributed systems: cache miss prevention, deduplication at scale, and cardinality estimation.
 
+## Docs
+
+- [`docs/deep-dive.md`](./docs/deep-dive.md) — false positive math, double hashing (Kirsch-Mitzenmacher), HyperLogLog internals, real-world uses
+
 ---
 
 ## Bloom Filter

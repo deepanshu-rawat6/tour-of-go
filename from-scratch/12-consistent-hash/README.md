@@ -2,6 +2,10 @@
 
 Build a consistent hashing ring from scratch — the algorithm behind distributed caches (Memcached), databases (DynamoDB, Cassandra), and load balancers.
 
+## Docs
+
+- [`docs/deep-dive.md`](./docs/deep-dive.md) — why consistent hashing, virtual nodes, binary search lookup, node join/leave math, comparison vs modulo hashing
+
 ---
 
 ## Why Not Modulo?

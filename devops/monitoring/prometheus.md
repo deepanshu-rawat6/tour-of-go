@@ -226,6 +226,46 @@ Use `increase()` for "how many in the last hour"; use `rate()` for "per-second t
 
 ---
 
+### 4.3b Follow-up: `rate()` vs `irate()`
+
+| | `rate()` | `irate()` |
+|--|---------|-----------|
+| Samples used | All in window | Last 2 only |
+| Smoothing | Yes — averages over window | No — instantaneous spike |
+| Best for | Dashboards, alert rules | Detecting short bursts |
+| Minimum window | 2× scrape_interval | Needs 2 recent samples |
+
+Use `rate()` for almost everything. `irate()` only when you explicitly want to see momentary spikes that `rate()` would smooth away.
+
+### 4.3c Follow-up: Why does `histogram_quantile` return approximate values?
+
+`histogram_quantile` interpolates **linearly within the bucket** that contains the quantile. It cannot know where within that bucket the actual observations fall.
+
+```
+Buckets: le=0.5 → 890 observations, le=1.0 → 950 observations
+p99 falls in the (0.5, 1.0] bucket.
+The function assumes uniform distribution within that range → interpolates.
+Actual p99 could be anywhere from 0.51 to 1.0 — impossible to know without raw data.
+```
+
+Accuracy = bucket granularity. Define buckets at your SLO boundaries:
+
+```go
+// Tight around a 300ms SLO
+prometheus.LinearBuckets(0.05, 0.05, 10)   // 50ms steps up to 500ms
+prometheus.ExponentialBuckets(0.01, 2, 12) // 10ms, 20ms, 40ms, 80ms...
+```
+
+For exact quantiles: use `Summary` (computed in client) — but summaries **cannot be aggregated across instances**. Use histogram when you need fleet-wide percentiles.
+
+### 4.3d Follow-up: Staleness window (5 minutes)
+
+If a target stops scraping, Prometheus marks its last sample **stale** after `5 × scrape_interval` (default 5 min). Stale series are excluded from `rate()` and aggregations — they return no data rather than a stale value.
+
+Why this matters for counter resets: when a process restarts (counter resets to 0), Prometheus detects the stale marker before the new samples arrive and handles the reset correctly — `rate()` does not return a negative value.
+
+---
+
 ### 4.4 topk / bottomk
 
 ```promql

@@ -2,6 +2,10 @@
 
 Data structures that can be replicated across nodes and merged without coordination — enabling eventual consistency without conflicts.
 
+## Docs
+
+- [`docs/deep-dive.md`](./docs/deep-dive.md) — CvRDT vs CmRDT, G-Counter implementation, PN-Counter, LWW-Register, OR-Set, when CRDTs break, CAP theorem connection
+
 ---
 
 ## Why CRDTs?

@@ -2,6 +2,10 @@
 
 Distributed transactions across multiple services using the Saga pattern — both choreography and orchestration approaches implemented in Go.
 
+## Docs
+
+- [`docs/deep-dive.md`](./docs/deep-dive.md) — choreography vs orchestration trade-off, saga log durability, idempotent compensations, forward vs backward recovery, 2PC comparison
+
 ---
 
 ## Why Sagas?

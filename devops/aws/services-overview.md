@@ -76,6 +76,38 @@ aws sts assume-role \
 
 See [eks-architecture.md → IRSA](../kubernetes/eks-architecture.md#irsa--iam-roles-for-service-accounts). EKS pods assume IAM roles via projected K8s service account tokens exchanged with STS via `AssumeRoleWithWebIdentity` — no access keys stored in pods.
 
+**Follow-up: Instance Profile vs `sts:AssumeRole` — what's the difference?**
+
+| | Instance Profile | `sts:AssumeRole` |
+|--|-----------------|-----------------|
+| Who uses it | EC2 instance, ECS task (at launch) | Any principal — Lambda, GitHub Actions, cross-account |
+| How credentials arrive | Metadata service `169.254.169.254/latest/meta-data/iam/` — auto-rotated by EC2 | `aws sts assume-role` → temporary creds (15min–12hr) |
+| Configuration | Attach role to EC2 at launch (or via `aws ec2 associate-iam-instance-profile`) | Trust policy on the target role |
+| Cross-account | No (role must be in same account as instance) | Yes — principal in account A assumes role in account B |
+| Use case | "This EC2 should always be able to do X" | "This pipeline should temporarily be able to deploy to prod" |
+
+**The chain for GitHub Actions → AWS:**
+```
+GitHub OIDC token → sts:AssumeRoleWithWebIdentity → temporary creds
+(no static access keys, no rotation needed, creds expire in 1hr)
+```
+
+**The chain for EC2 → AWS:**
+```
+Instance profile role → metadata service → SDK auto-fetches/rotates
+(no code needed — AWS SDK checks 169.254.169.254 automatically)
+```
+
+```bash
+# Check what role an EC2 instance is using
+curl http://169.254.169.254/latest/meta-data/iam/info
+# Returns: InstanceProfileArn, InstanceProfileId
+
+# Check caller identity from any context
+aws sts get-caller-identity
+# Returns: Account, UserId, Arn — tells you exactly who you're acting as
+```
+
 ---
 
 ## ELB / ALB / NLB

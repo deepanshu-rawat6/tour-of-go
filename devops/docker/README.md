@@ -245,6 +245,46 @@ CMD ["--addr", ":8080"]
 | Non-root UID 65532 | Matches `nonroot` user in distroless; principle of least privilege |
 | ENTRYPOINT + CMD | ENTRYPOINT = fixed binary; CMD = overridable defaults at `docker run` |
 
+**Follow-up: `CMD` vs `ENTRYPOINT` — exact behaviour matrix**
+
+| | No ENTRYPOINT | `ENTRYPOINT ["/bin/app"]` |
+|--|---------------|--------------------------|
+| No CMD | Error — nothing to run | `/bin/app` |
+| `CMD ["--port","8080"]` | `/bin/sh -c --port 8080` (shell form) or runs cmd directly | `/bin/app --port 8080` |
+| `docker run img --port 9090` | Overrides CMD → runs `--port 9090` | `/bin/app --port 9090` (CMD replaced) |
+
+**Key rules:**
+- `ENTRYPOINT` (exec form) = the process that receives SIGTERM. Always use exec form `["binary"]` not shell form `"binary"` — shell form wraps in `/bin/sh -c` which doesn't forward signals → container ignores SIGTERM → gets SIGKILL after grace period.
+- `CMD` = default arguments, overridden by anything after the image name in `docker run`
+- `ENTRYPOINT` = fixed command, overridden only with `--entrypoint` flag
+
+```dockerfile
+# Correct — exec form, signals go directly to /api
+ENTRYPOINT ["/api"]
+CMD ["--port", "8080"]
+
+# Wrong — shell form, SIGTERM goes to /bin/sh not /api
+ENTRYPOINT /api --port 8080
+```
+
+**Follow-up: `COPY` vs `ADD` — which to use?**
+
+Always use `COPY` unless you specifically need `ADD`'s extra behaviours:
+
+| | `COPY` | `ADD` |
+|--|--------|-------|
+| Local file → image | ✅ | ✅ |
+| Auto-extract `.tar.gz` | ❌ | ✅ |
+| Fetch from URL | ❌ | ✅ (but don't — use `RUN curl` for layer caching) |
+| Predictability | Always copies as-is | Surprising: `.tar` gets extracted silently |
+
+```dockerfile
+COPY app.tar.gz /tmp/          # copies the .tar.gz file as-is
+ADD  app.tar.gz /tmp/          # silently extracts to /tmp/ ← surprising
+```
+
+Best practice: use `COPY` for everything. Use `RUN curl | tar` if you need URL-fetched archives (gives you explicit control and a single layer).
+
 ---
 
 ## 5. Docker Compose
