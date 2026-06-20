@@ -497,3 +497,160 @@ Or use ArgoCD's **Rollout** integration with Argo Rollouts for canary/blue-green
 | **Blast radius** | ArgoCD cluster down = no deploys to any cluster | One cluster's ArgoCD down = only that cluster affected |
 | **Network** | Needs API access to all target clusters | Only needs access to own cluster |
 | **Use case** | Small/medium orgs, central platform team | Large orgs, strict isolation, air-gapped clusters |
+
+---
+
+## Projects and RBAC
+
+ArgoCD Projects group Applications and enforce what can be deployed where. RBAC controls who can do what.
+
+### AppProject — boundaries for a team
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: team-payments
+  namespace: argocd
+spec:
+  description: "Payments team — production and staging"
+
+  # Which git repos this project can source from
+  sourceRepos:
+    - https://github.com/my-org/payments-manifests
+    - https://github.com/my-org/shared-charts
+
+  # Which clusters + namespaces Applications in this project can deploy to
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: payments-prod
+    - server: https://kubernetes.default.svc
+      namespace: payments-staging
+
+  # Block deploying cluster-scoped resources (RBAC, CRDs, etc.)
+  clusterResourceWhitelist: []          # empty = no cluster-scoped resources allowed
+
+  # Allow only these namespaced resource types
+  namespaceResourceWhitelist:
+    - group: apps
+      kind: Deployment
+    - group: ""
+      kind: Service
+    - group: ""
+      kind: ConfigMap
+    - group: autoscaling
+      kind: HorizontalPodAutoscaler
+
+  # Sync windows — prevent deploys outside business hours in prod
+  syncWindows:
+    - kind: deny
+      schedule: "0 22 * * *"    # deny at 10pm every day
+      duration: 8h               # for 8 hours (10pm–6am)
+      applications: ["*"]
+      namespaces: ["payments-prod"]
+    - kind: allow
+      schedule: "0 9 * * 1-5"   # allow weekdays 9am
+      duration: 9h
+      applications: ["*"]
+      namespaces: ["payments-prod"]
+```
+
+### RBAC — who can do what
+
+ArgoCD RBAC is configured in the `argocd-rbac-cm` ConfigMap. Roles are defined with `p` (policy) lines, then bound to users/groups.
+
+```yaml
+# kubectl edit configmap argocd-rbac-cm -n argocd
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: argocd
+data:
+  policy.default: role:readonly   # default role for authenticated users
+
+  policy.csv: |
+    # Format: p, <role>, <resource>, <action>, <object>, allow|deny
+
+    # Platform team — full access to everything
+    p, role:platform-admin, *, *, *, allow
+
+    # Payments team — can sync/manage apps in team-payments project only
+    p, role:payments-dev, applications, get,      team-payments/*, allow
+    p, role:payments-dev, applications, sync,     team-payments/*, allow
+    p, role:payments-dev, applications, action/*, team-payments/*, allow
+    p, role:payments-dev, logs,         get,      team-payments/*, allow
+    p, role:payments-dev, exec,         create,   team-payments/*, deny   # no exec into pods
+
+    # Read-only role for external auditors
+    p, role:auditor, applications, get, */*, allow
+    p, role:auditor, clusters,     get, *,   allow
+
+    # Bind GitHub SSO groups to roles
+    g, my-org:platform-team, role:platform-admin
+    g, my-org:payments,      role:payments-dev
+    g, my-org:security-audit, role:auditor
+```
+
+**Resource types for RBAC:**
+
+| Resource | Actions |
+|----------|---------|
+| `applications` | get, create, update, delete, sync, override, action/\* |
+| `applicationsets` | get, create, update, delete |
+| `clusters` | get, create, update, delete |
+| `repositories` | get, create, update, delete |
+| `logs` | get |
+| `exec` | create |
+
+### SSO Integration (Dex + GitHub)
+
+```yaml
+# argocd-cm ConfigMap
+data:
+  url: https://argocd.my-company.com
+
+  dex.config: |
+    connectors:
+    - type: github
+      id: github
+      name: GitHub
+      config:
+        clientID: $dex.github.clientID        # from argocd-secret
+        clientSecret: $dex.github.clientSecret
+        orgs:
+        - name: my-org
+          teams:
+          - platform-team
+          - payments
+          - security-audit
+```
+
+```bash
+# Verify RBAC — test what a user can do
+argocd admin settings rbac can role:payments-dev sync applications team-payments/my-app
+# → true or false
+
+# List effective permissions for a user
+argocd admin settings rbac can --user john@my-org.com sync applications team-payments/my-app
+```
+
+### Project best practices
+
+```
+One AppProject per team (not per application)
+  → Team owns all their apps under one project
+  → Limits blast radius: team can't accidentally deploy to another team's namespace
+
+Always set clusterResourceWhitelist: []
+  → Prevents teams from creating ClusterRoles, CRDs, etc.
+  → Platform team's project is the only one with cluster resource access
+
+Use syncWindows on production projects
+  → Prevents deploys during peak traffic hours
+  → Exception: allow override for emergency hotfixes (manual sync with --override)
+
+Separate projects for prod vs non-prod
+  → Different sync policies (manual for prod, auto for staging)
+  → Different RBAC (only platform team can sync prod)
+```

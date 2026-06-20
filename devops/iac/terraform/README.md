@@ -86,9 +86,285 @@ resource "aws_instance" "web" {
 
 **Limitation:** Workspaces share the same backend and codebase. For true env isolation (separate AWS accounts, different backend configs), use **separate directories** or **Terragrunt**.
 
+### When NOT to use workspaces
+
+| Use case | Use workspaces? | Better alternative |
+|----------|----------------|--------------------|
+| Same infra, same account, different env sizes | ✅ Yes | — |
+| Different AWS accounts per env | ❌ No | Separate directories + Terragrunt |
+| Completely different infra per env | ❌ No | Separate root modules |
+| Feature branch infra | ✅ Yes (ephemeral) | — |
+
+**The workspace-per-env anti-pattern:** Many teams use workspaces for prod/staging/dev with the same codebase. This works until prod needs a different module version, different provider config, or different backend credentials. At that point, separate directories win.
+
+### Workspaces for ephemeral environments (correct use)
+
+```bash
+# Create per-PR environment
+terraform workspace new "pr-${PR_NUMBER}"
+terraform apply -var="suffix=pr-${PR_NUMBER}"
+
+# Destroy after PR merge
+terraform workspace select "pr-${PR_NUMBER}"
+terraform destroy -auto-approve
+terraform workspace select default
+terraform workspace delete "pr-${PR_NUMBER}"
+```
+
+### Terragrunt — true env isolation
+
+Terragrunt wraps Terraform, giving each environment its own backend config and variable file without duplicating HCL:
+
+```
+infra/
+├── modules/vpc/          # shared module (DRY)
+├── prod/
+│   ├── terragrunt.hcl    # prod backend + inputs
+│   └── vpc/terragrunt.hcl
+└── staging/
+    ├── terragrunt.hcl    # staging backend + inputs
+    └── vpc/terragrunt.hcl
+```
+
+```hcl
+# staging/terragrunt.hcl
+remote_state {
+  backend = "s3"
+  config = {
+    bucket = "my-tf-state-staging"
+    key    = "${path_relative_to_include()}/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+
+inputs = {
+  environment = "staging"
+  instance_type = "t3.micro"
+}
+```
+
+```bash
+cd staging/vpc
+terragrunt apply   # uses staging backend, staging inputs automatically
+```
+
 ---
 
-## State Operations
+## Remote Backend (S3 + DynamoDB)
+
+Every production Terraform config must use a remote backend — local state is never safe in teams.
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "my-company-tf-state"
+    key            = "services/api/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true                       # SSE-S3 or SSE-KMS
+    kms_key_id     = "arn:aws:kms:..."          # optional: use CMK
+    dynamodb_table = "terraform-state-lock"     # lock table
+  }
+}
+```
+
+**Bootstrap the backend (one-time):**
+
+```bash
+# Create the S3 bucket
+aws s3api create-bucket --bucket my-company-tf-state --region us-east-1
+aws s3api put-bucket-versioning --bucket my-company-tf-state \
+  --versioning-configuration Status=Enabled
+aws s3api put-bucket-encryption --bucket my-company-tf-state \
+  --server-side-encryption-configuration \
+  '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+aws s3api put-public-access-block --bucket my-company-tf-state \
+  --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+
+# Create the DynamoDB lock table
+aws dynamodb create-table \
+  --table-name terraform-state-lock \
+  --attribute-definitions AttributeName=LockID,AttributeType=S \
+  --key-schema AttributeName=LockID,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST
+```
+
+**State key conventions:**
+
+```
+# Per-service, per-environment
+services/api/prod/terraform.tfstate
+services/api/staging/terraform.tfstate
+services/worker/prod/terraform.tfstate
+infra/vpc/prod/terraform.tfstate
+```
+
+**Migrate from local to remote:**
+
+```bash
+# Add backend config to main.tf, then:
+terraform init -migrate-state
+# Terraform uploads local .tfstate to S3 automatically
+```
+
+---
+
+## `moved` Block — Safe Refactoring
+
+When renaming a resource or moving it to a module, use `moved` to tell Terraform the resource is the same — no destroy + recreate.
+
+```hcl
+# Before: resource "aws_instance" "server"
+# After:  resource "aws_instance" "web_server"
+
+moved {
+  from = aws_instance.server
+  to   = aws_instance.web_server
+}
+```
+
+```hcl
+# Moving a resource into a module
+moved {
+  from = aws_security_group.api
+  to   = module.api.aws_security_group.main
+}
+```
+
+```hcl
+# Moving a for_each resource
+moved {
+  from = aws_iam_user.legacy["alice"]
+  to   = aws_iam_user.app_users["alice"]
+}
+```
+
+**Workflow:**
+
+```bash
+# 1. Add moved block to config
+# 2. Run plan — should show 0 resources to add/destroy
+terraform plan
+# Output: # aws_instance.web_server has moved to aws_instance.server
+#           No changes. Your infrastructure matches the configuration.
+
+# 3. Apply (updates state file only, no real changes)
+terraform apply
+
+# 4. Remove the moved block after apply (it's a one-shot migration)
+```
+
+**Why not `terraform state mv`?**
+`state mv` modifies state directly without a plan step and leaves no record in code. `moved` blocks are code-reviewable, repeatable, and self-documenting.
+
+---
+
+## `check` Block — Continuous Assertions
+
+`check` blocks validate assumptions about your infrastructure on every plan/apply. Unlike `precondition`/`postcondition`, they warn rather than error.
+
+```hcl
+# Assert that the ALB responds with 200 (non-blocking warning)
+check "alb_health" {
+  data "http" "alb" {
+    url = "https://${aws_lb.api.dns_name}/health"
+  }
+
+  assert {
+    condition     = data.http.alb.status_code == 200
+    error_message = "ALB health check returned ${data.http.alb.status_code}"
+  }
+}
+
+# Assert an S3 bucket is not publicly accessible
+check "s3_not_public" {
+  assert {
+    condition     = aws_s3_bucket_public_access_block.api.block_public_acls == true
+    error_message = "S3 bucket must have public access blocked"
+  }
+}
+```
+
+Checks appear in `terraform plan` output as warnings — they do not prevent apply. Use them for invariants you want surfaced every run.
+
+---
+
+## `terraform test` Framework (1.6+)
+
+Write unit/integration tests for Terraform modules in `.tftest.hcl` files.
+
+```
+modules/
+└── s3-bucket/
+    ├── main.tf
+    ├── variables.tf
+    ├── outputs.tf
+    └── tests/
+        ├── defaults.tftest.hcl
+        └── versioning_enabled.tftest.hcl
+```
+
+```hcl
+# modules/s3-bucket/tests/defaults.tftest.hcl
+
+# Variables for this test run
+variables {
+  bucket_name = "test-bucket-abc123"
+  environment = "test"
+}
+
+# Test 1: verify default outputs
+run "default_configuration" {
+  command = plan   # plan-only (no real resources created)
+
+  assert {
+    condition     = output.bucket_name == "test-bucket-abc123"
+    error_message = "Bucket name output incorrect"
+  }
+
+  assert {
+    condition     = aws_s3_bucket.this.tags["Environment"] == "test"
+    error_message = "Environment tag not set correctly"
+  }
+}
+
+# Test 2: actually create the bucket and verify
+run "apply_and_verify" {
+  command = apply   # creates real resources
+
+  assert {
+    condition     = aws_s3_bucket.this.bucket == "test-bucket-abc123"
+    error_message = "Bucket not created with correct name"
+  }
+}
+```
+
+```bash
+# Run all tests in the module
+terraform test
+
+# Run a specific test file
+terraform test -filter=tests/defaults.tftest.hcl
+
+# Output:
+# defaults.tftest.hcl... in progress
+#   run "default_configuration"... pass
+#   run "apply_and_verify"... pass
+# Success! 2 passed, 0 failed.
+```
+
+**Test isolation:** Each `run` block that uses `apply` creates and destroys real resources in a temporary workspace. Add `-var="environment=test"` or use mock providers to avoid hitting real AWS.
+
+```hcl
+# Mock provider for fast plan-only tests (no AWS calls)
+mock_provider "aws" {}
+
+run "plan_only_with_mock" {
+  command = plan
+  # Uses mock provider — instant, free, no AWS credentials needed
+}
+```
+
+---
 
 ### terraform import
 

@@ -94,7 +94,9 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 | [cicd/github-actions/README.md](./cicd/github-actions/README.md) | Workflows, OIDC to AWS, matrix builds, caching, reusable workflows | SDE-1 |
 | [cicd/jenkins/README.md](./cicd/jenkins/README.md) | Declarative pipeline, shared libraries, master-agent architecture | SDE-1 |
 | [cicd/jenkins/ecs-agents.md](./cicd/jenkins/ecs-agents.md) | Dynamic Jenkins agents on ECS Fargate, cost optimization | SDE-2 |
-| [cicd/argocd/README.md](./cicd/argocd/README.md) | GitOps, Application CRD, sync waves, multi-cluster with ApplicationSet | SDE-1/2 |
+| [cicd/argocd/README.md](./cicd/argocd/README.md) | GitOps, Application CRD, sync waves, multi-cluster with ApplicationSet, RBAC, Projects, SSO | SDE-1/2 |
+| [cicd/gitops-secrets.md](./cicd/gitops-secrets.md) | Sealed Secrets vs ESO, EKS/IRSA pattern, secret rotation, decision framework | SDE-2 |
+| [cicd/argo-rollouts.md](./cicd/argo-rollouts.md) | Canary (steps + Prometheus analysis + ALB), blue-green, kubectl plugin, ArgoCD integration | SDE-2 |
 
 ---
 
@@ -103,8 +105,8 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 | File | Topics | Level |
 |------|--------|-------|
 | [iac/README.md](./iac/README.md) | IaC overview, Terraform vs CloudFormation, state, drift | SDE-1 |
-| [iac/terraform/README.md](./iac/terraform/README.md) | HCL, state, modules, workspaces, remote backend, import | SDE-1 |
-| [iac/cloudformation/README.md](./iac/cloudformation/README.md) | Templates, stacks, change sets, nested stacks, CDK | SDE-1 |
+| [iac/terraform/README.md](./iac/terraform/README.md) | HCL, state, modules, workspaces deep-dive, Terragrunt, remote backend (S3+DynamoDB), import, moved block, check block, terraform test framework | SDE-1/2 |
+| [iac/cloudformation/README.md](./iac/cloudformation/README.md) | Templates, stacks, change sets, nested stacks, StackSets, custom resources | SDE-1 |
 
 ---
 
@@ -222,6 +224,7 @@ gcp/README.md → gcp/services-overview.md
 git/git-internals.md
 advanced/service-mesh.md → advanced/ebpf-observability.md
 advanced/chaos-engineering.md → advanced/backup-dr.md
+cicd/gitops-secrets.md → cicd/argo-rollouts.md
 sre/k8s-scenarios.md (advanced) → sre/linux-debugging.md
 sre/cicd-scenarios.md → sre/iac-scenarios.md
 sre/sre-concepts.md
