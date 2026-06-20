@@ -401,3 +401,199 @@ sum(rate(http_requests_total[1h]))
 
 ---
 
+
+## Incident Management Lifecycle
+
+```mermaid
+flowchart LR
+    DETECT["1. Detect\nAlert fires\nSLO burn rate"] --> TRIAGE
+    TRIAGE["2. Triage\nAssign severity\nAssign IC"] --> MITIGATE
+    MITIGATE["3. Mitigate\nRollback · feature flag\nload shed · redirect traffic"] --> RESOLVE
+    RESOLVE["4. Resolve\nConfirm metrics normal\nCommunicate status"] --> POSTMORTEM
+    POSTMORTEM["5. Postmortem\nTimeline · 5 Whys\nAction items"]
+```
+
+### Severity Levels
+
+| SEV | Impact | Response | Examples |
+|-----|--------|----------|---------|
+| SEV1 | Complete outage, data loss risk | Immediate page, war room | Checkout down, DB unreachable |
+| SEV2 | Significant degradation | Page, respond within 15min | Error rate 10×, p99 > 5s |
+| SEV3 | Minor degradation, workaround exists | Ticket, next business day | Single region slow, non-critical feature down |
+| SEV4 | Cosmetic / no user impact | Log | Wrong log line, minor UI glitch |
+
+### Incident Commander (IC) Role
+
+The IC is one person with authority to make decisions. They do NOT debug — they coordinate.
+
+```
+IC responsibilities:
+  - Declare severity, open war room (Slack/Zoom)
+  - Assign tasks: "Alice owns the DB investigation, Bob owns the rollback"
+  - Give status updates every 15 min (even if "no change")
+  - Declare mitigation / resolution
+  - Initiate postmortem
+  - NOT: debugging, writing code, pulling logs themselves
+```
+
+### Mitigation vs Resolution
+
+- **Mitigation** — stop the bleeding. Users are no longer impacted. Root cause unknown.
+  → Rollback, feature flag off, traffic shift, increase rate limit, scale up
+- **Resolution** — permanent fix deployed, root cause understood, monitoring confirmed normal.
+
+**Always mitigate first.** Never wait for root cause before acting. A 30-minute outage while you find root cause is worse than a 5-minute outage from rolling back immediately.
+
+---
+
+## Blameless Postmortem Template
+
+A postmortem is a **written record** of what happened, why, and what prevents recurrence. It is blameless — we fix systems and processes, never blame individuals.
+
+```markdown
+# Postmortem: [Service] [Brief Description] — [Date]
+
+**Severity:** SEV1 / SEV2 / SEV3
+**Duration:** HH:MM (detection to resolution)
+**Impact:** [X% of users affected] [specific features broken]
+**Status:** Complete / Action Items Open
+
+---
+
+## Summary (2–3 sentences)
+What happened and what was the user impact. Written for a non-technical audience.
+
+---
+
+## Timeline (UTC)
+
+| Time  | Event |
+|-------|-------|
+| 14:02 | Alert fires: error rate 8× SLO burn rate |
+| 14:03 | On-call acknowledges, opens war room |
+| 14:07 | Identifies deploy at 13:55 as likely cause |
+| 14:09 | Rollback initiated |
+| 14:12 | Error rate returns to baseline — **MITIGATED** |
+| 14:45 | Root cause confirmed: nil pointer in new payment handler |
+| 15:30 | Fix deployed, monitoring confirmed — **RESOLVED** |
+
+---
+
+## Root Cause
+
+[Technical explanation. What specific change/condition caused the failure.]
+
+Example: The v2.4.1 deploy introduced a nil pointer dereference in `payment.ProcessOrder()`
+when the optional `discount_code` field was absent. The condition was not covered by unit tests.
+
+---
+
+## Contributing Factors (5 Whys)
+
+1. Why did the service return 500s? → nil pointer panic in payment handler
+2. Why was the nil pointer not caught? → no unit test for empty `discount_code`
+3. Why was there no test? → the field was added without updating test fixtures
+4. Why was it not caught in staging? → staging test data always includes a discount code
+5. Why does staging not mirror prod data shapes? → no contract testing between services
+
+Root cause is **systemic** (missing test coverage + staging data gap), not individual error.
+
+---
+
+## What Went Well
+
+- Alert fired within 90 seconds of deploy
+- Rollback completed in 3 minutes (< RTO target of 5 min)
+- On-call had clear runbook to follow
+- Status page updated before customer complaints
+
+---
+
+## What Went Poorly
+
+- MTTD was good but MTTR was longer than target (30 min vs 10 min)
+- War room had 8 people — too many, caused confusion
+- Staging did not reproduce the bug
+
+---
+
+## Action Items
+
+| Action | Owner | Due | Priority |
+|--------|-------|-----|----------|
+| Add unit tests for all optional fields in payment handler | Alice | 2025-06-27 | P1 |
+| Add production-representative data to staging fixtures | Bob | 2025-07-04 | P1 |
+| Document rollback procedure in runbook | Carol | 2025-06-27 | P2 |
+| Review war room protocol — limit to 4 people max | Dan (EM) | 2025-06-30 | P2 |
+| Investigate synthetic canary to catch nil panics pre-deploy | Alice | 2025-07-11 | P3 |
+
+---
+
+## Metrics
+
+- **MTTD:** 1 min (alert to acknowledgment)
+- **MTTR:** 30 min (detection to resolution)
+- **Error budget burned:** ~18% of monthly budget
+- **Users affected:** ~12,000 (estimated from error count)
+```
+
+### Postmortem Anti-Patterns
+
+| Anti-pattern | Why it's harmful | Better |
+|---|---|---|
+| "Human error" as root cause | Ignores the system that allowed the error | Ask why the system allowed it |
+| Blame in the doc | Chills future reporting of near-misses | Keep names out, focus on conditions |
+| Action items with no owner | Never get done | Every item has a named owner + deadline |
+| Action items with no priority | P3 items never get done | Explicitly mark P1 (must fix) vs P3 (nice to have) |
+| Postmortem not shared | Team doesn't learn | Publish internally, link from incident channel |
+| No follow-up | Action items rot | Review at next sprint planning |
+
+---
+
+## On-Call Best Practices
+
+```
+Before your shift:
+  □ Ensure runbooks are up to date for your services
+  □ Verify alert routing is correct (your phone/Slack receives pages)
+  □ Know how to rollback the last 3 deploys
+
+During an incident:
+  □ Acknowledge within 5 min
+  □ Declare severity immediately (even if uncertain — downgrade later)
+  □ Mitigate first, investigate second
+  □ Update status page / stakeholders every 15 min
+  □ Take notes in a shared doc (timestamps are critical for postmortem)
+
+After an incident:
+  □ Write postmortem within 24h (while memory is fresh)
+  □ Assign action items before closing the postmortem
+  □ Update runbook with anything you learned
+  □ Sleep — handoff if shift continues
+```
+
+### Runbook Minimum Structure
+
+Every page-worthy alert must link to a runbook with:
+
+```markdown
+# [Alert Name] Runbook
+
+## What is happening
+One sentence: what the alert means in plain English.
+
+## User impact
+Who is affected and how.
+
+## Immediate triage (first 5 minutes)
+1. [specific command]
+2. [specific command]
+3. Check [specific dashboard link]
+
+## Likely causes (most common first)
+1. Cause A → fix: [command/step]
+2. Cause B → fix: [command/step]
+
+## Escalation
+If not resolved in 30 min → page [team/person]
+```
