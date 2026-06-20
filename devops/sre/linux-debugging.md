@@ -50,6 +50,8 @@ vmstat 1         # si/so columns: swap in/out
 free -h          # available memory
 ```
 
+**Prevention:** Alert on `node_cpu_seconds_total{mode="softirq"} > 15%` and `node_cpu_seconds_total{mode="steal"} > 10%` in Prometheus. For NIC floods, enable RSS and set `irqbalance` in systemd. Profile with `perf record -ag` on canary instances before problems reach prod.
+
 ---
 
 ## Load Average High But CPU Idle
@@ -106,6 +108,8 @@ dmesg | grep -iE "error|failure|ata|scsi|i/o" | tail -20
 
 **Load average formula:** counts processes in `R` (running) + `D` (uninterruptible sleep, waiting for I/O). High I/O wait → many `D` state processes → high load, low CPU.
 
+**Prevention:** Alert on `node_pressure_io_stalled_seconds_total` (PSI) before load spikes. Use `iostat` in node exporters; page at `await > 50ms` sustained. For EBS: provision io2 with explicit IOPS, set CloudWatch alarm on `VolumeQueueLength > 1`.
+
 ---
 
 ## Zombie Process Accumulation
@@ -153,6 +157,8 @@ ps aux | wc -l                 # current process count
 # Root cause: parent process creates children but doesn't handle SIGCHLD
 # or never calls waitpid(). Fix in application code.
 ```
+
+**Prevention:** Alert on `process_open_fds` (node exporter) or custom metric counting zombie processes (`ps -eo stat | grep -c Z`). Fix root cause in code: in Go `os/exec.Cmd.Wait()` always. Never fire-and-forget child processes.
 
 ---
 
@@ -211,6 +217,8 @@ echo "fs.file-max = 2097152" >> /etc/sysctl.conf
 watch -n 1 "ls /proc/$PID/fd | wc -l"
 ```
 
+**Prevention:** Export `process_open_fds / process_max_fds` via Prometheus process collector. Alert at 80% of limit. In Go: always `defer f.Close()` and `defer resp.Body.Close()`. Use `golangci-lint` with `bodyclose` linter to catch unclosed HTTP response bodies at CI time.
+
 ---
 
 ## Port Already in Use / TIME_WAIT Accumulation
@@ -257,6 +265,8 @@ sysctl -w net.ipv4.ip_local_port_range="1024 65535"
 # Immediate restart fix:
 sysctl -w net.ipv4.tcp_fin_timeout=15  # reduce TIME_WAIT duration
 ```
+
+**Prevention:** Use connection pooling (keep-alive) so connections are reused instead of torn down per-request. In Go `http.Client`: set `MaxIdleConnsPerHost` to expected concurrency. Alert on `node_sockstat_TCP_tw > 10000`. Persist sysctl settings in `/etc/sysctl.d/` and apply via Ansible/Terraform.
 
 ---
 
@@ -314,6 +324,8 @@ dd if=/dev/zero of=/tmp/test bs=1M count=1000 oflag=direct
 # Check MB/s — compare with expected for disk type
 ```
 
+**Prevention:** Alert on `node_disk_io_time_weighted_seconds_total` (saturation proxy) and `node_disk_read_time_seconds_total / node_disk_reads_completed_total` (latency per op). On AWS: use io2 Block Express for critical workloads, enable EBS burst balance alarm. Run `fio` benchmarks at instance provisioning time to establish baseline.
+
 ---
 
 ## Out of Inodes
@@ -363,6 +375,8 @@ find /var/spool/postfix/maildrop -type f -delete
 # - Log rotation creating too many files
 # - Each file consumes 1 inode regardless of size
 ```
+
+**Prevention:** Alert on `node_filesystem_files_free / node_filesystem_files < 0.10` (under 10% inodes free). For apps that generate many small files: use a subdirectory-per-bucket scheme (e.g. `tmp/ab/cd/abcdef...`). Configure log rotation with `maxfiles` limits.
 
 ---
 
@@ -420,6 +434,8 @@ showmount -e nfs-server
 # _netdev: wait for network before mounting at boot
 ```
 
+**Prevention:** Always mount NFS with `soft,timeo=30,retrans=3` — never use hard mounts in production. Monitor NFS server availability with a synthetic probe. For K8s: prefer CSI drivers over direct NFS mounts; use PVCs with `ReadWriteMany` via EFS CSI driver which handles reconnect automatically.
+
 ---
 
 ## OOM Killer — Reading `dmesg`
@@ -466,6 +482,8 @@ echo -17 > /proc/$(pgrep critical-process)/oom_adj   # -17 = never kill
 # For containers/K8s: exit code 137 = SIGKILL from OOM
 # kubectl describe pod → Last State: OOMKilled
 ```
+
+**Prevention:** Set memory `requests` = `limits` for Guaranteed QoS class in K8s (prevents OOM at pod level). Enable VPA to auto-tune limits. Alert on `container_memory_working_set_bytes / container_spec_memory_limit_bytes > 0.85`. Disable THP (`/sys/kernel/mm/transparent_hugepage/enabled = never`) for Redis/JVM workloads.
 
 ---
 
@@ -529,6 +547,8 @@ cat /sys/devices/system/edac/mc/mc0/ce_count   # correctable errors
 # Soft lockup: "BUG: soft lockup - CPU#0 stuck" = CPU in kernel > 20s
 # Hard lockup: NMI watchdog fires = CPU completely frozen
 ```
+
+**Prevention:** Enable `kdump`/`kexec` on all nodes so crashes leave a vmcore for postmortem. Use AWS SSM Parameter Store or CloudWatch to capture last-boot logs. Keep kernels patched and pin driver versions in AMI builds. Alert on `node_boot_time_seconds` changing unexpectedly (unexpected reboot detector).
 
 ---
 

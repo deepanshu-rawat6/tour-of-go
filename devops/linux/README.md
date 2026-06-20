@@ -12,6 +12,12 @@ Everything — containers, Kubernetes, networking, storage — is built on Linux
 | [security.md](./security.md) | Capabilities, setuid, seccomp, AppArmor, SELinux, defense in depth |
 | [containers-evolution.md](./containers-evolution.md) | chroot, BSD Jails, namespaces, cgroups, LXC, Docker |
 | [commands.md](./commands.md) | grep, sed, awk, find, networking, processes, monitoring cheat sheet |
+| [strace-perf.md](./strace-perf.md) | strace, perf stat, perf top, perf record, flame graphs, perf trace |
+| [memory-tuning.md](./memory-tuning.md) | /proc/meminfo, swappiness, OOM killer, dirty pages, THP, cgroup v2 memory |
+| [cgroup-v2.md](./cgroup-v2.md) | cgroup v2 hierarchy, cpu.max/weight, memory.high, PSI pressure files, I/O limits, K8s mapping |
+| [proc-internals.md](./proc-internals.md) | /proc/maps, /proc/smaps, /proc/status, /proc/fd, signal masks, per-process internals |
+| [ebpf-bpftrace.md](./ebpf-bpftrace.md) | eBPF hooks, bpftrace one-liners, CPU/memory/network/disk tracing, BCC tools |
+| [signals.md](./signals.md) | SIGTERM vs SIGKILL, signal delivery internals, signal masks, SIGCHLD, graceful shutdown |
 
 ---
 
