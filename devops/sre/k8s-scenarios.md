@@ -197,6 +197,8 @@ docker buildx build --platform linux/amd64,linux/arm64 -t my-org/app:v1 --push .
 □ image right arch?                      → exec format error in events
 ```
 
+**Prevention:** Set `resources.limits.memory` on all containers — OOMKills become predictable, not random. Use `GOMEMLIMIT` for Go apps. Add startup probes with `failureThreshold: 30` so slow-starting apps don't get killed by liveness. In CI: run `kubectl apply --dry-run=server` to catch missing secrets/configmaps before deploy. Use `init containers` for dependency checks instead of fast-failing in the main container.
+
 ---
 
 ## Pod Stuck in `Pending`
@@ -231,6 +233,8 @@ kubectl top pods -A --sort-by=memory
 # Check if cluster autoscaler is blocked
 kubectl logs -n kube-system -l app=cluster-autoscaler | tail -50
 ```
+
+**Prevention:** Set accurate `resources.requests` — oversized requests cause artificial pending. Use Cluster Autoscaler with proper `minSize`/`maxSize` and ensure node groups cover all required taints/labels. Add `podAntiAffinity` with `preferredDuringScheduling` (not `required`) to avoid unsatisfiable constraints. Test scheduling with `kubectl apply --dry-run=server`.
 
 ---
 
@@ -267,6 +271,8 @@ aws iam simulate-principal-policy \
   --policy-source-arn <node-role-arn> \
   --action-names ecr:GetAuthorizationToken
 ```
+
+**Prevention:** Use image digest pinning (`image: my-app@sha256:abc123`) instead of mutable tags in production — guarantees the same image always. Set up ECR pull-through cache or mirror to avoid rate limits. For ECR: use IRSA on the node role with `ecr:GetAuthorizationToken` + `ecr:BatchGetImage`. Test image pulls in CI before deploying.
 
 ---
 
@@ -315,6 +321,8 @@ kubectl delete pod <pod> -n <ns> --grace-period=0 --force
 kubectl get node <node>
 kubectl delete node <node>   # removes the node object, pods get rescheduled
 ```
+
+**Prevention:** Avoid finalizers unless necessary — they're the #1 cause of stuck Terminating pods. Set `terminationGracePeriodSeconds` to a realistic value (preStop duration + drain time + buffer). For node failures: enable `NonGracefulNodeShutdown` feature gate (GA in 1.28) so stuck Terminating pods are auto-cleaned up.
 
 ---
 
@@ -368,6 +376,8 @@ kubectl drain <node> --ignore-daemonsets --delete-emptydir-data
 # Check node events
 kubectl get events -n default --field-selector involvedObject.name=<node>
 ```
+
+**Prevention:** Monitor node conditions with `kube_node_status_condition` Prometheus metric. Alert on `DiskPressure=True` before pods are evicted. Add image GC thresholds in kubelet config (`imageGCHighThresholdPercent: 80`). Use node health checks with AWS Auto Scaling Group health check integration so unhealthy nodes are automatically replaced.
 
 ---
 
@@ -449,6 +459,8 @@ kubectl logs -n kube-system -l k8s-app=kube-dns | grep -i error
 
 **Fix:** use fully qualified domain names (FQDN) to avoid search domain iteration, or tune CoreDNS replicas.
 
+**Prevention:** Never set CPU limits on latency-sensitive services — use requests only. Alert on `container_cpu_cfs_throttled_periods_total / container_cpu_cfs_periods_total > 0.25`. Set `dnsConfig.options: [{name: ndots, value: "2"}]` on all pods. Use `GOMEMLIMIT` for Go services. Deploy NodeLocal DNSCache to eliminate DNS as a latency source.
+
 ---
 
 ## PVC Stuck in `Pending`
@@ -480,6 +492,8 @@ kubectl get storageclass
 # Check if IAM role for CSI has ebs:CreateVolume permission
 ```
 
+**Prevention:** Use `WaitForFirstConsumer` volumeBindingMode on StorageClasses — prevents PVCs binding to the wrong AZ before the pod is scheduled. Set ResourceQuota for storage to prevent runaway PVC creation. Test CSI driver RBAC with `kubectl auth can-i` in staging before deploying new clusters.
+
 ---
 
 ## Resource Quota / LimitRange Blocking Pods
@@ -501,6 +515,8 @@ kubectl describe limitrange -n <ns>
 # See what defaults are being injected
 kubectl get limitrange -n <ns> -o yaml
 ```
+
+**Prevention:** Set LimitRange defaults in every namespace so pods without resource specs still get sane defaults. Alert on `kube_resourcequota{type="used"} / kube_resourcequota{type="hard"} > 0.80` to catch quota exhaustion before it blocks deployments. Document quota allocations per team in runbooks.
 
 ---
 
@@ -572,6 +588,8 @@ Readiness:  http-get http://:8080/ready delay=5s timeout=1s period=10s
 | Upstream DB/service unavailable | Check upstream pod/service connectivity |
 | App bug returns 200 on errors | Fix application logic |
 
+**Prevention:** Separate liveness from readiness probes — readiness should check actual app health (e.g. DB ping), liveness should only check if the process is hung. Use `/readyz` for readiness (checks dependencies) and `/livez` for liveness (just checks process). Add integration tests in CI that deploy to staging and verify the probe endpoints return correct status codes.
+
 ---
 
 ## DNS Resolution Failures Inside Pods
@@ -621,6 +639,8 @@ kubectl logs -n kube-system -l k8s-app=kube-dns --tail=50
 | Wrong search domain in resolv.conf | Check `dnsConfig` in pod spec |
 | NetworkPolicy blocks pod→CoreDNS (port 53) | Allow egress to kube-dns on UDP/TCP 53 |
 
+**Prevention:** Deploy NodeLocal DNSCache DaemonSet — each node caches DNS locally, eliminating CoreDNS as a SPOF. Set `ndots: 2` in pod dnsConfig to reduce DNS round trips. Alert on `coredns_dns_responses_total{rcode="SERVFAIL"}` and CoreDNS `OOMKilled`. Scale CoreDNS replicas proportional to cluster size (1 replica per 16 nodes minimum).
+
 ---
 
 ## NetworkPolicy Blocking Traffic
@@ -667,6 +687,8 @@ kubectl debug -it <pod-a> --image=nicolaka/netshoot --target=<container>
 | Egress policy missing `to` rule | Add egress rule for destination port |
 | Pod labels don't match policy selector | Align pod labels with `podSelector` |
 | CNI doesn't enforce NetworkPolicy | Switch to Calico/Cilium/Weave |
+
+**Prevention:** Adopt a default-deny-all NetworkPolicy per namespace and explicitly allowlist required traffic. Test policies with `kubectl exec -- curl` in staging before prod. Use Cilium's `hubble observe --verdict DROPPED` to see what's being blocked in real time. Include NetworkPolicy in service deployment manifests so policies travel with the service.
 
 ---
 
@@ -723,6 +745,8 @@ my-svc    <none>            5m   ← problem: no backends
 | targetPort ≠ containerPort | Match `targetPort` to the port the app listens on |
 | Pod in different namespace | Service and pods must be in same namespace |
 
+**Prevention:** Use label conventions enforced by LimitRange/OPA — all pods must have `app` label. Write CI checks (`conftest`, `kyverno`) that validate Service selectors match Deployment labels before merge. Add a Prometheus alert on `kube_endpoint_address_not_ready > 0` sustained for > 2 minutes.
+
 ---
 
 ## HPA Not Scaling
@@ -778,6 +802,8 @@ web    Deployment/web    <unknown>/50%   2        10       2
 | `v1beta1.metrics.k8s.io` not registered | Fix metrics-server or prometheus-adapter install |
 | RBAC missing for metrics API | Add ClusterRole for HPA to read metrics |
 
+**Prevention:** Always set `resources.requests.cpu` — HPA silently shows `<unknown>` without it. Install metrics-server as part of cluster bootstrap (not optional). For production: use KEDA with external metrics (queue depth, RPS) instead of CPU-only HPA — CPU is a lagging indicator of load.
+
 ---
 
 ## Deployment Stuck in Rollout
@@ -831,6 +857,8 @@ kubectl rollout undo deployment/<name>
 | preStop hook hangs | Fix hook or reduce `terminationGracePeriodSeconds` |
 | maxUnavailable=0 + unschedulable nodes | Fix node capacity or adjust rollout strategy |
 
+**Prevention:** Set a `progressDeadlineSeconds` (default 600s) — rollout auto-fails if new pods don't become Ready within that window, making CI pipelines fail fast. Always set a PDB with `minAvailable: 1` so rollouts can't kill all replicas. Add a readiness probe that fails until the app is truly ready (not just started).
+
 ---
 
 ## Webhook Admission Failures
@@ -877,6 +905,8 @@ kubectl exec -it <debug-pod> -- curl -k https://<webhook-svc>.<ns>.svc/validate
 | TLS cert expired / wrong caBundle | Rotate cert; update `caBundle` in webhook config |
 | `failurePolicy: Fail` + unreachable webhook | Set `failurePolicy: Ignore` temporarily or fix pod |
 | Webhook rejects valid resource (logic bug) | Fix webhook validation logic |
+
+**Prevention:** Set `failurePolicy: Ignore` on all non-critical webhooks (security webhooks can be `Fail`). Add `namespaceSelector` to exclude `kube-system` from webhook scope — prevents the webhook from blocking its own recovery. Use cert-manager to auto-rotate webhook TLS certs. Run webhook pods with PDB and 2+ replicas.
 
 ---
 
@@ -931,6 +961,8 @@ Conditions:
 | emptyDir volumes growing large | Add `sizeLimit` to emptyDir volume spec |
 | Node disk too small | Expand EBS volume or add larger node group |
 
+**Prevention:** Set kubelet `--container-log-max-size=50Mi --container-log-max-files=3`. Configure image GC thresholds (`imageGCHighThresholdPercent: 80`). Alert on `node_filesystem_avail_bytes / node_filesystem_size_bytes < 0.15`. Add `sizeLimit` to all emptyDir volumes. Use instance types with ≥ 100Gi root volumes for nodes.
+
 ---
 
 ## etcd Slow / API Server Timeout
@@ -981,6 +1013,8 @@ etcdctl defrag --endpoints=https://127.0.0.1:2379
 | etcd DB size > quota (default 2GB) | Compact revisions + defrag; increase `--quota-backend-bytes` |
 | etcd member unhealthy / quorum lost | Recover failed member; restore from snapshot |
 | Too many objects (large secrets/CMs) | Audit and prune large resources |
+
+**Prevention:** Provision etcd on dedicated fast SSDs (io2 or local NVMe). Alert on `etcd_disk_wal_fsync_duration_seconds_bucket{quantile="0.99"} > 0.01` (10ms p99). Set up automated daily compaction and defrag as a CronJob. Monitor `etcd_mvcc_db_total_size_in_bytes` — alert at 1.5GB (before hitting 2GB default quota). Run etcd on at least 3 nodes for quorum.
 
 ---
 
@@ -1037,3 +1071,5 @@ no  ← kubectl auth can-i returns "no" → RBAC is the blocker
 | RoleBinding in wrong namespace | Re-create binding in the pod's namespace |
 | Role missing required verb/resource | Add `verbs` and `resources` to Role rules |
 | ClusterRole needed but only Role created | Use ClusterRole + ClusterRoleBinding for cluster-wide access |
+
+**Prevention:** Use least-privilege by default — never use `cluster-admin` for application service accounts. Audit existing bindings regularly: `kubectl get clusterrolebinding -o json | jq '[.items[] | select(.subjects[]?.kind=="ServiceAccount")]'`. Use Kyverno or OPA Gatekeeper policies to prevent broad RBAC grants in CI. Test RBAC with `kubectl auth can-i --as=system:serviceaccount:ns:sa` in staging.

@@ -245,7 +245,76 @@ spec:
 
 ---
 
-## 8. Recommendations
+## 8. Node Allocatable Chain
+
+Not all node capacity is available to pods. The chain from raw capacity to schedulable capacity:
+
+```
+Node Capacity (total hardware)
+  └─ kube-reserved  (CPU/memory reserved for kubelet, container runtime)
+  └─ system-reserved (CPU/memory reserved for OS processes)
+  └─ eviction-threshold (kubelet won't schedule here — kept as safety buffer)
+  └─ Allocatable (what the scheduler sees — what your pod requests count against)
+```
+
+```mermaid
+flowchart TD
+    CAP["Node Capacity\ne.g. 16 CPU, 64Gi RAM"] --> KR
+    KR["- kube-reserved\ne.g. 200m CPU, 1Gi RAM"] --> SR
+    SR["- system-reserved\ne.g. 200m CPU, 512Mi RAM"] --> ET
+    ET["- eviction threshold\ne.g. 200Mi RAM"] --> ALLOC
+    ALLOC["= Allocatable\nwhat scheduler uses for bin-packing\ne.g. 15.6 CPU, 62.3Gi RAM"]
+```
+
+```bash
+# Check allocatable vs capacity on a node
+kubectl describe node <node> | grep -A6 "Capacity:" 
+kubectl describe node <node> | grep -A6 "Allocatable:"
+
+# Example output:
+# Capacity:
+#   cpu:                16
+#   memory:             65536Mi
+# Allocatable:
+#   cpu:                15600m     ← 400m reserved
+#   memory:             63897Mi    ← ~1.6Gi reserved
+
+# Check how much is currently requested
+kubectl describe node <node> | grep -A10 "Allocated resources"
+# Requests    Limits
+# cpu         8200m (52%)    16000m (100%)
+# memory      24Gi (38%)     32Gi (50%)
+```
+
+**Why pods go Pending even when `kubectl top nodes` shows free capacity:**
+`top` shows actual usage. Scheduler uses **requests** for bin-packing. A node can be 10% utilized but 100% requested → new pods pend.
+
+```bash
+# See real picture: requested vs allocatable
+kubectl get nodes -o custom-columns=\
+"NAME:.metadata.name,\
+ALLOC-CPU:.status.allocatable.cpu,\
+ALLOC-MEM:.status.allocatable.memory"
+```
+
+**Configure reserved resources (kubelet config):**
+```yaml
+# /var/lib/kubelet/config.yaml
+kubeReserved:
+  cpu: "200m"
+  memory: "1Gi"
+  ephemeral-storage: "1Gi"
+systemReserved:
+  cpu: "200m"
+  memory: "512Mi"
+evictionHard:
+  memory.available: "200Mi"
+  nodefs.available: "10%"
+```
+
+---
+
+## 9. Recommendations
 
 ```
 ✅ Always set requests — scheduler needs them for bin-packing

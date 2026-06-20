@@ -9,6 +9,12 @@
 | [autoscaling.md](./autoscaling.md) | HPA, VPA, KEDA, Cluster Autoscaler |
 | [rbac.md](./rbac.md) | ServiceAccount, Role/ClusterRole, RoleBinding, auth chain |
 | [eks-architecture.md](./eks-architecture.md) | EKS managed control plane, VPC CNI, IRSA, node groups |
+| [resource-limits.md](./resource-limits.md) | Requests vs limits, CFS throttling, QoS classes, LimitRange, ResourceQuota, node allocatable chain |
+| [coredns.md](./coredns.md) | Corefile plugins, ndots:5 problem, forwarding, caching, debugging, NodeLocal DNSCache |
+| [pod-lifecycle.md](./pod-lifecycle.md) | Startup sequence (sandbox→CNI→image→probes), admission controller chain, server-side apply, termination race |
+| [kube-proxy-modes.md](./kube-proxy-modes.md) | iptables O(n) problem, IPVS O(1) + LB algorithms, Cilium/eBPF socket-level LB, comparison table |
+| [cross-node-networking.md](./cross-node-networking.md) | Same-node packet walk, VXLAN overlay, Calico BGP direct routing, AWS VPC CNI flat network, MTU |
+| [node-shutdown.md](./node-shutdown.md) | Graceful shutdown (systemd inhibitor), pod eviction ordering, node drain, non-graceful shutdown, lifecycle taints |
 
 ---
 
