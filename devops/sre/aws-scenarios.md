@@ -49,6 +49,8 @@ aws ec2 get-console-output --instance-id i-xxxx --latest
 aws ssm start-session --target i-xxxx
 ```
 
+**Prevention:** Never rely on SSH for production access — use SSM Session Manager instead (no port 22, no key management, full audit trail in CloudTrail). Enforce this with an SCP: `Deny ec2:AuthorizeSecurityGroupIngress where port=22 from 0.0.0.0/0`. Keep an EC2 Systems Manager baseline policy on every instance role.
+
 ---
 
 ## 2. Lambda Function Timing Out
@@ -98,6 +100,8 @@ aws lambda update-function-configuration \
   --tracing-config Mode=Active
 ```
 
+**Prevention:** Set `timeout` to 2× your p99 execution time, never the max (15 min). Add a CloudWatch alarm on `Errors + Throttles` for every Lambda. Enable X-Ray tracing from day one — retrofitting tracing after a production timeout incident is painful. Use provisioned concurrency for latency-sensitive functions to eliminate cold start timeouts.
+
 ---
 
 ## 3. ALB Returns 502 Bad Gateway
@@ -145,6 +149,8 @@ aws elbv2 describe-target-groups \
   --query 'TargetGroups[].[HealthCheckPath,HealthCheckPort,Matcher]'
 ```
 
+**Prevention:** Set `deregistration_delay` to 30s (down from 300s default) so deployments drain fast. Set `slow_start.duration_seconds` = 30 so new targets warm up before receiving full traffic. Alert on ALB `HTTPCode_Target_5XX_Count > 0` in CloudWatch. Test health check endpoint independently in staging with the exact ALB matcher config.
+
 ---
 
 ## 4. S3 Access Denied
@@ -189,6 +195,8 @@ aws s3api get-object-acl --bucket my-bucket --key my-key
 # List bucket ownership controls
 aws s3api get-bucket-ownership-controls --bucket my-bucket
 ```
+
+**Prevention:** Use IAM Access Analyzer to continuously audit S3 bucket policies and flag public or cross-account access. Enable S3 Block Public Access at the account level. Test IAM policies with `aws iam simulate-principal-policy` in CI before deploying policy changes.
 
 ---
 
@@ -243,6 +251,8 @@ aws rds create-db-proxy \
   --vpc-security-group-ids sg-rds-xxxx
 ```
 
+**Prevention:** Use RDS Proxy to pool connections — eliminates connection exhaustion as services scale. Set `max_connections` parameter group value explicitly. Alert on `DatabaseConnections` CloudWatch metric > 80% of `max_connections`. Use IAM auth for RDS so credentials never expire or get leaked.
+
 ---
 
 ## 6. ECS Task Keeps Restarting (Exit Code 1)
@@ -288,6 +298,8 @@ aws secretsmanager describe-secret --secret-id my-secret
 aws ecs update-service --cluster my-cluster --service my-svc \
   --health-check-grace-period-seconds 120
 ```
+
+**Prevention:** Use ECS Exec (SSM-based) instead of SSH for debugging running containers. Set `healthCheckGracePeriodSeconds` equal to your app's p99 startup time. Alert on ECS `ServiceTaskCount < desired`. Use task role + Secrets Manager for credentials — never bake secrets into environment variables.
 
 ---
 
@@ -336,6 +348,8 @@ aws cloudformation create-change-set \
   --resources-to-import '[{"ResourceType":"AWS::S3::Bucket","LogicalResourceId":"MyBucket","ResourceIdentifier":{"BucketName":"my-bucket"}}]' \
   --template-body file://template.yaml
 ```
+
+**Prevention:** Always use Change Sets before any update to a production stack — never run `aws cloudformation update-stack` directly. Enable stack termination protection on all production stacks. Use `DeletionPolicy: Retain` on stateful resources (RDS, S3) so accidental stack deletion doesn't destroy data.
 
 ---
 
@@ -400,6 +414,8 @@ aws cloudwatch get-metric-statistics \
   --period 60 --statistics Sum
 ```
 
+**Prevention:** Set Usage Plans and API Keys for all external-facing APIs. Use Lambda reserved concurrency to prevent a burst from one API consuming all account concurrency. Add a WAF rate-based rule as an additional layer. Alert on `4XXError rate > 5%` in CloudWatch — catches throttling before it becomes an outage.
+
 ---
 
 ## 9. EKS Nodes Not Joining the Cluster
@@ -450,6 +466,8 @@ aws ssm start-session --target i-nodexxxx
 # Describe node for events
 kubectl describe node ip-10-0-x-x.ec2.internal
 ```
+
+**Prevention:** Use managed node groups — AWS handles the bootstrap script and AMI versioning. Pin AMI IDs in Terraform and test node-join in a staging cluster before rolling to prod. Use Launch Template user data validation: add a `curl` to the EKS cluster endpoint as the last line of bootstrap — it fails fast if networking is wrong. Alert on `cluster_failed_node_count > 0`.
 
 ---
 
@@ -515,6 +533,8 @@ aws budgets create-budget \
   --budget '{"BudgetName":"monthly-limit","BudgetLimit":{"Amount":"200","Unit":"USD"},"TimeUnit":"MONTHLY","BudgetType":"COST"}' \
   --notifications-with-subscribers '[{"Notification":{"NotificationType":"ACTUAL","ComparisonOperator":"GREATER_THAN","Threshold":80},"Subscribers":[{"SubscriptionType":"EMAIL","Address":"you@example.com"}]}]'
 ```
+
+**Prevention:** Set AWS Budgets alerts at 50%, 80%, and 100% of monthly forecast from day one. Enable Cost Anomaly Detection with a `$50 absolute threshold` — it alerts within hours of a runaway resource. Tag every resource with `team`, `env`, `service` tags enforced by an AWS Config rule. Review Cost Explorer weekly during growth phases.
 
 ---
 

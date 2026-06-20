@@ -54,6 +54,8 @@ aws iam get-open-id-connect-provider \
 aws sts get-caller-identity
 ```
 
+**Prevention:** Pin the `aws-actions/configure-aws-credentials` version (`@v4` not `@main`). Store the role ARN in a repository variable not hardcoded in the workflow. Add a CI test workflow that fires on every trust-policy change PR and asserts `aws sts get-caller-identity` succeeds.
+
 ---
 
 ## 2. GitHub Actions: Job Hangs Indefinitely
@@ -94,6 +96,8 @@ gh run cancel <run-id>
 gh run view <run-id> --log | tail -40
 ```
 
+**Prevention:** Set `timeout-minutes` on every job and every step. Use `continue-on-error: false` (default) and add `cancel-in-progress: true` to concurrency groups so a new push cancels stuck old runs. Add a `job_timeout` metric via GitHub API to alert if any job exceeds 30 minutes.
+
 ---
 
 ## 3. ArgoCD: App Out of Sync But Won't Sync
@@ -130,6 +134,8 @@ argocd app sync my-app --force
 # check for webhook rejections in k8s events
 kubectl get events -n my-namespace --sort-by='.lastTimestamp' | tail -20
 ```
+
+**Prevention:** Enable ArgoCD auto-sync with `selfHeal: true` and `prune: true` in non-prod environments so drift is corrected automatically. Use `syncPolicy.syncOptions: [CreateNamespace=true]` to avoid manual namespace creation. Add `argocd app wait` in the CD pipeline — fails the deploy pipeline if ArgoCD doesn't reach `Synced+Healthy` within the timeout.
 
 ---
 
@@ -169,6 +175,8 @@ kubectl create secret docker-registry ecr-creds \
 # check argocd-image-updater logs
 kubectl logs -n argocd deploy/argocd-image-updater | tail -50
 ```
+
+**Prevention:** Use image digest pinning in ArgoCD (`image: myapp@sha256:...`) — eliminates tag races. Store `imagePullSecrets` as a sealed secret or External Secrets Operator resource, not a manually-created secret. Add a registry reachability check to the CD pipeline before deploying.
 
 ---
 
@@ -235,6 +243,8 @@ sudo systemctl restart jenkins
 ls -la /var/run/docker.sock   # should be srw-rw---- docker group
 ```
 
+**Prevention:** Use rootless Docker or Kaniko/Buildah in CI agents — eliminates the `docker.sock` privilege escalation risk entirely. If Docker-in-Docker is required, use `--privileged` only in isolated ephemeral agents, never on long-lived shared agents.
+
 ---
 
 ## 6. Pipeline Deploys to Wrong Environment
@@ -275,6 +285,8 @@ argocd app get my-app -o json | jq '.spec.destination'
 # check which values file ArgoCD is using
 argocd app get my-app -o json | jq '.spec.source.helm'
 ```
+
+**Prevention:** Use ArgoCD ApplicationSets with environment-specific values files and `project` RBAC — engineers can't promote to prod without approval. Add a `diff` step to the CD pipeline that shows what will change in each environment before applying. Use Helm `--atomic` flag so failed upgrades auto-rollback.
 
 ---
 
@@ -317,6 +329,8 @@ kubectl logs -n staging deploy/my-app -f
 # describe pod for crash reason
 kubectl describe pod -n staging -l app=my-app | grep -A 5 "Last State"
 ```
+
+**Prevention:** Add a post-deploy smoke test step in the CD pipeline: `kubectl rollout status deployment/my-app -n staging --timeout=120s && curl -f https://staging.example.com/health`. If it fails, auto-rollback with `kubectl rollout undo`. Use `progressDeadlineSeconds: 120` on Deployments so rollouts auto-fail fast.
 
 ---
 
@@ -361,6 +375,9 @@ gotestsum --rerun-fails=3 --packages ./...
     timeout_minutes: 10
     max_attempts: 3
     command: go test -race -timeout 90s ./...
+```
+
+**Prevention:** Track flakiness rate per test in CI metrics — quarantine any test with >5% flakiness until fixed (don't just retry). Use `go test -count=1` to disable test caching and always run fresh. For integration tests: use `testcontainers-go` to spin up real dependencies instead of mocks — eliminates a whole class of flakiness from mock state pollution.
 ```
 
 ---

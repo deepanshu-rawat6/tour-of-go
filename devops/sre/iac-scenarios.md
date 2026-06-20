@@ -33,6 +33,8 @@ data "aws_vpc" "main" {
 terraform workspace list
 ```
 
+**Prevention:** Run `terraform plan` in CI on every PR and require approval before `apply`. Use `lifecycle { prevent_destroy = true }` on stateful resources. Add `terraform validate` and `tflint` as required CI checks to catch config errors before they reach `apply`.
+
 ---
 
 ## 2. terraform plan Shows Unexpected Destroy
@@ -70,6 +72,8 @@ terraform {
 }
 ```
 
+**Prevention:** Always run `terraform plan -out=tfplan` and pipe it through `terraform show -json tfplan | jq '[.resource_changes[] | select(.change.actions[] | contains("delete"))] | length'` in CI — fail the pipeline if this count exceeds an expected threshold. Use `lifecycle { prevent_destroy = true }` on databases, S3 buckets, and KMS keys.
+
 ---
 
 ## 3. State Lock: terraform apply Hangs
@@ -101,6 +105,8 @@ aws dynamodb delete-item \
   --table-name terraform-state-lock \
   --key '{"LockID": {"S": "my-bucket/path/to/terraform.tfstate"}}'
 ```
+
+**Prevention:** Use Terraform Cloud or Atlantis for all `apply` runs — eliminates local lock issues entirely. Set S3 state backend with `encrypt = true` and DynamoDB locking. Add a CI check that detects stale locks older than 30 minutes and alerts the on-call.
 
 ---
 
@@ -137,6 +143,8 @@ aws configservice put-config-rule --config-rule '{
   "Source": {"Owner": "AWS", "SourceIdentifier": "REQUIRED_TAGS"}
 }'
 ```
+
+**Prevention:** Run `terraform plan` on a schedule (nightly) and alert if it shows non-empty diff — that's drift. Use AWS Config Rules to detect manual console changes and trigger notifications. Enable CloudTrail and set up EventBridge rules to alert when resources are modified outside Terraform.
 
 ---
 
@@ -177,6 +185,8 @@ cat .terraform.lock.hcl
 #   version = "= 5.1.2"
 # }
 ```
+
+**Prevention:** Pin all module versions to exact versions (`= X.Y.Z`) in production, never use `~>` or `>=`. Use `terraform providers lock` to generate a `.terraform.lock.hcl` and commit it — enforces exact provider versions across all environments. Review module changelogs before bumping versions.
 
 ---
 
@@ -227,6 +237,8 @@ echo "*.tfvars" >> .gitignore
 echo "terraform.tfstate*" >> .gitignore
 ```
 
+**Prevention:** Never put passwords in Terraform — use `aws_secretsmanager_secret` data sources to reference secrets, never create them with the value in HCL. Mark sensitive outputs with `sensitive = true`. Restrict S3 state bucket access to CI role only with `Block Public Access` enabled and SSE-KMS encryption.
+
 ---
 
 ## 7. Helm Release Fails: Timeout Waiting for Resources
@@ -272,6 +284,8 @@ helm upgrade my-release ./chart \
 # List revision history
 helm history my-release -n my-namespace
 ```
+
+**Prevention:** Always set `--atomic` on `helm upgrade` in CI — auto-rolls back if the release fails. Set `--timeout` equal to your app's p99 startup time + 60s buffer. Add readiness probes on all Deployments so Helm's `--wait` has something meaningful to check. Test chart changes in a throwaway namespace first: `helm upgrade --install --create-namespace -n test-$PR_NUMBER`.
 
 ---
 
@@ -324,6 +338,8 @@ aws cloudformation execute-change-set \
   --stack-name my-stack \
   --change-set-name preview-changes
 ```
+
+**Prevention:** Always deploy via Change Sets, never direct update. Set `--on-failure DO_NOTHING` during development so stacks stay in `CREATE_FAILED` with resources intact for debugging (don't use in production). Enable CloudFormation stack notifications via SNS so failures are immediately visible. Use `aws cloudformation describe-stack-events` to see the exact resource that caused rollback.
 
 ---
 

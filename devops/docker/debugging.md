@@ -33,6 +33,8 @@ docker logs <container>
 docker run -it --entrypoint sh <image>
 ```
 
+**Prevention:** Use `HEALTHCHECK` in every production Dockerfile so Docker surfaces unhealthy status before traffic reaches the container. Set `restart: unless-stopped` in Compose so transient crashes auto-recover. Log to stderr from process start — before any initialization — so logs are always available even on crash.
+
 ---
 
 ## 2. Container OOM Killed
@@ -61,6 +63,8 @@ docker stats <container>
 # Set memory limit
 docker run --memory 512m --memory-swap 512m <image>
 ```
+
+**Prevention:** Always set `--memory` limits in production. For Go: set `GOMEMLIMIT` slightly below the Docker limit so GC kicks in before the OOM killer does. Monitor `docker stats` — alert when container memory exceeds 80% of limit. Use `--memory-swap` equal to `--memory` to prevent swapping.
 
 ---
 
@@ -99,6 +103,8 @@ iptables -t nat -L DOCKER -n
 docker inspect <container> --format='{{json .NetworkSettings.Ports}}'
 ```
 
+**Prevention:** Always bind your app to `0.0.0.0` (not `127.0.0.1`) in containerized environments. Validate port bindings in CI with a smoke test: `docker run -d -p 8080:8080 image && sleep 2 && curl -f localhost:8080/health`.
+
 ---
 
 ## 4. Container Can't Reach the Internet
@@ -132,6 +138,8 @@ iptables -t nat -L POSTROUTING -n -v
 # Inspect docker network
 docker network inspect bridge
 ```
+
+**Prevention:** After Docker daemon upgrades or kernel updates, run `docker run --rm alpine ping -c1 8.8.8.8` as a post-install smoke test. Persist `net.ipv4.ip_forward=1` in `/etc/sysctl.d/` — it can revert after reboots if not persisted.
 
 ---
 
@@ -167,6 +175,8 @@ docker exec <containerA> nslookup <containerB>
 docker inspect <container> --format='{{json .NetworkSettings.Networks}}'
 ```
 
+**Prevention:** Always use named custom networks in Compose — never rely on the default bridge. Custom networks provide automatic DNS by container name. Define the network explicitly in `docker-compose.yml` so all services join it and can resolve each other by service name.
+
 ---
 
 ## 6. docker build Is Slow / Cache Not Working
@@ -194,6 +204,8 @@ RUN go mod download          # cached unless go.mod changes
 COPY . .                     # only invalidates layers below
 RUN go build -o app .
 ```
+
+**Prevention:** Enforce layer order in code review: `COPY go.mod go.sum` → `RUN go mod download` → `COPY . .` → `RUN build`. Add a `.dockerignore` to every repo. Run `docker build --no-cache` only in weekly full-rebuild CI, never in the per-PR pipeline.
 
 ---
 
@@ -237,6 +249,8 @@ COPY --from=builder /app/app /app
 ENTRYPOINT ["/app"]
 ```
 
+**Prevention:** Set a CI size gate: `docker images --format '{{.Size}}' myapp:latest` — fail the build if it exceeds 100 MB. Use `distroless/static` or `scratch` as the final stage for Go binaries. Run `dive --ci` in CI to catch any layer regressions automatically.
+
 ---
 
 ## 8. Volume Mount Not Working
@@ -272,6 +286,8 @@ docker volume ls
 docker volume inspect <volume>
 ```
 
+**Prevention:** Never run containers as root when bind-mounting host paths. Set `USER` in Dockerfile and match UID with the host path owner. Add `:ro` to read-only mounts to prevent accidental writes. Document expected UID in the repo README.
+
 ---
 
 ## 9. docker-compose Service Won't Start
@@ -303,6 +319,8 @@ docker compose config
 # Recreate containers (pick up config changes)
 docker compose up --force-recreate
 ```
+
+**Prevention:** Always define `healthcheck` on dependency services (postgres, redis) in Compose and use `depends_on: condition: service_healthy` — not just `depends_on: db`. Add `docker compose config` as a CI lint step to catch YAML/variable errors before they reach a developer's machine.
 
 ---
 
@@ -338,3 +356,5 @@ docker container prune -f      # stopped containers
 docker volume prune -f         # unused volumes
 docker builder prune -af       # build cache
 ```
+
+**Prevention:** Add a weekly cron job on every CI host: `docker system prune -af --volumes --filter "until=168h"`. Set `"log-opts": {"max-size": "50m", "max-file": "3"}` in `/etc/docker/daemon.json` to cap container log sizes. Alert on host disk usage > 70% before Docker fills the drive.
