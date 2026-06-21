@@ -63,10 +63,10 @@ During node shutdown (and kubelet-initiated eviction), pods are evicted in prior
 
 ```mermaid
 flowchart TD
-    BE["BestEffort pods\n(no requests/limits)\nevicted first"] --> BURST
-    BURST["Burstable pods\n(requests set, usage > requests)\nevicted second"] --> GUAR
-    GUAR["Guaranteed pods\n(requests == limits)\nevicted third"] --> CRIT
-    CRIT["Critical pods\n(PriorityClass >= 2000000000)\nevicted last"]
+    BE["BestEffort pods<br>(no requests/limits)<br>evicted first"] --> BURST
+    BURST["Burstable pods<br>(requests set, usage > requests)<br>evicted second"] --> GUAR
+    GUAR["Guaranteed pods<br>(requests == limits)<br>evicted third"] --> CRIT
+    CRIT["Critical pods<br>(PriorityClass >= 2000000000)<br>evicted last"]
 
     style BE fill:#e74c3c,color:#fff
     style BURST fill:#e67e22,color:#fff
@@ -104,12 +104,12 @@ spec:
 ```mermaid
 flowchart TD
     DRAIN["kubectl drain <node>"] --> CORDON
-    CORDON["kubectl cordon <node>\nnode.spec.unschedulable = true\nNo new pods scheduled here"] --> EVICT
-    EVICT["Evict each pod via Eviction API\n(respects PodDisruptionBudget)"] --> WAIT
-    WAIT["Wait for each pod to terminate\n(terminationGracePeriodSeconds)"] --> DONE
+    CORDON["kubectl cordon <node><br>node.spec.unschedulable = true<br>No new pods scheduled here"] --> EVICT
+    EVICT["Evict each pod via Eviction API<br>(respects PodDisruptionBudget)"] --> WAIT
+    WAIT["Wait for each pod to terminate<br>(terminationGracePeriodSeconds)"] --> DONE
     DONE["Node ready for maintenance"]
 
-    EVICT -->|"PDB would be violated"| BLOCK["Drain blocked\nuntil PDB allows eviction"]
+    EVICT -->|"PDB would be violated"| BLOCK["Drain blocked<br>until PDB allows eviction"]
     BLOCK --> EVICT
 ```
 

@@ -80,11 +80,11 @@ Every `kubectl apply` / API call goes through this pipeline before touching etcd
 ```mermaid
 flowchart TD
     REQ["kubectl apply / API request"] --> AUTHN
-    AUTHN["Authentication\n(mTLS cert, Bearer token, OIDC)"] --> AUTHZ
-    AUTHZ["Authorization\n(RBAC: can this SA create this resource?)"] --> MUT
-    MUT["Mutating Admission Webhooks\n(called in parallel, results merged)"] --> SCHEMA
-    SCHEMA["Object Schema Validation\n(OpenAPI schema, required fields)"] --> VAL
-    VAL["Validating Admission Webhooks\n(called in parallel, any rejection = denied)"] --> ETCD
+    AUTHN["Authentication<br>(mTLS cert, Bearer token, OIDC)"] --> AUTHZ
+    AUTHZ["Authorization<br>(RBAC: can this SA create this resource?)"] --> MUT
+    MUT["Mutating Admission Webhooks<br>(called in parallel, results merged)"] --> SCHEMA
+    SCHEMA["Object Schema Validation<br>(OpenAPI schema, required fields)"] --> VAL
+    VAL["Validating Admission Webhooks<br>(called in parallel, any rejection = denied)"] --> ETCD
     ETCD["Persisted to etcd"]
 
     MUT -->|"failurePolicy: Fail + webhook down"| DENY["Request denied (503)"]

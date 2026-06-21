@@ -63,7 +63,7 @@ bpftrace -e 'tracepoint:sched:sched_switch { @off[args->prev_comm] = nsecs; }
 
 # TCP retransmits with details
 bpftrace -e 'tracepoint:tcp:tcp_retransmit_skb {
-               printf("%s %s:%d -> %d\n", comm,
+               printf("%s %s:%d -> %d<br>", comm,
                ntop(args->saddr), args->sport, args->dport); }'
 ```
 

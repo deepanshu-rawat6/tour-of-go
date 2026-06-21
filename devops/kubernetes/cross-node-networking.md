@@ -13,10 +13,10 @@ How this is implemented depends on the CNI plugin. Three patterns: overlay, dire
 
 ```mermaid
 flowchart LR
-    POD_A["Pod A\n10.0.1.2\neth0"] -->|"veth pair"| VETH_A["vethAAA\nhost side"]
-    VETH_A --> BRIDGE["cbr0 / docker0\nLinux bridge\n10.0.1.1"]
-    BRIDGE --> VETH_B["vethBBB\nhost side"]
-    VETH_B -->|"veth pair"| POD_B["Pod B\n10.0.1.3\neth0"]
+    POD_A["Pod A<br>10.0.1.2<br>eth0"] -->|"veth pair"| VETH_A["vethAAA<br>host side"]
+    VETH_A --> BRIDGE["cbr0 / docker0<br>Linux bridge<br>10.0.1.1"]
+    BRIDGE --> VETH_B["vethBBB<br>host side"]
+    VETH_B -->|"veth pair"| POD_B["Pod B<br>10.0.1.3<br>eth0"]
 ```
 
 **Packet walk:**
@@ -41,13 +41,13 @@ Used when the underlay network can't route pod CIDRs (most cloud VPCs without CN
 ```mermaid
 flowchart LR
     subgraph "Node 1 (10.1.1.1)"
-        PA["Pod A\n10.0.1.2"] -->|veth| B1["flannel.1\nVXLAN device"]
+        PA["Pod A<br>10.0.1.2"] -->|veth| B1["flannel.1<br>VXLAN device"]
     end
     subgraph "Underlay Network"
-        B1 -->|"VXLAN encap\nOuter: src=10.1.1.1 dst=10.1.2.1\nInner: src=10.0.1.2 dst=10.0.2.3\nUDP port 4789"| WIRE["Physical Network"]
+        B1 -->|"VXLAN encap<br>Outer: src=10.1.1.1 dst=10.1.2.1<br>Inner: src=10.0.1.2 dst=10.0.2.3<br>UDP port 4789"| WIRE["Physical Network"]
     end
     subgraph "Node 2 (10.1.2.1)"
-        WIRE -->|"VXLAN decap"| B2["flannel.1\nVXLAN device"] -->|veth| PB["Pod B\n10.0.2.3"]
+        WIRE -->|"VXLAN decap"| B2["flannel.1<br>VXLAN device"] -->|veth| PB["Pod B<br>10.0.2.3"]
     end
 ```
 
@@ -80,16 +80,16 @@ No encapsulation. Each node announces its pod CIDR to other nodes via BGP. The u
 
 ```mermaid
 flowchart LR
-    subgraph "Node 1 (10.1.1.1)\npod CIDR: 10.0.1.0/24"
-        PA2["Pod A\n10.0.1.2"] -->|veth| RT1["Node routing table\n10.0.2.0/24 via 10.1.2.1"]
+    subgraph "Node 1 (10.1.1.1)<br>pod CIDR: 10.0.1.0/24"
+        PA2["Pod A<br>10.0.1.2"] -->|veth| RT1["Node routing table<br>10.0.2.0/24 via 10.1.2.1"]
     end
     subgraph "BGP"
-        RT1 -->|"BGP: I own 10.0.1.0/24"| BGP_PEER["BGP peers\n(other nodes or ToR switch)"]
+        RT1 -->|"BGP: I own 10.0.1.0/24"| BGP_PEER["BGP peers<br>(other nodes or ToR switch)"]
         BGP_PEER -->|"BGP: Node 2 owns 10.0.2.0/24"| RT1
     end
-    subgraph "Node 2 (10.1.2.1)\npod CIDR: 10.0.2.0/24"
-        BGP_PEER --> RT2["Node routing table\n10.0.1.0/24 via 10.1.1.1"]
-        RT2 -->|veth| PB2["Pod B\n10.0.2.3"]
+    subgraph "Node 2 (10.1.2.1)<br>pod CIDR: 10.0.2.0/24"
+        BGP_PEER --> RT2["Node routing table<br>10.0.1.0/24 via 10.1.1.1"]
+        RT2 -->|veth| PB2["Pod B<br>10.0.2.3"]
     end
 ```
 
@@ -124,16 +124,16 @@ Every pod gets a **real ENI IP** from the VPC subnet. No overlay, no BGP — pod
 flowchart LR
     subgraph "VPC subnet 10.0.1.0/24"
         subgraph "EC2 Node (10.0.1.5)"
-            PA3["Pod A\n10.0.1.20\n(ENI secondary IP)"]
-            PB3["Pod B\n10.0.1.21\n(ENI secondary IP)"]
+            PA3["Pod A<br>10.0.1.20<br>(ENI secondary IP)"]
+            PB3["Pod B<br>10.0.1.21<br>(ENI secondary IP)"]
         end
         subgraph "EC2 Node 2 (10.0.2.5)"
-            PC["Pod C\n10.0.2.30\n(ENI secondary IP)"]
+            PC["Pod C<br>10.0.2.30<br>(ENI secondary IP)"]
         end
-        RDS["RDS\n10.0.1.100"]
+        RDS["RDS<br>10.0.1.100"]
     end
 
-    PA3 -->|"direct VPC routing\nno encap"| PC
+    PA3 -->|"direct VPC routing<br>no encap"| PC
     PA3 -->|"direct VPC routing"| RDS
 ```
 

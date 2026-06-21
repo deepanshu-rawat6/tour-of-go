@@ -285,7 +285,7 @@ tracepoint:block:block_rq_complete /@start[args->sector]/ {
 
 # TCP retransmits with source/dest
 bpftrace -e 'tracepoint:tcp:tcp_retransmit_skb {
-  printf("%s -> %s\n", ntop(args->saddr), ntop(args->daddr)); }'
+  printf("%s -> %s<br>", ntop(args->saddr), ntop(args->daddr)); }'
 
 # Off-CPU time (blocked time) by stack
 bpftrace -e 'tracepoint:sched:sched_switch /prev->state/ {

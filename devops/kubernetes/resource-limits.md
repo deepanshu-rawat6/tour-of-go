@@ -259,11 +259,11 @@ Node Capacity (total hardware)
 
 ```mermaid
 flowchart TD
-    CAP["Node Capacity\ne.g. 16 CPU, 64Gi RAM"] --> KR
-    KR["- kube-reserved\ne.g. 200m CPU, 1Gi RAM"] --> SR
-    SR["- system-reserved\ne.g. 200m CPU, 512Mi RAM"] --> ET
-    ET["- eviction threshold\ne.g. 200Mi RAM"] --> ALLOC
-    ALLOC["= Allocatable\nwhat scheduler uses for bin-packing\ne.g. 15.6 CPU, 62.3Gi RAM"]
+    CAP["Node Capacity<br>e.g. 16 CPU, 64Gi RAM"] --> KR
+    KR["- kube-reserved<br>e.g. 200m CPU, 1Gi RAM"] --> SR
+    SR["- system-reserved<br>e.g. 200m CPU, 512Mi RAM"] --> ET
+    ET["- eviction threshold<br>e.g. 200Mi RAM"] --> ALLOC
+    ALLOC["= Allocatable<br>what scheduler uses for bin-packing<br>e.g. 15.6 CPU, 62.3Gi RAM"]
 ```
 
 ```bash

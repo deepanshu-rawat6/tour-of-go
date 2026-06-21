@@ -92,12 +92,12 @@ curl -v https://example.com
 
 # Timing breakdown with write-out
 curl -o /dev/null -s -w "\
-DNS lookup:     %{time_namelookup}s\n\
-TCP connect:    %{time_connect}s\n\
-TLS handshake:  %{time_appconnect}s\n\
-TTFB:           %{time_starttransfer}s\n\
-Total:          %{time_total}s\n\
-HTTP status:    %{http_code}\n" https://example.com
+DNS lookup:     %{time_namelookup}s<br>\
+TCP connect:    %{time_connect}s<br>\
+TLS handshake:  %{time_appconnect}s<br>\
+TTFB:           %{time_starttransfer}s<br>\
+Total:          %{time_total}s<br>\
+HTTP status:    %{http_code}<br>" https://example.com
 ```
 
 **Timing fields:**

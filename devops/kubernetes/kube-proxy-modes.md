@@ -10,11 +10,11 @@ kube-proxy writes iptables NAT rules in the `KUBE-SERVICES` chain. When a packet
 
 ```mermaid
 flowchart LR
-    POD["Pod\n10.0.1.5"] -->|"dst: 10.96.45.20:80"| NF["netfilter\nPREROUTING chain"]
-    NF -->|"KUBE-SERVICES rule matches"| KCHAIN["KUBE-SVC-XXXXX chain\n(one per Service)"]
-    KCHAIN -->|"random 33%"| SEP1["KUBE-SEP-AAA\nDNAT → 10.0.1.10:8080"]
-    KCHAIN -->|"random 33%"| SEP2["KUBE-SEP-BBB\nDNAT → 10.0.2.15:8080"]
-    KCHAIN -->|"random 33%"| SEP3["KUBE-SEP-CCC\nDNAT → 10.0.3.9:8080"]
+    POD["Pod<br>10.0.1.5"] -->|"dst: 10.96.45.20:80"| NF["netfilter<br>PREROUTING chain"]
+    NF -->|"KUBE-SERVICES rule matches"| KCHAIN["KUBE-SVC-XXXXX chain<br>(one per Service)"]
+    KCHAIN -->|"random 33%"| SEP1["KUBE-SEP-AAA<br>DNAT → 10.0.1.10:8080"]
+    KCHAIN -->|"random 33%"| SEP2["KUBE-SEP-BBB<br>DNAT → 10.0.2.15:8080"]
+    KCHAIN -->|"random 33%"| SEP3["KUBE-SEP-CCC<br>DNAT → 10.0.3.9:8080"]
 ```
 
 **The O(n) problem:**
@@ -44,7 +44,7 @@ IPVS (IP Virtual Server) is a Linux kernel module originally built for load bala
 
 ```mermaid
 flowchart LR
-    PKT["Packet\ndst: 10.96.45.20:80"] --> IPVS["IPVS\nkernel hash table"]
+    PKT["Packet<br>dst: 10.96.45.20:80"] --> IPVS["IPVS<br>kernel hash table"]
     IPVS --> POD1["10.0.1.10:8080"]
     IPVS --> POD2["10.0.2.15:8080"]
     IPVS --> POD3["10.0.3.9:8080"]
@@ -98,10 +98,10 @@ Cilium replaces kube-proxy entirely. Instead of iptables or IPVS, it uses **eBPF
 ```mermaid
 flowchart LR
     subgraph "With iptables/IPVS"
-        APP1["App\nsocket"] -->|"sends to ClusterIP"| NS1["network stack\niptables DNAT\nconntrack"] --> POD_A["Pod"]
+        APP1["App<br>socket"] -->|"sends to ClusterIP"| NS1["network stack<br>iptables DNAT<br>conntrack"] --> POD_A["Pod"]
     end
     subgraph "With Cilium eBPF"
-        APP2["App\nsocket"] -->|"eBPF program intercepts\nsocket.connect() call"| DIRECT["Direct to Pod IP\nno DNAT, no conntrack"]
+        APP2["App<br>socket"] -->|"eBPF program intercepts<br>socket.connect() call"| DIRECT["Direct to Pod IP<br>no DNAT, no conntrack"]
         DIRECT --> POD_B["Pod"]
     end
 ```

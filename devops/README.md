@@ -170,7 +170,40 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 
 ---
 
-## 11. SRE & Debugging
+## 11. AI Infrastructure & LLMOps
+
+The natural extension of K8s/Linux expertise into AI/ML platform engineering.
+
+| File | Topics | Level |
+|------|--------|-------|
+| [ai-infra/README.md](./ai-infra/README.md) | Index, learning path (Phase 1-3), AI vs standard K8s workload differences | SDE-2 |
+| [ai-infra/gpu-scheduling.md](./ai-infra/gpu-scheduling.md) | NVIDIA Device Plugin, extended resources, MIG slicing, GPU Operator, DCGM metrics, gang scheduling | SDE-2 |
+| [ai-infra/kuberay.md](./ai-infra/kuberay.md) | KubeRay operator, RayCluster CRD, RayJob, RayService, autoscaling to zero, observability | SDE-2 |
+| [ai-infra/model-serving.md](./ai-infra/model-serving.md) | KServe InferenceService, vLLM continuous batching, PagedAttention, KV cache, canary rollouts, KEDA scaling | SDE-2 |
+| [ai-infra/llmops.md](./ai-infra/llmops.md) | RAG pipeline, pgvector/Milvus, LangSmith/OpenLLMetry tracing, NeMo guardrails, cost optimization, drift detection | SDE-2 |
+| [ai-infra/networking.md](./ai-infra/networking.md) | NVLink/NVSwitch, InfiniBand, RoCE, AWS EFA, NCCL AllReduce, Cilium for inference, fat-tree topology | SDE-2 |
+
+**Read order:** gpu-scheduling → kuberay → model-serving → llmops
+
+---
+
+## 12. MLOps
+
+CI/CD for data and models — experiment tracking, automated retraining pipelines, drift detection.
+
+| File | Topics | Level |
+|------|--------|-------|
+| [mlops/README.md](./mlops/README.md) | Index, DevOps→MLOps analogy, learning path | SDE-2 |
+| [mlops/experiment-tracking.md](./mlops/experiment-tracking.md) | MLflow runs/experiments/registry, W&B sweeps, model promotion workflow, artifact versioning | SDE-2 |
+| [mlops/training-pipelines.md](./mlops/training-pipelines.md) | Kubeflow Pipelines components/DAGs, Airflow KubernetesPodOperator, evaluation gates, retraining triggers | SDE-2 |
+| [mlops/data-drift.md](./mlops/data-drift.md) | Evidently drift reports, statistical tests, K8s CronJob monitoring, shadow scoring, A/B testing model versions | SDE-2 |
+| [mlops/feature-stores.md](./mlops/feature-stores.md) | Feast architecture, online vs offline store, point-in-time joins, training-serving skew detection | SDE-2 |
+
+**Read order:** experiment-tracking → training-pipelines → data-drift → feature-stores
+
+---
+
+## 13. SRE & Debugging
 
 | File | Topics | Level |
 |------|--------|-------|
@@ -182,6 +215,7 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 | [sre/cicd-scenarios.md](./sre/cicd-scenarios.md) | 8 CI/CD scenarios with Prevention: GHA OIDC, job hangs, ArgoCD sync, Jenkins Docker, flaky tests | SDE-1/2 |
 | [sre/iac-scenarios.md](./sre/iac-scenarios.md) | 8 IaC scenarios with Prevention: tf resource exists, unexpected destroy, state lock, drift, module conflict, sensitive values, Helm timeout, CF rollback | SDE-1/2 |
 | [sre/sre-concepts.md](./sre/sre-concepts.md) | SLOs, error budgets, MTTD/MTTR, toil, incident lifecycle, blameless postmortem template, on-call best practices, runbook structure, leader election (client-go Lease API) | SDE-2 |
+| [sre/self-healing-aiops.md](./sre/self-healing-aiops.md) | Argo Events + Argo Workflows remediation loop, top 5 auto-remediation scenarios, AIOps LLM agent (LangChain + Loki + RAG), human approval gate, remediation metrics | SDE-2 |
 | [sre/db-monitoring.md](./sre/db-monitoring.md) | Prometheus + Grafana for PostgreSQL, MySQL, Redis, MongoDB on-prem | SDE-2 |
 
 ---

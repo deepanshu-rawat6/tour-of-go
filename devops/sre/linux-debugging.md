@@ -359,7 +359,7 @@ df -i
 df -h   # might show 40% used — space is fine, inodes are the issue
 
 # Find directory with the most files (the culprit)
-find / -xdev -printf '%h\n' 2>/dev/null | sort | uniq -c | sort -rn | head -10
+find / -xdev -printf '%h<br>' 2>/dev/null | sort | uniq -c | sort -rn | head -10
 # Output: 2847291 /var/spool/postfix/maildrop  ← likely culprit
 
 # Count files in suspected directory

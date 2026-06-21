@@ -200,7 +200,7 @@ cat /proc/sys/net/ipv4/ip_local_port_range  # ephemeral port range
 
 # Per-process
 cat /proc/1234/cmdline | tr '\0' ' '  # full command line
-cat /proc/1234/environ | tr '\0' '\n' # environment variables
+cat /proc/1234/environ | tr '\0' '<br>' # environment variables
 cat /proc/1234/wchan                  # kernel function process is sleeping in
 cat /proc/1234/schedstat              # CPU time, wait time, switches
 ```

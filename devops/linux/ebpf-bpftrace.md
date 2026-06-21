@@ -48,7 +48,7 @@ tracepoint:syscalls:sys_exit_read /@start[tid]/
 { @us = hist((nsecs - @start[tid]) / 1000); delete(@start[tid]); }'
 
 # Who is calling open/openat? (file open tracing)
-bpftrace -e 'tracepoint:syscalls:sys_enter_openat { printf("%s %s\n", comm, str(args->filename)); }'
+bpftrace -e 'tracepoint:syscalls:sys_enter_openat { printf("%s %s<br>", comm, str(args->filename)); }'
 
 # CPU time per function in a process (uprobe)
 bpftrace -e 'uprobe:/usr/bin/myapp:main.handler { @start[tid] = nsecs; }
@@ -66,24 +66,24 @@ bpftrace -e 'tracepoint:syscalls:sys_enter_mmap { @[comm] = count(); }'
 bpftrace -e 'software:page-faults:1 { @[comm] = count(); }'
 
 # OOM kill events
-bpftrace -e 'kprobe:oom_kill_process { printf("OOM kill: %s pid=%d\n", comm, pid); }'
+bpftrace -e 'kprobe:oom_kill_process { printf("OOM kill: %s pid=%d<br>", comm, pid); }'
 ```
 
 ### Network
 
 ```bash
 # TCP connections being made (who is calling connect?)
-bpftrace -e 'kprobe:tcp_connect { printf("%s pid=%d\n", comm, pid); }'
+bpftrace -e 'kprobe:tcp_connect { printf("%s pid=%d<br>", comm, pid); }'
 
 # TCP retransmits by destination IP
 bpftrace -e 'kprobe:tcp_retransmit_skb {
     $sk = (struct sock *)arg0;
-    printf("retransmit: %s\n", ntop($sk->__sk_common.skc_daddr));
+    printf("retransmit: %s<br>", ntop($sk->__sk_common.skc_daddr));
 }'
 
 # DNS lookups (getaddrinfo via glibc)
 bpftrace -e 'uprobe:/lib/x86_64-linux-gnu/libc.so.6:getaddrinfo
-{ printf("%s resolving: %s\n", comm, str(arg0)); }'
+{ printf("%s resolving: %s<br>", comm, str(arg0)); }'
 
 # Network send size histogram
 bpftrace -e 'kretprobe:tcp_sendmsg { @bytes = hist(retval); }'
@@ -103,7 +103,7 @@ bpftrace -e 'tracepoint:block:block_rq_issue { @[comm, args->rwbs] = count(); }'
 
 # File reads by process and filename
 bpftrace -e 'tracepoint:syscalls:sys_enter_read {
-    printf("%s fd=%d\n", comm, args->fd);
+    printf("%s fd=%d<br>", comm, args->fd);
 }'
 ```
 
@@ -117,7 +117,7 @@ bpftrace -e 'uprobe:/path/to/binary:runtime.newproc1 { @[comm] = count(); }'
 bpftrace -e '
 uprobe:/path/to/binary:runtime.gcStart  { @start = nsecs; }
 uprobe:/path/to/binary:runtime.gcMarkDone
-{ printf("GC pause: %d us\n", (nsecs - @start)/1000); }'
+{ printf("GC pause: %d us<br>", (nsecs - @start)/1000); }'
 ```
 
 ---
@@ -158,7 +158,7 @@ kprobe:tcp_set_state {
     }
     if ($state == 7 || $state == 8) {  // FIN_WAIT1 / CLOSE_WAIT
         if (@birth[$sk]) {
-            printf("%-16s %d ms\n", @comm[$sk], (nsecs - @birth[$sk])/1000000);
+            printf("%-16s %d ms<br>", @comm[$sk], (nsecs - @birth[$sk])/1000000);
             delete(@birth[$sk]);
             delete(@comm[$sk]);
         }

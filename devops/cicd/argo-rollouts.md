@@ -21,15 +21,15 @@ Argo Rollouts extends Kubernetes Deployments with canary and blue-green strategi
 
 ```mermaid
 graph TD
-    ROLLOUT["Rollout CRD\n(replaces Deployment)"] --> RS_STABLE["ReplicaSet: stable\n(current version)"]
-    ROLLOUT --> RS_CANARY["ReplicaSet: canary\n(new version)"]
-    ROLLOUT --> ANAL["AnalysisRun\n(queries Prometheus/Datadog)"]
-    ROLLOUT --> SVC_STABLE["Service: stable\n(100% → reduces as canary grows)"]
-    ROLLOUT --> SVC_CANARY["Service: canary\n(0% → grows)"]
-    SVC_STABLE --> LB["Ingress / AWS ALB\nweighted routing"]
+    ROLLOUT["Rollout CRD<br>(replaces Deployment)"] --> RS_STABLE["ReplicaSet: stable<br>(current version)"]
+    ROLLOUT --> RS_CANARY["ReplicaSet: canary<br>(new version)"]
+    ROLLOUT --> ANAL["AnalysisRun<br>(queries Prometheus/Datadog)"]
+    ROLLOUT --> SVC_STABLE["Service: stable<br>(100% → reduces as canary grows)"]
+    ROLLOUT --> SVC_CANARY["Service: canary<br>(0% → grows)"]
+    SVC_STABLE --> LB["Ingress / AWS ALB<br>weighted routing"]
     SVC_CANARY --> LB
 
-    CTRL["Argo Rollouts Controller\n(watches Rollout CRDs)"] --> ROLLOUT
+    CTRL["Argo Rollouts Controller<br>(watches Rollout CRDs)"] --> ROLLOUT
 ```
 
 ---
@@ -183,12 +183,12 @@ spec:
 ```mermaid
 flowchart LR
     subgraph Before
-        ACTIVE["active Service → v1 pods\n(100% traffic)"]
-        PREVIEW["preview Service → v2 pods\n(0% traffic, internal only)"]
+        ACTIVE["active Service → v1 pods<br>(100% traffic)"]
+        PREVIEW["preview Service → v2 pods<br>(0% traffic, internal only)"]
     end
     subgraph After["After promotion"]
-        ACTIVE2["active Service → v2 pods\n(100% traffic)"]
-        OLD["v1 pods kept 30s\nthen scaled down"]
+        ACTIVE2["active Service → v2 pods<br>(100% traffic)"]
+        OLD["v1 pods kept 30s<br>then scaled down"]
     end
 ```
 

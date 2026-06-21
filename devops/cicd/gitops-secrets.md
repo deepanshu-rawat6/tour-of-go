@@ -8,9 +8,9 @@ Kubernetes Secrets must not be committed to git in plaintext. Two production-gra
 
 ```mermaid
 flowchart LR
-    BAD["kubectl create secret generic db-pass\n--from-literal=password=s3cr3t\n→ base64 in git = plaintext"]:::warn
-    GOOD1["Sealed Secrets\nEncrypt with cluster key\ncommit ciphertext to git"]
-    GOOD2["External Secrets Operator\nStore secret in AWS SM/Vault\ngit holds only a reference"]
+    BAD["kubectl create secret generic db-pass<br>--from-literal=password=s3cr3t<br>→ base64 in git = plaintext"]:::warn
+    GOOD1["Sealed Secrets<br>Encrypt with cluster key<br>commit ciphertext to git"]
+    GOOD2["External Secrets Operator<br>Store secret in AWS SM/Vault<br>git holds only a reference"]
     BAD -->|"never"| GOOD1
     BAD -->|"never"| GOOD2
 
@@ -124,8 +124,8 @@ kubectl -n kube-system get secret sealed-secrets-key -o yaml > sealed-secrets-ke
 
 ```mermaid
 flowchart TD
-    SM["AWS Secrets Manager\n(or Vault, SSM, GCP SM)"] -->|"ESO syncs"| K8S_SECRET["Kubernetes Secret\n(auto-created, kept in sync)"]
-    GIT["Git: ExternalSecret CRD\n(only a reference — no value)"] -->|"ArgoCD applies"| ES_CRD["ExternalSecret object in cluster"]
+    SM["AWS Secrets Manager<br>(or Vault, SSM, GCP SM)"] -->|"ESO syncs"| K8S_SECRET["Kubernetes Secret<br>(auto-created, kept in sync)"]
+    GIT["Git: ExternalSecret CRD<br>(only a reference — no value)"] -->|"ArgoCD applies"| ES_CRD["ExternalSecret object in cluster"]
     ES_CRD -->|"ESO controller reads"| SM
     K8S_SECRET -->|"mounted as env/volume"| POD["Pod"]
 ```

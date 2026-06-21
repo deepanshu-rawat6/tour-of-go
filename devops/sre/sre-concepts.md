@@ -100,14 +100,14 @@ func main() {
 		Callbacks: leaderelection.LeaderCallbacks{
 			// Called when this pod becomes the leader — start your work here
 			OnStartedLeading: func(ctx context.Context) {
-				fmt.Printf("[%s] became leader — starting work\n", id)
+				fmt.Printf("[%s] became leader — starting work<br>", id)
 				runWork(ctx)
 			},
 
 			// Called when this pod loses leadership (lease expired, context cancelled)
 			// Stop your work here — MUST return quickly
 			OnStoppedLeading: func() {
-				fmt.Printf("[%s] lost leadership — stopping work\n", id)
+				fmt.Printf("[%s] lost leadership — stopping work<br>", id)
 				// If work goroutine is running, the ctx passed to OnStartedLeading
 				// is cancelled automatically by the leader election library
 				os.Exit(0) // let kubelet restart the pod to re-compete
@@ -118,7 +118,7 @@ func main() {
 				if identity == id {
 					return // we already know we're leader from OnStartedLeading
 				}
-				fmt.Printf("[%s] new leader elected: %s\n", id, identity)
+				fmt.Printf("[%s] new leader elected: %s<br>", id, identity)
 			},
 		},
 	})
@@ -135,7 +135,7 @@ func runWork(ctx context.Context) {
 			fmt.Println("work stopped — leadership lost or context cancelled")
 			return
 		case t := <-ticker.C:
-			fmt.Printf("doing singleton work at %s\n", t.Format(time.RFC3339))
+			fmt.Printf("doing singleton work at %s<br>", t.Format(time.RFC3339))
 			// e.g., process a job queue, run a reconciliation loop, etc.
 		}
 	}
@@ -406,11 +406,11 @@ sum(rate(http_requests_total[1h]))
 
 ```mermaid
 flowchart LR
-    DETECT["1. Detect\nAlert fires\nSLO burn rate"] --> TRIAGE
-    TRIAGE["2. Triage\nAssign severity\nAssign IC"] --> MITIGATE
-    MITIGATE["3. Mitigate\nRollback · feature flag\nload shed · redirect traffic"] --> RESOLVE
-    RESOLVE["4. Resolve\nConfirm metrics normal\nCommunicate status"] --> POSTMORTEM
-    POSTMORTEM["5. Postmortem\nTimeline · 5 Whys\nAction items"]
+    DETECT["1. Detect<br>Alert fires<br>SLO burn rate"] --> TRIAGE
+    TRIAGE["2. Triage<br>Assign severity<br>Assign IC"] --> MITIGATE
+    MITIGATE["3. Mitigate<br>Rollback · feature flag<br>load shed · redirect traffic"] --> RESOLVE
+    RESOLVE["4. Resolve<br>Confirm metrics normal<br>Communicate status"] --> POSTMORTEM
+    POSTMORTEM["5. Postmortem<br>Timeline · 5 Whys<br>Action items"]
 ```
 
 ### Severity Levels

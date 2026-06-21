@@ -61,8 +61,8 @@ Alert fatigue: on-call starts ignoring alerts because too many fire without real
 ```mermaid
 flowchart LR
     NOISE["Too many low-signal alerts"] --> IGNORE
-    IGNORE["On-call habituates,\nstarts ignoring pages"] --> MISS
-    MISS["Real incident missed\nor delayed response"] --> OUTAGE["Extended outage"]
+    IGNORE["On-call habituates,<br>starts ignoring pages"] --> MISS
+    MISS["Real incident missed<br>or delayed response"] --> OUTAGE["Extended outage"]
 ```
 
 **Signs you have alert fatigue:**

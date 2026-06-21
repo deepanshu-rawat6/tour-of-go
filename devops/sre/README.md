@@ -14,7 +14,8 @@ Runbooks, debugging scenarios, and SRE concepts for Kubernetes, Linux, and AWS.
 | [aws-scenarios.md](./aws-scenarios.md) | EC2 SSH timeout, Lambda timeout, ALB 502, S3 denied, RDS refused, ECS restart, CF stuck, API GW 429, EKS nodes not joining, high bill |
 | [cicd-scenarios.md](./cicd-scenarios.md) | GHA OIDC auth, job hangs, ArgoCD out-of-sync, ArgoCD ImagePull, Jenkins Docker, wrong env deploy, staging crash, flaky tests |
 | [iac-scenarios.md](./iac-scenarios.md) | terraform resource exists, unexpected destroy, state lock, drift, module conflict, sensitive values, Helm timeout, CF ROLLBACK_COMPLETE |
-| [sre-concepts.md](./sre-concepts.md) | SLOs, SLAs, error budgets, MTTD/MTTR, leader election (client-go Lease API) |
+| [sre-concepts.md](./sre-concepts.md) | SLOs, SLAs, error budgets, MTTD/MTTR, incident management lifecycle, blameless postmortem template, on-call best practices |
+| [self-healing-aiops.md](./self-healing-aiops.md) | Argo Events + Argo Workflows remediation loop, top 5 auto-remediation scenarios, AIOps LLM agent (LangChain + Loki + runbook RAG), human approval gate |
 | [db-monitoring.md](./db-monitoring.md) | Prometheus + Grafana for PostgreSQL, MySQL, Redis, MongoDB on-prem |
 
 ---
