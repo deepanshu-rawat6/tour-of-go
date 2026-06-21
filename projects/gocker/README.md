@@ -10,17 +10,17 @@ A Go CLI tool that runs commands inside a fully isolated Linux environment — e
 
 ```mermaid
 graph TD
-    A[gocker pull alpine:3.19] --> B[Fetch OCI manifest\nregistry-1.docker.io]
-    B --> C[Download layer blobs\ncontent-addressed by digest]
-    C --> D[Extract tarballs\n~/.gocker/images/alpine:3.19/rootfs/]
+    A[gocker pull alpine:3.19] --> B[Fetch OCI manifest<br>registry-1.docker.io]
+    B --> C[Download layer blobs<br>content-addressed by digest]
+    C --> D[Extract tarballs<br>~/.gocker/images/alpine:3.19/rootfs/]
 
-    E["gocker run --memory 128m alpine:3.19 /bin/sh"] --> F[Create container dir\n~/.gocker/containers/uuid/]
-    F --> G[OverlayFS mount\nlower=image rootfs read-only\nupper=container writable layer\nmerged=unified view]
-    G --> H[Clone with namespace flags\nCLONE_NEWPID · CLONE_NEWNS\nCLONE_NEWUTS · CLONE_NEWIPC\nCLONE_NEWNET]
-    H --> I[Apply cgroups\nmemory + cpu + pids limits]
-    I --> J[chroot into merged/\nmount /proc\nset hostname]
+    E["gocker run --memory 128m alpine:3.19 /bin/sh"] --> F[Create container dir<br>~/.gocker/containers/uuid/]
+    F --> G[OverlayFS mount<br>lower=image rootfs read-only<br>upper=container writable layer<br>merged=unified view]
+    G --> H[Clone with namespace flags<br>CLONE_NEWPID · CLONE_NEWNS<br>CLONE_NEWUTS · CLONE_NEWIPC<br>CLONE_NEWNET]
+    H --> I[Apply cgroups<br>memory + cpu + pids limits]
+    I --> J[chroot into merged/<br>mount /proc<br>set hostname]
     J --> K[exec command]
-    K --> L[Cleanup on exit\nunmount OverlayFS\ndelete cgroup\nremove container dir]
+    K --> L[Cleanup on exit<br>unmount OverlayFS<br>delete cgroup<br>remove container dir]
 ```
 
 ### OverlayFS Layer Model

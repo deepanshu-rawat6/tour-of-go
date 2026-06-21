@@ -14,25 +14,25 @@ graph TD
     end
 
     subgraph "Core Scheduling"
-        SVC[SchedulingService\nbounded goroutine pool]
-        ALG[ConcurrencyMaximizationAlgorithm\niterative search]
-        PUB[Publisher\ndouble-check + dispatch]
-        CM[InMemoryConcurrencyManager\nsync.RWMutex + atomic.Int64]
+        SVC[SchedulingService<br>bounded goroutine pool]
+        ALG[ConcurrencyMaximizationAlgorithm<br>iterative search]
+        PUB[Publisher<br>double-check + dispatch]
+        CM[InMemoryConcurrencyManager<br>sync.RWMutex + atomic.Int64]
     end
 
     subgraph "Crons goroutines"
-        COLD[ColdScheduler\nevery 2min]
-        REF[ConcurrencyRefresher\nevery 5min]
-        LPC[LongPublishedChecker\nevery 5min]
-        HBM[HeartbeatMarker\nevery 1min]
-        ZC[ZombieChecker\nevery 5min]
+        COLD[ColdScheduler<br>every 2min]
+        REF[ConcurrencyRefresher<br>every 5min]
+        LPC[LongPublishedChecker<br>every 5min]
+        HBM[HeartbeatMarker<br>every 1min]
+        ZC[ZombieChecker<br>every 5min]
     end
 
     subgraph "Adapters"
         PG[(PostgreSQL)]
         REDIS[(Redis)]
-        BLEVE[Bleve\nembedded search]
-        DEST[Destinations\nSQS / InMemory]
+        BLEVE[Bleve<br>embedded search]
+        DEST[Destinations<br>SQS / InMemory]
     end
 
     API --> SVC

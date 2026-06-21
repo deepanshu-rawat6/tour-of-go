@@ -9,8 +9,8 @@ How to change database schemas without taking your service offline — expand-co
 ```mermaid
 graph TD
     subgraph Dangerous Migration
-        V1[App v1\nSELECT name FROM users] --> MIG[ALTER TABLE users\nRENAME name → full_name]
-        MIG --> BREAK[💥 App v1 crashes\ncolumn 'name' not found]
+        V1[App v1<br>SELECT name FROM users] --> MIG[ALTER TABLE users<br>RENAME name → full_name]
+        MIG --> BREAK[💥 App v1 crashes<br>column 'name' not found]
     end
 ```
 
@@ -57,9 +57,9 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    CLI[migrate CLI\nor Go library] --> UP[migrate up\napply pending]
-    CLI --> DOWN[migrate down\nrollback last]
-    CLI --> VER[migrate version\ncurrent state]
+    CLI[migrate CLI<br>or Go library] --> UP[migrate up<br>apply pending]
+    CLI --> DOWN[migrate down<br>rollback last]
+    CLI --> VER[migrate version<br>current state]
     
     UP --> F1[000001_create_users.up.sql]
     UP --> F2[000002_add_email.up.sql]
@@ -167,11 +167,11 @@ func backfillFullName(ctx context.Context, db *sql.DB) error {
 
 ```mermaid
 graph TD
-    PR[Pull Request] --> CHECK[CI: migrate up + down\nverify reversibility]
+    PR[Pull Request] --> CHECK[CI: migrate up + down<br>verify reversibility]
     CHECK --> REVIEW[Review: is it expand-contract?]
     REVIEW --> DEPLOY[Deploy migration BEFORE app]
     DEPLOY --> APP[Deploy new app version]
-    APP --> CLEANUP[Later: contract migration\ndrop old columns]
+    APP --> CLEANUP[Later: contract migration<br>drop old columns]
 ```
 
 **Rule**: Migrations deploy **before** the app. The new schema must be backward-compatible with the currently running app version.

@@ -9,18 +9,18 @@ How to apply the [12-factor methodology](https://12factor.net) to Go microservic
 ```mermaid
 graph TD
     subgraph 12-Factor App
-        F1[I. Codebase\none repo per service]
-        F2[II. Dependencies\ngo.mod explicit]
-        F3[III. Config\nenv vars only]
-        F4[IV. Backing Services\nattached resources]
-        F5[V. Build/Release/Run\nstrict separation]
-        F6[VI. Processes\nstateless + share-nothing]
-        F7[VII. Port Binding\nself-contained HTTP]
-        F8[VIII. Concurrency\nscale via process model]
-        F9[IX. Disposability\nfast startup + graceful shutdown]
-        F10[X. Dev/Prod Parity\nminimal gap]
-        F11[XI. Logs\nevent streams to stdout]
-        F12[XII. Admin Processes\none-off tasks]
+        F1[I. Codebase<br>one repo per service]
+        F2[II. Dependencies<br>go.mod explicit]
+        F3[III. Config<br>env vars only]
+        F4[IV. Backing Services<br>attached resources]
+        F5[V. Build/Release/Run<br>strict separation]
+        F6[VI. Processes<br>stateless + share-nothing]
+        F7[VII. Port Binding<br>self-contained HTTP]
+        F8[VIII. Concurrency<br>scale via process model]
+        F9[IX. Disposability<br>fast startup + graceful shutdown]
+        F10[X. Dev/Prod Parity<br>minimal gap]
+        F11[XI. Logs<br>event streams to stdout]
+        F12[XII. Admin Processes<br>one-off tasks]
     end
 ```
 
@@ -96,10 +96,10 @@ func getEnv(key, fallback string) string {
 
 ```mermaid
 graph LR
-    APP[Go Service] --> PG[(PostgreSQL\nDATABASE_URL)]
-    APP --> REDIS[(Redis\nREDIS_URL)]
-    APP --> S3[(S3\nAWS_REGION + bucket)]
-    APP --> SMTP[SMTP\nSMTP_URL]
+    APP[Go Service] --> PG[(PostgreSQL<br>DATABASE_URL)]
+    APP --> REDIS[(Redis<br>REDIS_URL)]
+    APP --> S3[(S3<br>AWS_REGION + bucket)]
+    APP --> SMTP[SMTP<br>SMTP_URL]
 ```
 
 Swap from local Postgres to RDS by changing one env var — zero code changes.
@@ -108,9 +108,9 @@ Swap from local Postgres to RDS by changing one env var — zero code changes.
 
 ```mermaid
 graph LR
-    CODE[Code\ngit sha] --> BUILD[Build\ngo build → binary]
-    BUILD --> RELEASE[Release\nbinary + config\nimmutable artifact]
-    RELEASE --> RUN[Run\nk8s pod / ECS task]
+    CODE[Code<br>git sha] --> BUILD[Build<br>go build → binary]
+    BUILD --> RELEASE[Release<br>binary + config<br>immutable artifact]
+    RELEASE --> RUN[Run<br>k8s pod / ECS task]
 ```
 
 ```dockerfile
@@ -153,9 +153,9 @@ func main() {
 
 ```mermaid
 graph TD
-    LB[Load Balancer] --> P1[Process 1\n:8080]
-    LB --> P2[Process 2\n:8080]
-    LB --> P3[Process 3\n:8080]
+    LB[Load Balancer] --> P1[Process 1<br>:8080]
+    LB --> P2[Process 2<br>:8080]
+    LB --> P3[Process 3<br>:8080]
     
     QUEUE[Job Queue] --> W1[Worker 1]
     QUEUE --> W2[Worker 2]

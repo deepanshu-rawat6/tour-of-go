@@ -11,7 +11,7 @@ When a system receives more work than it can process, it must signal upstream to
 ```mermaid
 graph LR
     subgraph Without Backpressure
-        P1[Producer\n1000 req/s] --> Q1[Unbounded Queue\n∞ growing] --> C1[Consumer\n100 req/s]
+        P1[Producer<br>1000 req/s] --> Q1[Unbounded Queue<br>∞ growing] --> C1[Consumer<br>100 req/s]
         Q1 --> OOM[💥 OOM Kill]
     end
 ```
@@ -19,8 +19,8 @@ graph LR
 ```mermaid
 graph LR
     subgraph With Backpressure
-        P2[Producer\n1000 req/s] --> Q2[Bounded Queue\nmax 1000] --> C2[Consumer\n100 req/s]
-        Q2 -->|full| REJECT[Reject / 503\nsignal upstream]
+        P2[Producer<br>1000 req/s] --> Q2[Bounded Queue<br>max 1000] --> C2[Consumer<br>100 req/s]
+        Q2 -->|full| REJECT[Reject / 503<br>signal upstream]
     end
 ```
 
@@ -32,12 +32,12 @@ graph LR
 
 ```mermaid
 graph LR
-    HANDLER[HTTP Handler] -->|send| CH[chan Job\nbuffer=100]
+    HANDLER[HTTP Handler] -->|send| CH[chan Job<br>buffer=100]
     CH -->|receive| W1[Worker 1]
     CH --> W2[Worker 2]
     CH --> W3[Worker 3]
     
-    HANDLER -->|channel full| SHED[503 Service Unavailable\nLoad Shed]
+    HANDLER -->|channel full| SHED[503 Service Unavailable<br>Load Shed]
 ```
 
 ```go
@@ -99,13 +99,13 @@ func (l *Limiter) Release() {
 
 ```mermaid
 graph TD
-    REQ[Incoming Request] --> CHECK{Current load\n< threshold?}
+    REQ[Incoming Request] --> CHECK{Current load<br>< threshold?}
     CHECK -->|Yes| PROCESS[Process request]
     CHECK -->|No| SHED[503 + Retry-After header]
     
     PROCESS --> SUCCESS{Success?}
-    SUCCESS -->|Yes| INCREASE[Additive Increase\nthreshold += 1]
-    SUCCESS -->|No: timeout/error| DECREASE[Multiplicative Decrease\nthreshold *= 0.5]
+    SUCCESS -->|Yes| INCREASE[Additive Increase<br>threshold += 1]
+    SUCCESS -->|No: timeout/error| DECREASE[Multiplicative Decrease<br>threshold *= 0.5]
 ```
 
 ```go

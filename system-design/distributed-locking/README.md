@@ -65,7 +65,7 @@ sequenceDiagram
     Client->>R4: SET lock val NX PX 10000
     Client->>R5: SET lock val NX PX 10000
     
-    Note over Client: Lock acquired if:\n≥ 3/5 nodes respond OK\nwithin clock drift tolerance
+    Note over Client: Lock acquired if:<br>≥ 3/5 nodes respond OK<br>within clock drift tolerance
 ```
 
 **Redlock rules:**
@@ -92,7 +92,7 @@ sequenceDiagram
     C2->>DB: Write (fencing_token=34)
     C1->>DB: Write (fencing_token=33) ← REJECTED (33 < 34)
     
-    Note over DB: DB rejects writes with\ntoken < last seen token
+    Note over DB: DB rejects writes with<br>token < last seen token
 ```
 
 **Why fencing tokens?** Locks can expire while the holder is still working (GC pause, network delay). Fencing tokens prevent stale writes.

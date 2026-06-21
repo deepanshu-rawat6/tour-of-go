@@ -9,10 +9,10 @@ In a system with dozens of microservices, a single user request touches many ser
 ```mermaid
 graph LR
     subgraph Trace["Trace (one request's journey)"]
-        S1["Span: HTTP GET /order/42\n[0ms → 45ms]"]
-        S2["Span: gRPC GetInventory\n[5ms → 20ms]"]
-        S3["Span: SQL SELECT\n[21ms → 35ms]"]
-        S4["Span: HTTP POST /notify\n[36ms → 44ms]"]
+        S1["Span: HTTP GET /order/42<br>[0ms → 45ms]"]
+        S2["Span: gRPC GetInventory<br>[5ms → 20ms]"]
+        S3["Span: SQL SELECT<br>[21ms → 35ms]"]
+        S4["Span: HTTP POST /notify<br>[36ms → 44ms]"]
     end
     S1 --> S2
     S1 --> S4
@@ -249,7 +249,7 @@ func logWithTrace(ctx context.Context, msg string) {
 
 ```mermaid
 graph LR
-    APP["Go App\n(OTel SDK)"] -->|OTLP gRPC :4317| COL["OTel Collector"]
+    APP["Go App<br>(OTel SDK)"] -->|OTLP gRPC :4317| COL["OTel Collector"]
     COL -->|traces| JAE["Jaeger / Tempo"]
     COL -->|metrics| PROM["Prometheus"]
     COL -->|logs| LOKI["Loki"]

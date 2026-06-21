@@ -8,16 +8,16 @@ A NATS JetStream-based event processing pipeline with exactly-once semantics, ci
 
 ```mermaid
 graph LR
-    P[Producer] -->|publish| NATS[NATS JetStream\nevents.orders]
+    P[Producer] -->|publish| NATS[NATS JetStream<br>events.orders]
     NATS -->|pull| C[Consumer]
-    C -->|submit| BUF[Bounded Buffer\nchan *Event]
+    C -->|submit| BUF[Bounded Buffer<br>chan *Event]
     BUF -->|drain| W1[Worker 1]
     BUF -->|drain| W2[Worker 2]
     BUF -->|drain| W3[Worker 3]
-    W1 --> IDEM[Redis\nIdempotency Check]
+    W1 --> IDEM[Redis<br>Idempotency Check]
     W1 --> CB[Circuit Breaker]
     CB --> H[EventHandler]
-    CB -->|open| DLQ[DLQ\nevents.dlq]
+    CB -->|open| DLQ[DLQ<br>events.dlq]
     W1 -->|max retries| DLQ
 ```
 

@@ -8,13 +8,13 @@ When to use PostgreSQL, MongoDB, DynamoDB, Redis, or Cassandra — and how to mo
 
 ```mermaid
 graph TD
-    START[What's your access pattern?] --> Q1{Need ACID transactions\nacross multiple tables?}
+    START[What's your access pattern?] --> Q1{Need ACID transactions<br>across multiple tables?}
     Q1 -->|Yes| SQL[SQL: PostgreSQL / MySQL]
-    Q1 -->|No| Q2{Need flexible schema\nor nested documents?}
+    Q1 -->|No| Q2{Need flexible schema<br>or nested documents?}
     Q2 -->|Yes| DOC[Document: MongoDB]
-    Q2 -->|No| Q3{Need extreme scale\nwith simple key-value access?}
+    Q2 -->|No| Q3{Need extreme scale<br>with simple key-value access?}
     Q3 -->|Yes| KV[Key-Value: DynamoDB / Redis]
-    Q3 -->|No| Q4{Need time-series\nor wide-column?}
+    Q3 -->|No| Q4{Need time-series<br>or wide-column?}
     Q4 -->|Yes| WIDE[Wide-Column: Cassandra / TimescaleDB]
     Q4 -->|No| SQL
 ```
@@ -26,13 +26,13 @@ graph TD
 ```mermaid
 graph LR
     subgraph SQL
-        TABLE[Tables\nrows + columns] --> JOIN[JOINs\nrelationships]
-        JOIN --> ACID[ACID\ntransactions]
+        TABLE[Tables<br>rows + columns] --> JOIN[JOINs<br>relationships]
+        JOIN --> ACID[ACID<br>transactions]
     end
     
     subgraph Document
-        DOC[Documents\nJSON/BSON] --> NEST[Nested\nembedded data]
-        NEST --> FLEX[Flexible Schema\nno migrations]
+        DOC[Documents<br>JSON/BSON] --> NEST[Nested<br>embedded data]
+        NEST --> FLEX[Flexible Schema<br>no migrations]
     end
     
     subgraph Key-Value
@@ -98,12 +98,12 @@ PK: USER#123          SK: ORDER#2024-002   → {total, status}
 ```mermaid
 graph TD
     subgraph Scaling Patterns
-        SQL_SCALE[SQL Scaling\nVertical → Read Replicas → Sharding]
-        NOSQL_SCALE[NoSQL Scaling\nHorizontal from day 1\nauto-partition]
+        SQL_SCALE[SQL Scaling<br>Vertical → Read Replicas → Sharding]
+        NOSQL_SCALE[NoSQL Scaling<br>Horizontal from day 1<br>auto-partition]
     end
     
-    SQL_SCALE --> COMPLEX[Complex queries\njoins, aggregations]
-    NOSQL_SCALE --> SIMPLE[Simple access patterns\nkey-based lookups]
+    SQL_SCALE --> COMPLEX[Complex queries<br>joins, aggregations]
+    NOSQL_SCALE --> SIMPLE[Simple access patterns<br>key-based lookups]
 ```
 
 | Scenario | Choice | Reason |

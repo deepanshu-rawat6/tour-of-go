@@ -12,7 +12,7 @@ graph TD
         SPA[SPA / Mobile] --> PKCE[Authorization Code + PKCE]
         SERVER[Server-side App] --> AUTH_CODE[Authorization Code]
         M2M[Machine-to-Machine] --> CLIENT_CRED[Client Credentials]
-        LEGACY[Legacy / Trusted] --> PASSWORD[Resource Owner Password\n⚠️ avoid if possible]
+        LEGACY[Legacy / Trusted] --> PASSWORD[Resource Owner Password<br>⚠️ avoid if possible]
     end
 ```
 
@@ -142,13 +142,13 @@ graph LR
     subgraph Stateless JWT
         CLIENT1[Client] -->|Bearer token| SERVER1[Server]
         SERVER1 -->|verify signature| SERVER1
-        Note1[No server state\nCan't revoke easily]
+        Note1[No server state<br>Can't revoke easily]
     end
     
     subgraph Stateful Sessions
         CLIENT2[Client] -->|Cookie: session_id| SERVER2[Server]
-        SERVER2 -->|lookup| REDIS[(Redis\nsession store)]
-        Note2[Revocable\nServer state required]
+        SERVER2 -->|lookup| REDIS[(Redis<br>session store)]
+        Note2[Revocable<br>Server state required]
     end
 ```
 

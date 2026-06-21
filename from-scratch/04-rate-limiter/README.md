@@ -7,10 +7,10 @@ All four rate limiting algorithms as a reusable Go library + HTTP middleware.
 ```mermaid
 graph LR
     REQ[Request] --> MW[RateLimit Middleware]
-    MW --> TB[Token Bucket\nburst + steady rate]
-    MW --> LB[Leaky Bucket\nconstant drain]
-    MW --> FW[Fixed Window\nreset every N ms]
-    MW --> SW[Sliding Window\nexact per-request log]
+    MW --> TB[Token Bucket<br>burst + steady rate]
+    MW --> LB[Leaky Bucket<br>constant drain]
+    MW --> FW[Fixed Window<br>reset every N ms]
+    MW --> SW[Sliding Window<br>exact per-request log]
     TB & LB & FW & SW -->|allow| NEXT[Handler]
     TB & LB & FW & SW -->|deny| 429[429 Too Many Requests]
 ```
@@ -33,7 +33,7 @@ ALGO=fixed   make run   # fixed window
 ALGO=sliding make run   # sliding window
 
 # Test rate limiting:
-for i in $(seq 10); do curl -s -o /dev/null -w "%{http_code}\n" localhost:8083/; done
+for i in $(seq 10); do curl -s -o /dev/null -w "%{http_code}<br>" localhost:8083/; done
 ```
 
 ## Docs

@@ -227,7 +227,7 @@ func mtlsClient(caCertPath, clientCertPath, clientKeyPath, url string) error {
 		return err
 	}
 	defer resp.Body.Close()
-	fmt.Printf("status: %s\n", resp.Status)
+	fmt.Printf("status: %s<br>", resp.Status)
 	return nil
 }
 ```

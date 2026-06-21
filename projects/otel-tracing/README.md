@@ -8,11 +8,11 @@ Two HTTP services instrumented with OpenTelemetry. A request to `service-a` trig
 
 ```mermaid
 graph LR
-    Client -->|GET /hello?name=Gopher| A[Service A\n:8080]
-    A -->|HTTP + W3C traceparent header| B[Service B\n:8081]
+    Client -->|GET /hello?name=Gopher| A[Service A<br>:8080]
+    A -->|HTTP + W3C traceparent header| B[Service B<br>:8081]
     B -->|span: service-b.greet| B
     A -->|span: service-a.hello| A
-    A -->|OTLP gRPC| J[Jaeger\n:16686]
+    A -->|OTLP gRPC| J[Jaeger<br>:16686]
     B -->|OTLP gRPC| J
 ```
 

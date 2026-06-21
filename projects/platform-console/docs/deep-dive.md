@@ -7,10 +7,10 @@ A K8s Greeting resource browser connecting to the k8s-controller project via cli
 ```mermaid
 graph LR
     BROWSER[Browser] -->|HTTP| HANDLER[Go HTTP Handler]
-    HANDLER -->|dynamic client| K8S[Kubernetes API\nGreeting CRDs]
+    HANDLER -->|dynamic client| K8S[Kubernetes API<br>Greeting CRDs]
     HANDLER -->|html/template| BROWSER
-    WATCHER[K8s Watcher\ngoroutine] -->|Watch API| K8S
-    WATCHER -->|SSE channel| SSE[GET /events\nSSE endpoint]
+    WATCHER[K8s Watcher<br>goroutine] -->|Watch API| K8S
+    WATCHER -->|SSE channel| SSE[GET /events<br>SSE endpoint]
     SSE -->|text/event-stream| BROWSER
     BROWSER -->|EventSource JS| SSE
 ```
@@ -21,7 +21,7 @@ graph LR
 SSE is simpler than WebSocket for server→client push:
 ```go
 w.Header().Set("Content-Type", "text/event-stream")
-fmt.Fprintf(w, "data: %s\n\n", jsonData)
+fmt.Fprintf(w, "data: %s<br><br>", jsonData)
 flusher.Flush()
 ```
 The browser uses `new EventSource("/events")` — no library needed.

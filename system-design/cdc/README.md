@@ -30,9 +30,9 @@ graph TD
 graph LR
     DB[("PostgreSQL WAL / logical replication")] --> DEBEZIUM["Debezium Connector"]
     DEBEZIUM --> KAFKA["Kafka: topic per table"]
-    KAFKA --> ES[Elasticsearch\nsearch index]
-    KAFKA --> CACHE[Redis\ncache invalidation]
-    KAFKA --> DW[Data Warehouse\nanalytics]
+    KAFKA --> ES[Elasticsearch<br>search index]
+    KAFKA --> CACHE[Redis<br>cache invalidation]
+    KAFKA --> DW[Data Warehouse<br>analytics]
     KAFKA --> SVC[Other Microservice]
 ```
 

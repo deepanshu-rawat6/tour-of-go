@@ -6,20 +6,20 @@ HTTP/1.1 built on top of a raw TCP connection — then the same routes with `net
 
 ```mermaid
 graph TD
-    C[Client\ncurl / browser] -->|TCP connect| LN[net.Listener]
+    C[Client<br>curl / browser] -->|TCP connect| LN[net.Listener]
     LN --> CONN[net.Conn]
-    CONN --> PARSE[Parse request line\nGET /path HTTP/1.1\n+ headers]
-    PARSE --> ROUTE{router\nmap path→handler}
+    CONN --> PARSE[Parse request line<br>GET /path HTTP/1.1<br>+ headers]
+    PARSE --> ROUTE{router<br>map path→handler}
     ROUTE -->|match| H[HandlerFunc]
     ROUTE -->|no match| 404[404 Not Found]
-    H --> RW[ResponseWriter\nwrite status + headers + body]
+    H --> RW[ResponseWriter<br>write status + headers + body]
     RW --> CONN
 ```
 
 ## Key Concepts
 
-- **Request line**: `METHOD /path HTTP/version\r\n`
-- **Headers**: `Key: Value\r\n` until blank line `\r\n`
+- **Request line**: `METHOD /path HTTP/version\r<br>`
+- **Headers**: `Key: Value\r<br>` until blank line `\r<br>`
 - **Response**: status line + headers + blank line + body
 - **Comparison**: `internal/raw` vs `internal/stdlib` — same routes, different implementation
 

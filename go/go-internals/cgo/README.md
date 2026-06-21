@@ -16,7 +16,7 @@ package main
 #include <stdlib.h>
 
 void hello() {
-    printf("Hello from C!\n");
+    printf("Hello from C!<br>");
 }
 */
 import "C"

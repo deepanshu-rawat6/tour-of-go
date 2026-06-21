@@ -145,7 +145,7 @@ replace golang.org/x/crypto v0.0.0-old => golang.org/x/crypto v0.17.0
 
 ```mermaid
 graph TD
-    CI[CI Pipeline] --> DETECT[Detect changed modules\ngit diff --name-only]
+    CI[CI Pipeline] --> DETECT[Detect changed modules<br>git diff --name-only]
     DETECT --> BUILD1[Build auth/]
     DETECT --> BUILD2[Build orders/]
     DETECT --> SKIP[Skip unchanged modules]

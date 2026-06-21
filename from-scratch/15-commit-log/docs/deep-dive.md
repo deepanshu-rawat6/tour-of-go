@@ -27,9 +27,9 @@ The filename is the **base offset** of that segment. Finding offset 1500:
 
 ```mermaid
 graph LR
-    REQ["CONSUME offset=1500"] --> FIND["find segment with\nbase ≤ 1500: seg-1000"]
-    FIND --> LOOKUP["index lookup:\noffset 500 → byte 64000"]
-    LOOKUP --> SEEK["lseek to byte 64000\nin seg-1000.log"]
+    REQ["CONSUME offset=1500"] --> FIND["find segment with<br>base ≤ 1500: seg-1000"]
+    FIND --> LOOKUP["index lookup:<br>offset 500 → byte 64000"]
+    LOOKUP --> SEEK["lseek to byte 64000<br>in seg-1000.log"]
     SEEK --> READ["read records → client"]
 ```
 
@@ -51,9 +51,9 @@ The index is loaded into memory via `mmap`. The OS manages page cache — no exp
 
 ```mermaid
 graph LR
-    IDX[".index file on disk"] -->|mmap| MEM["process address space\n(virtual memory)"]
-    LOOKUP["index.Lookup(offset 500)"] --> CALC["byte position = 500 × 12\n(each entry: 4B offset + 8B position)"]
-    CALC --> READ["read uint64 at position\ndirectly from mmap'd memory"]
+    IDX[".index file on disk"] -->|mmap| MEM["process address space<br>(virtual memory)"]
+    LOOKUP["index.Lookup(offset 500)"] --> CALC["byte position = 500 × 12<br>(each entry: 4B offset + 8B position)"]
+    CALC --> READ["read uint64 at position<br>directly from mmap'd memory"]
     READ --> FILEPOS["file byte position: 64000"]
 ```
 
@@ -104,10 +104,10 @@ The broker does NOT track where each consumer is. Consumers store their own offs
 
 ```mermaid
 graph TD
-    CONS1["Consumer Group A\noffset=1000"] -->|CONSUME partition=0 offset=1000| BROKER
-    CONS2["Consumer Group B\noffset=500"]  -->|CONSUME partition=0 offset=500| BROKER
-    BROKER --> SEG["same segment files\nserve both at different positions"]
-    CONS1 -->|commit offset=1050| STATE["consumer state\n(stored by consumer, not broker)"]
+    CONS1["Consumer Group A<br>offset=1000"] -->|CONSUME partition=0 offset=1000| BROKER
+    CONS2["Consumer Group B<br>offset=500"]  -->|CONSUME partition=0 offset=500| BROKER
+    BROKER --> SEG["same segment files<br>serve both at different positions"]
+    CONS1 -->|commit offset=1050| STATE["consumer state<br>(stored by consumer, not broker)"]
 ```
 
 **Why?** Decouples consumer progress from broker state. Adding a new consumer group doesn't require broker changes. Replay = reset offset to 0.
@@ -116,12 +116,12 @@ graph TD
 
 ```mermaid
 flowchart LR
-    WRITE["Append record"] --> CHECK{"active segment\n≥ max size?"}
+    WRITE["Append record"] --> CHECK{"active segment<br>≥ max size?"}
     CHECK -->|No| APPEND["append to active segment"]
-    CHECK -->|Yes| ROTATE["close active segment\nopen new segment\nbase = next offset"]
+    CHECK -->|Yes| ROTATE["close active segment<br>open new segment<br>base = next offset"]
     ROTATE --> APPEND
 
-    RETENTION["retention policy\ntime-based or size-based"] -->|"delete segments\nolder than 7 days"| DELETE["unlink .log + .index files"]
+    RETENTION["retention policy<br>time-based or size-based"] -->|"delete segments<br>older than 7 days"| DELETE["unlink .log + .index files"]
 ```
 
 ## Performance Characteristics

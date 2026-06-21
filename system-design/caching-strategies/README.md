@@ -67,7 +67,7 @@ graph LR
     end
     
     subgraph Version-Based
-        KEY[user:123:v5] --> BUMP[On write: increment version\nnew key = user:123:v6\nold key expires naturally]
+        KEY[user:123:v5] --> BUMP[On write: increment version<br>new key = user:123:v6<br>old key expires naturally]
     end
 ```
 
@@ -181,9 +181,9 @@ func warmCache(ctx context.Context, hotKeys []string) {
 
 ```mermaid
 graph LR
-    APP[App] --> L1[L1: In-Process\nsync.Map / LRU\n<1ms]
-    L1 -->|miss| L2[L2: Redis\nshared across instances\n1-5ms]
-    L2 -->|miss| DB[(Database\n10-100ms)]
+    APP[App] --> L1[L1: In-Process<br>sync.Map / LRU<br><1ms]
+    L1 -->|miss| L2[L2: Redis<br>shared across instances<br>1-5ms]
+    L2 -->|miss| DB[(Database<br>10-100ms)]
 ```
 
 ```go

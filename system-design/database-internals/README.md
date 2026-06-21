@@ -32,13 +32,13 @@ LSM-trees optimize for writes by buffering in memory and flushing sorted runs to
 
 ```mermaid
 graph TD
-    W[Write] --> MEM[MemTable\nred-black tree\nin-memory sorted]
-    MEM -->|flush when full| L0[Level 0\nSSTables unsorted]
-    L0 -->|compaction| L1[Level 1\nSSTables sorted, no overlap]
-    L1 -->|compaction| L2[Level 2\nlarger sorted runs]
+    W[Write] --> MEM[MemTable<br>red-black tree<br>in-memory sorted]
+    MEM -->|flush when full| L0[Level 0<br>SSTables unsorted]
+    L0 -->|compaction| L1[Level 1<br>SSTables sorted, no overlap]
+    L1 -->|compaction| L2[Level 2<br>larger sorted runs]
     
     R[Read] --> MEM
-    R --> BF[Bloom Filter\nper-SSTable]
+    R --> BF[Bloom Filter<br>per-SSTable]
     BF -->|maybe exists| L0
     BF --> L1
     BF --> L2
@@ -66,14 +66,14 @@ graph TD
 
 ```mermaid
 graph LR
-    SQL[SQL Query] --> PARSE[Parser\nAST]
-    PARSE --> PLAN[Planner\nlogical plan]
-    PLAN --> OPT[Optimizer\ncost-based]
-    OPT --> EXEC[Executor\nphysical plan]
+    SQL[SQL Query] --> PARSE[Parser<br>AST]
+    PARSE --> PLAN[Planner<br>logical plan]
+    PLAN --> OPT[Optimizer<br>cost-based]
+    OPT --> EXEC[Executor<br>physical plan]
     
-    OPT --> IDX[Index Scan\nvs Seq Scan]
-    OPT --> JOIN[Nested Loop\nvs Hash Join\nvs Merge Join]
-    OPT --> STATS[Table Statistics\nrow count, cardinality]
+    OPT --> IDX[Index Scan<br>vs Seq Scan]
+    OPT --> JOIN[Nested Loop<br>vs Hash Join<br>vs Merge Join]
+    OPT --> STATS[Table Statistics<br>row count, cardinality]
 ```
 
 **Key rules:**
@@ -109,9 +109,9 @@ sequenceDiagram
 ```mermaid
 graph TD
     REQ[Request] --> ROUTER[Shard Router]
-    ROUTER -->|hash(user_id) % N| HASH[Hash Sharding\nuniform distribution\nno range queries]
-    ROUTER -->|user_id 1-1M| RANGE[Range Sharding\nrange queries OK\nhot spots possible]
-    ROUTER -->|geography| GEO[Geo Sharding\ndata locality\ncompliance]
+    ROUTER -->|hash(user_id) % N| HASH[Hash Sharding<br>uniform distribution<br>no range queries]
+    ROUTER -->|user_id 1-1M| RANGE[Range Sharding<br>range queries OK<br>hot spots possible]
+    ROUTER -->|geography| GEO[Geo Sharding<br>data locality<br>compliance]
     
     HASH --> S1[(Shard 1)]
     HASH --> S2[(Shard 2)]

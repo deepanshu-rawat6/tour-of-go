@@ -42,21 +42,21 @@ graph TD
     subgraph At-Most-Once
         P1[Producer] -->|fire and forget| Q1[Queue]
         Q1 -->|deliver, no ack needed| C1[Consumer]
-        Note1[Fast but lossy\nUse for: metrics, logs]
+        Note1[Fast but lossy<br>Use for: metrics, logs]
     end
     
     subgraph At-Least-Once
         P2[Producer] -->|publish + wait ack| Q2[Queue]
         Q2 -->|deliver| C2[Consumer]
         C2 -->|ack after processing| Q2
-        Note2[May duplicate\nUse for: most workloads + idempotency]
+        Note2[May duplicate<br>Use for: most workloads + idempotency]
     end
     
     subgraph Exactly-Once
         P3[Producer] -->|idempotent produce| Q3[Queue]
         Q3 -->|deliver + dedup| C3[Consumer]
         C3 -->|transactional ack + offset commit| Q3
-        Note3[Expensive\nUse for: financial, billing]
+        Note3[Expensive<br>Use for: financial, billing]
     end
 ```
 
@@ -92,8 +92,8 @@ func processMessage(ctx context.Context, msg Message) error {
 ```mermaid
 graph TD
     subgraph Kafka Partitioning
-        PROD[Producer] -->|key=user-123| P0[Partition 0\nall user-123 events in order]
-        PROD -->|key=user-456| P1[Partition 1\nall user-456 events in order]
+        PROD[Producer] -->|key=user-123| P0[Partition 0<br>all user-123 events in order]
+        PROD -->|key=user-456| P1[Partition 1<br>all user-456 events in order]
         P0 --> C0[Consumer 0]
         P1 --> C1[Consumer 1]
     end

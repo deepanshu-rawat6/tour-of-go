@@ -8,10 +8,10 @@ Module structure, state management, workspaces, and patterns for managing infras
 
 ```mermaid
 graph LR
-    HCL[.tf Files\nDeclarative config] --> PLAN[terraform plan\ncompare desired vs actual]
-    PLAN --> DIFF[Execution Plan\n+ create, ~ update, - destroy]
-    DIFF --> APPLY[terraform apply\nAPI calls to provider]
-    APPLY --> STATE[terraform.tfstate\nrecord of reality]
+    HCL[.tf Files<br>Declarative config] --> PLAN[terraform plan<br>compare desired vs actual]
+    PLAN --> DIFF[Execution Plan<br>+ create, ~ update, - destroy]
+    DIFF --> APPLY[terraform apply<br>API calls to provider]
+    APPLY --> STATE[terraform.tfstate<br>record of reality]
     STATE --> PLAN
 ```
 
@@ -120,11 +120,11 @@ module "api" {
 ```mermaid
 graph TD
     subgraph Local State ⚠️
-        LOCAL[terraform.tfstate\non disk\nno locking\nno sharing]
+        LOCAL[terraform.tfstate<br>on disk<br>no locking<br>no sharing]
     end
     
     subgraph Remote State ✅
-        S3[(S3 Bucket\nencrypted\nversioned)] --> LOCK[DynamoDB\nstate locking]
+        S3[(S3 Bucket<br>encrypted<br>versioned)] --> LOCK[DynamoDB<br>state locking]
     end
 ```
 

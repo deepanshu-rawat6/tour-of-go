@@ -8,10 +8,10 @@ Layer caching, `.dockerignore`, health checks, docker-compose for local dev, and
 
 ```mermaid
 graph TD
-    BASE[FROM golang:1.23-alpine\n~300MB shared base] --> DEPS[COPY go.mod go.sum\nRUN go mod download\n~100MB cached if go.mod unchanged]
-    DEPS --> SRC[COPY . .\n~10MB invalidated on any code change]
-    SRC --> BUILD[RUN go build\n~15MB binary]
-    BUILD --> FINAL[FROM distroless\nCOPY binary\n~20MB final image]
+    BASE[FROM golang:1.23-alpine<br>~300MB shared base] --> DEPS[COPY go.mod go.sum<br>RUN go mod download<br>~100MB cached if go.mod unchanged]
+    DEPS --> SRC[COPY . .<br>~10MB invalidated on any code change]
+    SRC --> BUILD[RUN go build<br>~15MB binary]
+    BUILD --> FINAL[FROM distroless<br>COPY binary<br>~20MB final image]
 ```
 
 **Key insight**: Each Dockerfile instruction creates a layer. Layers are cached — order instructions from least-changing to most-changing.
@@ -52,8 +52,8 @@ ENTRYPOINT ["/server"]
 
 ```mermaid
 graph LR
-    SRC[Project Dir\n500MB] -->|without .dockerignore| CTX1[Build Context\n500MB sent to daemon]
-    SRC -->|with .dockerignore| CTX2[Build Context\n5MB sent to daemon\n.git excluded]
+    SRC[Project Dir<br>500MB] -->|without .dockerignore| CTX1[Build Context<br>500MB sent to daemon]
+    SRC -->|with .dockerignore| CTX2[Build Context<br>5MB sent to daemon<br>.git excluded]
     CTX2 --> FAST[Faster builds]
 ```
 
@@ -101,16 +101,16 @@ func healthHandler(w http.ResponseWriter, _ *http.Request) {
 
 ```mermaid
 graph TD
-    COMPOSE[docker-compose.yml] --> APP[app\nGo service :8080]
-    COMPOSE --> PG[postgres\n:5432]
-    COMPOSE --> REDIS[redis\n:6379]
+    COMPOSE[docker-compose.yml] --> APP[app<br>Go service :8080]
+    COMPOSE --> PG[postgres<br>:5432]
+    COMPOSE --> REDIS[redis<br>:6379]
     
     APP -->|DATABASE_URL| PG
     APP -->|REDIS_URL| REDIS
-    APP -->|volume mount| SRC[./src → /app\nhot reload]
+    APP -->|volume mount| SRC[./src → /app<br>hot reload]
     
     PG -->|healthcheck| APP
-    PG --> VOL[(pgdata volume\npersistent)]
+    PG --> VOL[(pgdata volume<br>persistent)]
 ```
 
 ```yaml
@@ -234,9 +234,9 @@ docker images myapp
 ```mermaid
 graph LR
     SRC[Source] --> BUILDX[docker buildx]
-    BUILDX --> AMD[linux/amd64\nEC2, GCE]
-    BUILDX --> ARM[linux/arm64\nGraviton, M-series Mac]
-    AMD --> REG[Registry\nmulti-arch manifest]
+    BUILDX --> AMD[linux/amd64<br>EC2, GCE]
+    BUILDX --> ARM[linux/arm64<br>Graviton, M-series Mac]
+    AMD --> REG[Registry<br>multi-arch manifest]
     ARM --> REG
 ```
 

@@ -5,11 +5,11 @@
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant RL as Rate Limiter\n04-rate-limiter
+    participant RL as Rate Limiter<br>04-rate-limiter
     participant H as HTTP Handler
-    participant CACHE as RESP Cache\n07-distributed-cache
-    participant MQ as Message Queue\n06-message-queue
-    participant SCHED as Scheduler\n09-task-scheduler
+    participant CACHE as RESP Cache<br>07-distributed-cache
+    participant MQ as Message Queue<br>06-message-queue
+    participant SCHED as Scheduler<br>09-task-scheduler
 
     C->>RL: POST /shorten {"url":"https://..."}
     RL->>RL: token bucket Allow?
@@ -27,7 +27,7 @@ sequenceDiagram
     C->>RL: GET /abc123
     RL->>H: forward
     H->>CACHE: GET abc123
-    CACHE-->>H: $N\r\nhttps://...
+    CACHE-->>H: $N\r<br>https://...
     H->>MQ: PUB url.clicked abc123
     H-->>C: 301 Location: https://...
 
@@ -41,25 +41,25 @@ sequenceDiagram
 ```mermaid
 graph TD
     subgraph 10-url-shortener
-        RL[ratelimit.Middleware\ntoken bucket 10 req/s]
-        H[HTTP Handler\nshorten + redirect]
-        IC[inMemCache\nfallback]
+        RL[ratelimit.Middleware<br>token bucket 10 req/s]
+        H[HTTP Handler<br>shorten + redirect]
+        IC[inMemCache<br>fallback]
     end
 
     subgraph 04-rate-limiter
-        TB[TokenBucket\nratelimit package]
+        TB[TokenBucket<br>ratelimit package]
     end
 
     subgraph 07-distributed-cache
-        RESP[RESP TCP server\n:6380]
+        RESP[RESP TCP server<br>:6380]
     end
 
     subgraph 06-message-queue
-        MQS[MQ TCP server\n:9001]
+        MQS[MQ TCP server<br>:9001]
     end
 
     subgraph 09-task-scheduler
-        SCHED[Scheduler\ntaskscheduler package]
+        SCHED[Scheduler<br>taskscheduler package]
     end
 
     RL --> TB
@@ -73,7 +73,7 @@ graph TD
 
 ```mermaid
 graph LR
-    RAND[crypto/rand\n6 random bytes] --> B64[base64.URLEncoding\n8 chars] --> TRIM[first 6 chars\nabc123]
+    RAND[crypto/rand<br>6 random bytes] --> B64[base64.URLEncoding<br>8 chars] --> TRIM[first 6 chars<br>abc123]
 ```
 
 `crypto/rand` is used (not `math/rand`) to prevent predictable codes. Base64 URL encoding avoids `+` and `/` which are problematic in URLs.
@@ -84,10 +84,10 @@ The handler depends on the `Cache` interface, not the concrete `*cache.Client`:
 
 ```mermaid
 graph LR
-    H[Handler] -->|Cache interface| IFACE{Cache\nSet Get Del}
-    IFACE -->|production| CLIENT[cache.Client\nRESP TCP]
-    IFACE -->|test| MOCK[mockCache\nin-memory map]
-    IFACE -->|fallback| INMEM[inMemCache\nin-memory map]
+    H[Handler] -->|Cache interface| IFACE{Cache<br>Set Get Del}
+    IFACE -->|production| CLIENT[cache.Client<br>RESP TCP]
+    IFACE -->|test| MOCK[mockCache<br>in-memory map]
+    IFACE -->|fallback| INMEM[inMemCache<br>in-memory map]
 ```
 
 This is the Dependency Inversion Principle in action — the handler is testable without a running RESP server.
@@ -96,12 +96,12 @@ This is the Dependency Inversion Principle in action — the handler is testable
 
 ```mermaid
 graph TD
-    START[server start] --> CDIAL{cache.Dial\n:6380}
+    START[server start] --> CDIAL{cache.Dial<br>:6380}
     CDIAL -->|success| CRESP[use RESP client]
-    CDIAL -->|fail| CFALLBACK[use inMemCache\nlog warning]
-    START --> MDIAL{mq.Dial\n:9001}
+    CDIAL -->|fail| CFALLBACK[use inMemCache<br>log warning]
+    START --> MDIAL{mq.Dial<br>:9001}
     MDIAL -->|success| MQCLIENT[publish analytics]
-    MDIAL -->|fail| MQNIL[mqClient = nil\nanalytics disabled]
+    MDIAL -->|fail| MQNIL[mqClient = nil<br>analytics disabled]
 ```
 
 The server starts and serves traffic even if the cache or MQ is unavailable — it degrades gracefully.

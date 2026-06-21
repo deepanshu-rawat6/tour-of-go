@@ -6,10 +6,10 @@ A Redis-compatible KV store that speaks the RESP protocol — `redis-cli` works 
 
 ```mermaid
 graph TD
-    CLI[redis-cli -p 6380] -->|RESP array| TCP[TCP Server\n:6380]
-    TCP --> PARSER[RESP Parser\n* $ + - :]
-    PARSER --> CMD[Command Router\nSET GET DEL TTL KEYS]
-    CMD --> KV[KV Store\nsync.RWMutex + TTL reaper]
+    CLI[redis-cli -p 6380] -->|RESP array| TCP[TCP Server<br>:6380]
+    TCP --> PARSER[RESP Parser<br>* $ + - :]
+    PARSER --> CMD[Command Router<br>SET GET DEL TTL KEYS]
+    CMD --> KV[KV Store<br>sync.RWMutex + TTL reaper]
     KV --> WRITER[RESP Writer]
     WRITER --> CLI
 ```
@@ -20,7 +20,7 @@ graph TD
 |---|---|
 | `PING` | `PING` → `+PONG` |
 | `SET` | `SET foo bar EX 60` |
-| `GET` | `GET foo` → `$3\r\nbar` |
+| `GET` | `GET foo` → `$3\r<br>bar` |
 | `DEL` | `DEL foo bar` → `:2` |
 | `EXISTS` | `EXISTS foo` → `:1` |
 | `TTL` | `TTL foo` → `:58` |

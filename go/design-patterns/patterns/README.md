@@ -103,7 +103,7 @@ func worker(id int, jobs <-chan int, results chan<- int) {
     // 1. Each worker iterates over the jobs channel until it is closed.
     for j := range jobs {
         // 2. Perform the actual task (in this case, just doubling a number)
-        fmt.Printf("worker %d processing job %d\n", id, j)
+        fmt.Printf("worker %d processing job %d<br>", id, j)
         results <- j * 2
     }
     // 3. When 'jobs' is closed, the range loop exits and the worker finishes.

@@ -10,12 +10,12 @@ An **Operator** is a K8s controller that manages a custom resource (CRD) and rec
 
 ```mermaid
 graph LR
-    USER["kubectl apply\nMyApp CRD"] --> API["API Server\n(etcd)"]
-    API -->|watch event| CTRL["Reconciler\n(your Go code)"]
+    USER["kubectl apply<br>MyApp CRD"] --> API["API Server<br>(etcd)"]
+    API -->|watch event| CTRL["Reconciler<br>(your Go code)"]
     CTRL -->|read desired state| API
     CTRL -->|read actual state| API
     CTRL -->|create/update/delete| API
-    API -->|pods, services, configmaps| K8S["Kubernetes\nResources"]
+    API -->|pods, services, configmaps| K8S["Kubernetes<br>Resources"]
     K8S -->|status changes| API
 ```
 

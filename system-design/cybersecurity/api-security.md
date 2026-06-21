@@ -274,9 +274,9 @@ GET /v2/admin/users   → 403 (patched)
 ### Signature Construction
 
 ```
-canonical_request = METHOD + "\n"
-                  + PATH   + "\n"
-                  + TIMESTAMP + "\n"
+canonical_request = METHOD + "<br>"
+                  + PATH   + "<br>"
+                  + TIMESTAMP + "<br>"
                   + hex(SHA256(body))
 
 signature = HMAC-SHA256(secret_key, canonical_request)
@@ -310,7 +310,7 @@ sequenceDiagram
 ```go
 func sign(secret, method, path, timestamp, body string) string {
     h := sha256.Sum256([]byte(body))
-    canonical := method + "\n" + path + "\n" + timestamp + "\n" + hex.EncodeToString(h[:])
+    canonical := method + "<br>" + path + "<br>" + timestamp + "<br>" + hex.EncodeToString(h[:])
     mac := hmac.New(sha256.New, []byte(secret))
     mac.Write([]byte(canonical))
     return hex.EncodeToString(mac.Sum(nil))

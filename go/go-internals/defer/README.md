@@ -52,11 +52,11 @@ func switchStatement() {
 
 	standardSwitch()
 
-	fmt.Println("\nOrder of Switch Statements:")
+	fmt.Println("<br>Order of Switch Statements:")
 
 	orderOfSwitchStatement()
 
-	fmt.Println("\nSwitch Statements with no Conditions:")
+	fmt.Println("<br>Switch Statements with no Conditions:")
 
 	switchWithNoConditions()
 }

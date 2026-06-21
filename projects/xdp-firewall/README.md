@@ -13,22 +13,22 @@ Built with hexagonal (ports & adapters) architecture. The core domain never touc
 ```mermaid
 graph TD
     subgraph User Space - Go Daemon
-        HTTP[HTTP Admin API\nInbound Adapter] --> CORE[ThreatEngine\nCore Domain]
-        CORE --> BPF_ADAPTER[eBPF Map Adapter\nOutbound Port]
-        CORE --> FILE_ADAPTER[File Store Adapter\nOutbound Port\nrules.json]
-        POLLER[Metrics Poller\ntime.Ticker] --> BPF_READ[Read PERCPU_ARRAY\nfrom kernel]
+        HTTP[HTTP Admin API<br>Inbound Adapter] --> CORE[ThreatEngine<br>Core Domain]
+        CORE --> BPF_ADAPTER[eBPF Map Adapter<br>Outbound Port]
+        CORE --> FILE_ADAPTER[File Store Adapter<br>Outbound Port<br>rules.json]
+        POLLER[Metrics Poller<br>time.Ticker] --> BPF_READ[Read PERCPU_ARRAY<br>from kernel]
         BPF_READ --> PROM[Prometheus Counters]
         PROM --> METRICS[/metrics endpoint]
         PROM --> STATS[/stats JSON endpoint]
     end
 
     subgraph Kernel Space - eBPF/XDP
-        NIC[Network Card\ndriver level] --> XDP[XDP Program\nC compiled to BPF]
-        XDP --> PARSE[Parse IP Header\nextract src_ip]
-        PARSE --> LPM[LPM Trie Lookup\nBPF_MAP_TYPE_LPM_TRIE]
-        LPM -->|match| DROP[XDP_DROP\npacket discarded]
-        LPM -->|no match| PASS[XDP_PASS\npacket continues to kernel]
-        XDP --> COUNTERS[PERCPU_ARRAY\npackets_total\ndrops_total]
+        NIC[Network Card<br>driver level] --> XDP[XDP Program<br>C compiled to BPF]
+        XDP --> PARSE[Parse IP Header<br>extract src_ip]
+        PARSE --> LPM[LPM Trie Lookup<br>BPF_MAP_TYPE_LPM_TRIE]
+        LPM -->|match| DROP[XDP_DROP<br>packet discarded]
+        LPM -->|no match| PASS[XDP_PASS<br>packet continues to kernel]
+        XDP --> COUNTERS[PERCPU_ARRAY<br>packets_total<br>drops_total]
     end
 
     BPF_ADAPTER -->|write CIDR| LPM
@@ -42,21 +42,21 @@ graph TD
 ```mermaid
 graph LR
     subgraph Inbound Adapters
-        API[HTTP API\nPOST/DELETE /api/blacklist\nPOST /api/blacklist/batch\nPOST /api/blacklist/import]
+        API[HTTP API<br>POST/DELETE /api/blacklist<br>POST /api/blacklist/batch<br>POST /api/blacklist/import]
     end
 
     subgraph Core Domain
-        TE[ThreatEngine\nBlockCIDR\nUnblockCIDR\nBatchBlock\nImportList\nListRules\nReconcile]
+        TE[ThreatEngine<br>BlockCIDR<br>UnblockCIDR<br>BatchBlock<br>ImportList<br>ListRules<br>Reconcile]
     end
 
     subgraph Outbound Ports
-        BPF_PORT[BPFMapPort\nInsert/Delete/List]
-        STORE_PORT[RuleStorePort\nSave/Load]
+        BPF_PORT[BPFMapPort<br>Insert/Delete/List]
+        STORE_PORT[RuleStorePort<br>Save/Load]
     end
 
     subgraph Outbound Adapters
-        BPF_IMPL[eBPF LPM Trie\nkernel memory]
-        FILE_IMPL[rules.json\nfile on disk]
+        BPF_IMPL[eBPF LPM Trie<br>kernel memory]
+        FILE_IMPL[rules.json<br>file on disk]
     end
 
     API --> TE

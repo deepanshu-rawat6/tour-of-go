@@ -8,10 +8,10 @@ SLI/SLO/SLA definitions, error budgets, on-call patterns, and runbook design for
 
 ```mermaid
 graph TD
-    SLI[SLI: Service Level Indicator\nwhat you measure\ne.g., latency p99, error rate] --> SLO[SLO: Service Level Objective\ninternal target\ne.g., p99 < 200ms, 99.9% success]
-    SLO --> SLA[SLA: Service Level Agreement\nexternal contract with penalties\ne.g., 99.95% uptime or credits]
+    SLI[SLI: Service Level Indicator<br>what you measure<br>e.g., latency p99, error rate] --> SLO[SLO: Service Level Objective<br>internal target<br>e.g., p99 < 200ms, 99.9% success]
+    SLO --> SLA[SLA: Service Level Agreement<br>external contract with penalties<br>e.g., 99.95% uptime or credits]
     
-    SLI --> METRIC[Prometheus metric\nhistogram / counter]
+    SLI --> METRIC[Prometheus metric<br>histogram / counter]
     SLO --> ALERT[Alert when burning budget]
     SLA --> LEGAL[Legal / financial consequence]
 ```
@@ -45,10 +45,10 @@ graph TD
 
 ```mermaid
 graph LR
-    SLO[SLO: 99.9%\n= 43.2 min downtime/month] --> BUDGET[Error Budget\n0.1% = 43.2 min]
+    SLO[SLO: 99.9%<br>= 43.2 min downtime/month] --> BUDGET[Error Budget<br>0.1% = 43.2 min]
     BUDGET --> REMAINING{Budget remaining?}
-    REMAINING -->|Yes| SHIP[Ship features\ndeploy fast\ntake risks]
-    REMAINING -->|No| FREEZE[Feature freeze\nfocus on reliability\nreduce deploy frequency]
+    REMAINING -->|Yes| SHIP[Ship features<br>deploy fast<br>take risks]
+    REMAINING -->|No| FREEZE[Feature freeze<br>focus on reliability<br>reduce deploy frequency]
 ```
 
 ### Error Budget Calculation
@@ -82,12 +82,12 @@ errorBudgetMinutes := monthMinutes * (1 - sloTarget) // 43.2 minutes
 
 ```mermaid
 graph TD
-    METRIC[Metrics] --> BURN[Burn Rate Alert\nhow fast are we consuming budget?]
-    BURN --> FAST[Fast burn: 14.4x\n2% budget in 1 hour\n→ PAGE immediately]
-    BURN --> SLOW[Slow burn: 3x\n10% budget in 6 hours\n→ ticket / next business day]
+    METRIC[Metrics] --> BURN[Burn Rate Alert<br>how fast are we consuming budget?]
+    BURN --> FAST[Fast burn: 14.4x<br>2% budget in 1 hour<br>→ PAGE immediately]
+    BURN --> SLOW[Slow burn: 3x<br>10% budget in 6 hours<br>→ ticket / next business day]
     
-    FAST --> PAGE[PagerDuty\nwake someone up]
-    SLOW --> TICKET[Jira ticket\nfix this week]
+    FAST --> PAGE[PagerDuty<br>wake someone up]
+    SLOW --> TICKET[Jira ticket<br>fix this week]
 ```
 
 **Multi-window burn rate** (Google SRE approach):

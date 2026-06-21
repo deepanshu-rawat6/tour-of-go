@@ -20,9 +20,9 @@ graph TD
     end
     
     subgraph CRDT Approach
-        N1B[Node 1: +3 ops] -->|merge| MERGE2[Deterministic merge\nno conflicts ever]
+        N1B[Node 1: +3 ops] -->|merge| MERGE2[Deterministic merge<br>no conflicts ever]
         N2B[Node 2: +5 ops] -->|merge| MERGE2
-        MERGE2 --> RESULT[Result: 8\nboth contributions preserved]
+        MERGE2 --> RESULT[Result: 8<br>both contributions preserved]
     end
 ```
 
@@ -35,16 +35,16 @@ Each node maintains its own counter. The global value is the sum of all nodes.
 ```mermaid
 graph LR
     subgraph Node A
-        A[A: {A:3, B:0, C:0}\nlocal value = 3]
+        A[A: {A:3, B:0, C:0}<br>local value = 3]
     end
     subgraph Node B
-        B[B: {A:0, B:5, C:0}\nlocal value = 5]
+        B[B: {A:0, B:5, C:0}<br>local value = 5]
     end
     subgraph Node C
-        C[C: {A:0, B:0, C:2}\nlocal value = 2]
+        C[C: {A:0, B:0, C:2}<br>local value = 2]
     end
     
-    A -->|merge| M[Merged: {A:3, B:5, C:2}\nglobal value = 10]
+    A -->|merge| M[Merged: {A:3, B:5, C:2}<br>global value = 10]
     B -->|merge| M
     C -->|merge| M
 ```
@@ -64,8 +64,8 @@ Two G-Counters: one for increments, one for decrements. Value = P - N.
 
 ```mermaid
 graph TD
-    INC[Increment G-Counter\n{A:5, B:3}] --> VAL[Value = sum P - sum N\n= 8 - 2 = 6]
-    DEC[Decrement G-Counter\n{A:1, B:1}] --> VAL
+    INC[Increment G-Counter<br>{A:5, B:3}] --> VAL[Value = sum P - sum N<br>= 8 - 2 = 6]
+    DEC[Decrement G-Counter<br>{A:1, B:1}] --> VAL
 ```
 
 ---

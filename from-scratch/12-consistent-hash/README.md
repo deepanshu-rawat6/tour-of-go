@@ -26,17 +26,17 @@ Consistent hashing ensures only `K/N` keys move when a node is added/removed (K 
 graph TD
     subgraph Hash Ring 0..2^32
         direction LR
-        N1[Node A\npos: 1200] 
-        V1[Node A-vn1\npos: 3400]
-        N2[Node B\npos: 5600]
-        V2[Node B-vn1\npos: 7800]
-        N3[Node C\npos: 9100]
-        V3[Node C-vn1\npos: 11200]
+        N1[Node A<br>pos: 1200] 
+        V1[Node A-vn1<br>pos: 3400]
+        N2[Node B<br>pos: 5600]
+        V2[Node B-vn1<br>pos: 7800]
+        N3[Node C<br>pos: 9100]
+        V3[Node C-vn1<br>pos: 11200]
     end
 
-    K1[key: user:42\nhash: 2900] -->|clockwise| V1
-    K2[key: session:7\nhash: 6000] -->|clockwise| V2
-    K3[key: order:99\nhash: 9500] -->|clockwise| V3
+    K1[key: user:42<br>hash: 2900] -->|clockwise| V1
+    K2[key: session:7<br>hash: 6000] -->|clockwise| V2
+    K3[key: order:99<br>hash: 9500] -->|clockwise| V3
 ```
 
 ```mermaid

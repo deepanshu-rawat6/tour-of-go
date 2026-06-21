@@ -96,14 +96,14 @@ graph TD
         C1[Request 1] --> CONN1[TCP Connection 1]
         C2[Request 2] --> CONN2[TCP Connection 2]
         C3[Request 3] --> CONN3[TCP Connection 3]
-        Note1[Head-of-line blocking\n6 connections per host]
+        Note1[Head-of-line blocking<br>6 connections per host]
     end
     
     subgraph HTTP/2
-        R1[Stream 1] --> MUX[Single TCP Connection\nmultiplexed frames]
+        R1[Stream 1] --> MUX[Single TCP Connection<br>multiplexed frames]
         R2[Stream 2] --> MUX
         R3[Stream 3] --> MUX
-        Note2[No HOL blocking\nall streams interleaved]
+        Note2[No HOL blocking<br>all streams interleaved]
     end
 ```
 
@@ -166,11 +166,11 @@ clientTLS := &tls.Config{
 
 ```mermaid
 graph TD
-    WATCH[File Watcher\nfsnotify] -->|cert changed| RELOAD[Reload Certificate]
-    RELOAD --> ATOMIC[atomic.Pointer swap\nno downtime]
-    ATOMIC --> TLS[tls.Config.GetCertificate\nreturns latest cert]
+    WATCH[File Watcher<br>fsnotify] -->|cert changed| RELOAD[Reload Certificate]
+    RELOAD --> ATOMIC[atomic.Pointer swap<br>no downtime]
+    ATOMIC --> TLS[tls.Config.GetCertificate<br>returns latest cert]
     
-    CRON[Cert Renewal\ncertbot / vault] -->|new cert files| WATCH
+    CRON[Cert Renewal<br>certbot / vault] -->|new cert files| WATCH
 ```
 
 ```go

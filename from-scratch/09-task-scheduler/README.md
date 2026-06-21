@@ -6,13 +6,13 @@ A cron-like task scheduler with HTTP API for managing tasks at runtime.
 
 ```mermaid
 graph TD
-    TICK[time.Ticker\nevery second] --> SCHED[Scheduler\ntick loop]
-    SCHED -->|Match cron expr| T1[Task 1\n* * * * *]
-    SCHED --> T2[Task 2\n*/5 * * * *]
+    TICK[time.Ticker<br>every second] --> SCHED[Scheduler<br>tick loop]
+    SCHED -->|Match cron expr| T1[Task 1<br>* * * * *]
+    SCHED --> T2[Task 2<br>*/5 * * * *]
     SCHED --> TN[Task N]
-    T1 & T2 & TN -->|go fn| EXEC[goroutine\nexecute fn]
+    T1 & T2 & TN -->|go fn| EXEC[goroutine<br>execute fn]
 
-    API[HTTP API\n:8086] -->|POST /tasks| SCHED
+    API[HTTP API<br>:8086] -->|POST /tasks| SCHED
     API -->|GET /tasks| LIST[list tasks]
     API -->|DELETE /tasks/:id| REMOVE[remove task]
 ```

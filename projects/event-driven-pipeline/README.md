@@ -8,15 +8,15 @@ An event processing pipeline with exactly-once semantics, circuit breaking, back
 
 ```mermaid
 graph LR
-    P[Producer\ncmd/producer] -->|publish| N[NATS JetStream\nsubject: events.*]
-    N -->|at-least-once delivery| C[Consumer\ncmd/consumer]
+    P[Producer<br>cmd/producer] -->|publish| N[NATS JetStream<br>subject: events.*]
+    N -->|at-least-once delivery| C[Consumer<br>cmd/consumer]
     C --> PROC[Processor]
-    PROC -->|check| IDEM[Redis\nidempotency store]
+    PROC -->|check| IDEM[Redis<br>idempotency store]
     IDEM -->|duplicate| SKIP[skip + ack]
-    IDEM -->|new| CB[Circuit Breaker\nClosed/Open/Half-Open]
-    CB -->|closed| H[EventHandler\ndownstream call]
-    H -->|success| MARK[mark processed\nRedis TTL 24h]
-    H -->|fail × 3| DLQ[DLQ\nevents.dlq]
+    IDEM -->|new| CB[Circuit Breaker<br>Closed/Open/Half-Open]
+    CB -->|closed| H[EventHandler<br>downstream call]
+    H -->|success| MARK[mark processed<br>Redis TTL 24h]
+    H -->|fail × 3| DLQ[DLQ<br>events.dlq]
     CB -->|open| DLQ
 ```
 

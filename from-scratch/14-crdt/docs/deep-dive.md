@@ -32,7 +32,7 @@ Each node tracks its own count. Merge = max per node. Value = sum of all.
 graph TD
     N1["Node A: [A:3, B:0, C:0]"]
     N2["Node B: [A:0, B:5, C:0]"]
-    MERGE["merge = {A:max(3,0), B:max(0,5), C:max(0,0)}\n= [A:3, B:5, C:0]"]
+    MERGE["merge = {A:max(3,0), B:max(0,5), C:max(0,0)}<br>= [A:3, B:5, C:0]"]
     VALUE["value = 3+5+0 = 8"]
 
     N1 --> MERGE
@@ -75,9 +75,9 @@ Two G-Counters: one for increments (P), one for decrements (N). Value = P - N.
 
 ```mermaid
 graph LR
-    INC["inc()"] --> P["P-counter\n[A:5, B:2]"]
-    DEC["dec()"] --> N["N-counter\n[A:1, B:0]"]
-    VAL["value = sum(P) - sum(N)\n= 7 - 1 = 6"]
+    INC["inc()"] --> P["P-counter<br>[A:5, B:2]"]
+    DEC["dec()"] --> N["N-counter<br>[A:1, B:0]"]
+    VAL["value = sum(P) - sum(N)<br>= 7 - 1 = 6"]
     P & N --> VAL
 ```
 

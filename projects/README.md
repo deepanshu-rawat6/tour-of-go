@@ -8,30 +8,30 @@ Standalone mini-projects — each is a separate Go module with its own `README.m
 
 ```mermaid
 graph TD
-    BASICS[Go Basics\npackages → concurrency → context] --> INTERNALS[go/<br/>runtime · design patterns · system design]
-    INTERNALS --> P1[grpc-service\nProtobuf + RPC]
-    INTERNALS --> P2[otel-tracing\nDistributed tracing]
-    INTERNALS --> P3[k8s-controller\nOperator pattern]
-    P1 & P2 & P3 --> P4[distributed-scheduler\nRedis lease · state machine]
-    P4 --> P5[event-driven-pipeline\nNATS · exactly-once · DLQ]
-    P4 --> P6[service-mesh-sidecar\nTCP proxy · circuit breaker]
-    P5 & P6 --> P7[realtime-dashboard\nWebSocket · HTMX]
-    P5 & P6 --> P8[platform-console\nSSE · client-go]
-    P7 & P8 --> P9[cli-tui\nBubble Tea · Elm]
-    P3 --> P10[aws-resource-reaper\nerrgroup · FinOps]
-    P10 --> P11[gocker\nnamespaces · cgroups · OCI]
-    P10 --> P12[tf-drift-detector\ndrift detection · webhooks]
-    P4 --> P13[raft-kv-store\nRaft · WAL · gRPC]
-    P11 --> P14[xdp-firewall\neBPF · XDP · RESP]
-    P3 --> P15[k8s-event-sink\ninformers · dedup · SQLite]
-    INTERNALS --> P16[secure-api\nSOLID · TDD · JWT · mTLS]
-    INTERNALS --> P17[cache-service\nLRU · cache-aside · Redis]
-    INTERNALS --> P18[rabbitmq-worker\nAMQP · DLX · prefetch]
+    BASICS[Go Basics<br>packages → concurrency → context] --> INTERNALS[go/<br/>runtime · design patterns · system design]
+    INTERNALS --> P1[grpc-service<br>Protobuf + RPC]
+    INTERNALS --> P2[otel-tracing<br>Distributed tracing]
+    INTERNALS --> P3[k8s-controller<br>Operator pattern]
+    P1 & P2 & P3 --> P4[distributed-scheduler<br>Redis lease · state machine]
+    P4 --> P5[event-driven-pipeline<br>NATS · exactly-once · DLQ]
+    P4 --> P6[service-mesh-sidecar<br>TCP proxy · circuit breaker]
+    P5 & P6 --> P7[realtime-dashboard<br>WebSocket · HTMX]
+    P5 & P6 --> P8[platform-console<br>SSE · client-go]
+    P7 & P8 --> P9[cli-tui<br>Bubble Tea · Elm]
+    P3 --> P10[aws-resource-reaper<br>errgroup · FinOps]
+    P10 --> P11[gocker<br>namespaces · cgroups · OCI]
+    P10 --> P12[tf-drift-detector<br>drift detection · webhooks]
+    P4 --> P13[raft-kv-store<br>Raft · WAL · gRPC]
+    P11 --> P14[xdp-firewall<br>eBPF · XDP · RESP]
+    P3 --> P15[k8s-event-sink<br>informers · dedup · SQLite]
+    INTERNALS --> P16[secure-api<br>SOLID · TDD · JWT · mTLS]
+    INTERNALS --> P17[cache-service<br>LRU · cache-aside · Redis]
+    INTERNALS --> P18[rabbitmq-worker<br>AMQP · DLX · prefetch]
     INTERNALS --> FS[from-scratch/<br/>TCP → HTTP → WS → cache → URL shortener]
-    P4 --> P19[idempotent-payments\nIdempotency keys · SELECT FOR UPDATE · pgx]
-    P4 --> P20[triage-engine\nLangGraph-equiv · pgvector RAG · HITL · testcontainers]
-    P4 --> P21[saga-orchestrator\nSaga pattern · compensation · choreography]
-    P4 --> P22[event-sourced-ledger\nEvent sourcing · CQRS · projections]
+    P4 --> P19[idempotent-payments<br>Idempotency keys · SELECT FOR UPDATE · pgx]
+    P4 --> P20[triage-engine<br>LangGraph-equiv · pgvector RAG · HITL · testcontainers]
+    P4 --> P21[saga-orchestrator<br>Saga pattern · compensation · choreography]
+    P4 --> P22[event-sourced-ledger<br>Event sourcing · CQRS · projections]
 ```
 
 ---
@@ -107,9 +107,9 @@ Protobuf-defined service with unary and server-streaming RPCs. The client demons
 
 ```mermaid
 graph LR
-    Client --> A[Service A\n:8080]
-    A -->|HTTP + trace context| B[Service B\n:8081]
-    A -->|OTLP| J[Jaeger\n:16686]
+    Client --> A[Service A<br>:8080]
+    A -->|HTTP + trace context| B[Service B<br>:8081]
+    A -->|OTLP| J[Jaeger<br>:16686]
     B -->|OTLP| J
 ```
 
@@ -121,10 +121,10 @@ Two HTTP services propagate trace context via W3C `traceparent` headers. Both ex
 
 ```mermaid
 graph TD
-    User -->|kubectl apply| CRD[Greeting CRD\nkind: Greeting]
+    User -->|kubectl apply| CRD[Greeting CRD<br>kind: Greeting]
     CRD --> API[Kubernetes API Server]
-    API -->|watch event| C[Greeting Controller\ncontroller-runtime]
-    C -->|reconcile| CM[ConfigMap\ngreeting-config]
+    API -->|watch event| C[Greeting Controller<br>controller-runtime]
+    C -->|reconcile| CM[ConfigMap<br>greeting-config]
     C -->|update status| CRD
 ```
 
@@ -137,12 +137,12 @@ Custom Resource Definition + controller that reconciles `Greeting` objects into 
 ```mermaid
 graph TD
     API[HTTP API] -->|submit job| S[Scheduler Service]
-    S -->|acquire Redis lease| R[(Redis\nDistributed Lock)]
-    R -->|leader only| W[Worker Pool\nsync.Mutex + goroutines]
+    S -->|acquire Redis lease| R[(Redis<br>Distributed Lock)]
+    R -->|leader only| W[Worker Pool<br>sync.Mutex + goroutines]
     W -->|execute| D{Destination}
     D --> SQS[AWS SQS]
     D --> MEM[In-Memory]
-    W -->|persist state| PG[(PostgreSQL\njob state machine)]
+    W -->|persist state| PG[(PostgreSQL<br>job state machine)]
     W -->|heartbeat| R
     CRON[Cron Runner] -->|zombie detection| PG
     SEARCH[Bleve Search] -->|full-text index| PG
@@ -156,10 +156,10 @@ Production-grade job scheduler with Redis-based leader election, state machine (
 
 ```mermaid
 graph LR
-    P[Producer] -->|publish| N[NATS JetStream\nsubject: events.*]
+    P[Producer] -->|publish| N[NATS JetStream<br>subject: events.*]
     N -->|at-least-once| C[Consumer]
-    C -->|idempotency check| R[(Redis\ndedup store)]
-    R -->|new event| H[Pipeline Handler\ncircuit breaker]
+    C -->|idempotency check| R[(Redis<br>dedup store)]
+    R -->|new event| H[Pipeline Handler<br>circuit breaker]
     H -->|failed| DLQ[Dead Letter Queue]
     H -->|success| ACK[Ack to NATS]
 ```
@@ -172,13 +172,13 @@ Event processing pipeline with NATS JetStream for durable messaging, Redis-based
 
 ```mermaid
 graph LR
-    Client -->|TCP| S[Sidecar Proxy\n:8080]
-    S --> RL[Token Bucket\nRate Limiter]
-    RL --> CB[Circuit Breaker\nClosed/Open/Half-Open]
-    CB -->|healthy| UP[Upstream Service\n:9090]
+    Client -->|TCP| S[Sidecar Proxy<br>:8080]
+    S --> RL[Token Bucket<br>Rate Limiter]
+    RL --> CB[Circuit Breaker<br>Closed/Open/Half-Open]
+    CB -->|healthy| UP[Upstream Service<br>:9090]
     CB -->|open| ERR[503 Error]
-    S --> M[Prometheus Metrics\n:9091]
-    S --> H[Health Checker\n/health]
+    S --> M[Prometheus Metrics<br>:9091]
+    S --> H[Health Checker<br>/health]
 ```
 
 TCP reverse proxy sidecar with token bucket rate limiting, circuit breaker (3 states), connection pooling, Prometheus metrics, and health checks.
@@ -189,12 +189,12 @@ TCP reverse proxy sidecar with token bucket rate limiting, circuit breaker (3 st
 
 ```mermaid
 graph TD
-    Browser -->|HTTP| H[HTTP Handler\nhtml/template]
+    Browser -->|HTTP| H[HTTP Handler<br>html/template]
     Browser -->|WebSocket| WS[WebSocket Hub]
-    WS --> HUB[Hub\nsync.Mutex\nbroadcast channel]
-    POLL[Scheduler Poller\ntime.Ticker] -->|job updates| HUB
+    WS --> HUB[Hub<br>sync.Mutex<br>broadcast channel]
+    POLL[Scheduler Poller<br>time.Ticker] -->|job updates| HUB
     HUB -->|push| Browser
-    Browser -->|HTMX swap| DOM[DOM Update\nno full reload]
+    Browser -->|HTMX swap| DOM[DOM Update<br>no full reload]
 ```
 
 Live ops dashboard for the distributed scheduler. WebSocket hub broadcasts job state changes to all connected browsers. HTMX swaps DOM fragments without a full page reload.
@@ -205,11 +205,11 @@ Live ops dashboard for the distributed scheduler. WebSocket hub broadcasts job s
 
 ```mermaid
 graph TD
-    Browser -->|HTTP GET /| H[Handler\nhtml/template + Tailwind]
-    Browser -->|GET /watch SSE| W[K8s Watcher\nclient-go]
-    W -->|watch.Event| SSE[SSE Stream\ntext/event-stream]
+    Browser -->|HTTP GET /| H[Handler<br>html/template + Tailwind]
+    Browser -->|GET /watch SSE| W[K8s Watcher<br>client-go]
+    W -->|watch.Event| SSE[SSE Stream<br>text/event-stream]
     SSE -->|push| Browser
-    H --> K[K8s Dynamic Client\nclient-go]
+    H --> K[K8s Dynamic Client<br>client-go]
     K -->|list Greetings| API[Kubernetes API Server]
 ```
 
@@ -221,13 +221,13 @@ Web console for browsing `Greeting` custom resources. Uses client-go's dynamic c
 
 ```mermaid
 graph TD
-    Main[main.go] --> BT[Bubble Tea\nprogram.Start]
-    BT --> M[Model\nElm Architecture]
-    M -->|Init| CMD[tea.Cmd\nfetch jobs]
+    Main[main.go] --> BT[Bubble Tea<br>program.Start]
+    BT --> M[Model<br>Elm Architecture]
+    M -->|Init| CMD[tea.Cmd<br>fetch jobs]
     CMD -->|HTTP| API[Scheduler API]
     API -->|jobs| MSG[tea.Msg]
     MSG -->|Update| M
-    M -->|View| TUI[Terminal UI\nlipgloss styled]
+    M -->|View| TUI[Terminal UI<br>lipgloss styled]
 ```
 
 Terminal dashboard for the distributed scheduler using Bubble Tea's Elm-inspired architecture (Model → Update → View). lipgloss handles styling and layout.
@@ -238,19 +238,19 @@ Terminal dashboard for the distributed scheduler using Bubble Tea's Elm-inspired
 
 ```mermaid
 graph TD
-    CLI[Cobra CLI\n--config --output --dry-run] --> CFG[YAML Config\naccounts + regions]
-    CFG --> AUTH[Auth\nLoadDefaultConfig\nSTS AssumeRole]
-    AUTH --> ENG[Discovery Engine\nerrgroup + semaphore]
+    CLI[Cobra CLI<br>--config --output --dry-run] --> CFG[YAML Config<br>accounts + regions]
+    CFG --> AUTH[Auth<br>LoadDefaultConfig<br>STS AssumeRole]
+    AUTH --> ENG[Discovery Engine<br>errgroup + semaphore]
     ENG --> S1[EBS Scanner]
     ENG --> S2[Elastic IP Scanner]
     ENG --> S3[EC2 Scanner]
     ENG --> S4[RDS Snapshot Scanner]
     ENG --> S5[ALB + CloudWatch Scanner]
     ENG --> S6[Security Group Scanner]
-    S1 & S2 & S3 & S4 & S5 & S6 --> RULES[Rule Evaluator\nDelete / Recommend / Skip]
-    RULES --> RPT[Reporter\ntext table or JSON]
+    S1 & S2 & S3 & S4 & S5 & S6 --> RULES[Rule Evaluator<br>Delete / Recommend / Skip]
+    RULES --> RPT[Reporter<br>text table or JSON]
     RPT --> EXEC{dry-run?}
-    EXEC -->|false + confirm| DEL[Execute\nAWS delete APIs\nlog/slog audit]
+    EXEC -->|false + confirm| DEL[Execute<br>AWS delete APIs<br>log/slog audit]
 ```
 
 Concurrent FinOps CLI. Runs on EC2/ECS with an instance profile, assumes roles into target accounts, scans 6 resource types across all regions in parallel, and reports or removes idle resources.
@@ -261,14 +261,14 @@ Concurrent FinOps CLI. Runs on EC2/ECS with an instance profile, assumes roles i
 
 ```mermaid
 graph TD
-    CLI[gocker pull / run / images / rmi] --> STORE[Image Store\n~/.gocker/images/name:tag/rootfs]
-    CLI --> OCI[OCI Pull\nDocker Hub manifest\nlayer blobs → tar extract]
+    CLI[gocker pull / run / images / rmi] --> STORE[Image Store<br>~/.gocker/images/name:tag/rootfs]
+    CLI --> OCI[OCI Pull<br>Docker Hub manifest<br>layer blobs → tar extract]
     OCI --> STORE
-    STORE --> OVL[OverlayFS Mount\nlower=image read-only\nupper=container writable\nmerged=chroot target]
-    OVL --> CG[cgroup Manager\nv1/v2 auto-detect\nmemory + cpu + pids]
-    CG --> NS[Clone with Namespaces\nNEWPID NEWNS NEWUTS\nNEWIPC NEWNET]
-    NS --> CHILD[Re-exec child\nchroot + mount /proc\nsyscall.Exec cmd]
-    CHILD --> CLEANUP[defer cleanup\nunmount + delete cgroup\nremove container dir]
+    STORE --> OVL[OverlayFS Mount<br>lower=image read-only<br>upper=container writable<br>merged=chroot target]
+    OVL --> CG[cgroup Manager<br>v1/v2 auto-detect<br>memory + cpu + pids]
+    CG --> NS[Clone with Namespaces<br>NEWPID NEWNS NEWUTS<br>NEWIPC NEWNET]
+    NS --> CHILD[Re-exec child<br>chroot + mount /proc<br>syscall.Exec cmd]
+    CHILD --> CLEANUP[defer cleanup<br>unmount + delete cgroup<br>remove container dir]
 ```
 
 Mini Docker from scratch. Pulls real Alpine images via OCI spec, mounts OverlayFS for copy-on-write isolation, enforces resource limits via cgroups, and isolates processes with Linux namespaces.
@@ -279,23 +279,23 @@ Mini Docker from scratch. Pulls real Alpine images via OCI spec, mounts OverlayF
 
 ```mermaid
 graph TD
-    CLI[detect run / daemon] --> CFG[YAML Config\nbackend + alerts + ignore rules]
-    CFG --> STATE[State Loader\nS3 or local tfstate]
-    STATE --> POLL[Live Poller\nerrgroup fan-out]
+    CLI[detect run / daemon] --> CFG[YAML Config<br>backend + alerts + ignore rules]
+    CFG --> STATE[State Loader<br>S3 or local tfstate]
+    STATE --> POLL[Live Poller<br>errgroup fan-out]
     POLL --> C1[EC2 Comparator]
     POLL --> C2[S3 Comparator]
     POLL --> C3[SG Comparator]
     POLL --> C4[RDS Comparator]
     POLL --> C5[IAM Comparator]
     POLL --> C6[Lambda Comparator]
-    C1 & C2 & C3 & C4 & C5 & C6 --> DIFF[Diff Engine\nhardcoded + config ignore\ntype coercion]
-    DIFF --> TRK[Drift Tracker\nsync.Mutex\nnew vs known vs resolved]
+    C1 & C2 & C3 & C4 & C5 & C6 --> DIFF[Diff Engine<br>hardcoded + config ignore<br>type coercion]
+    DIFF --> TRK[Drift Tracker<br>sync.Mutex<br>new vs known vs resolved]
     TRK --> ALERT[Alert Pipeline]
     ALERT --> SL[Slack Webhook]
     ALERT --> DC[Discord Webhook]
     ALERT --> OUT[stdout JSON]
-    DAEMON[time.Ticker\nsignal.NotifyContext] --> STATE
-    DAEMON -->|SIGTERM| PERSIST[Persist drift state\nto file]
+    DAEMON[time.Ticker<br>signal.NotifyContext] --> STATE
+    DAEMON -->|SIGTERM| PERSIST[Persist drift state<br>to file]
 ```
 
 Daemon that compares Terraform state against live AWS infrastructure. Stateful tracking alerts only on new/resolved drift. Hardcoded + config-driven false-positive suppression.
@@ -306,11 +306,11 @@ Daemon that compares Terraform state against live AWS infrastructure. Stateful t
 
 ```mermaid
 graph TD
-    Client[HTTP Client] --> HTTP[HTTP API\nGET/PUT/DELETE /kv\nGET /status]
+    Client[HTTP Client] --> HTTP[HTTP API<br>GET/PUT/DELETE /kv<br>GET /status]
     HTTP -->|write on follower| REDIR[307 Redirect → Leader]
     HTTP -->|write on leader| RAFT[Raft Node]
-    RAFT --> WAL[Write-Ahead Log\nappend + fsync]
-    WAL --> GRPC[gRPC AppendEntries\nto all followers]
+    RAFT --> WAL[Write-Ahead Log<br>append + fsync]
+    WAL --> GRPC[gRPC AppendEntries<br>to all followers]
     GRPC --> F1[Follower 1]
     GRPC --> F2[Follower 2]
     GRPC --> FN[Follower N]
@@ -319,8 +319,8 @@ graph TD
     COMMIT --> Client
 
     subgraph Election
-        TIMER[Randomized timeout\n150-300ms] -->|fires| CAND[Candidate\nRequestVote RPCs]
-        CAND -->|majority| LEAD[Leader\nheartbeat ticker]
+        TIMER[Randomized timeout<br>150-300ms] -->|fires| CAND[Candidate<br>RequestVote RPCs]
+        CAND -->|majority| LEAD[Leader<br>heartbeat ticker]
     end
 ```
 
@@ -332,19 +332,19 @@ Distributed KV store implementing the Raft consensus algorithm from scratch. Lea
 
 ```mermaid
 graph TD
-    CLI[xdp-fw start\n--interface eth0] --> LOAD[Load BPF ELF\nAttach XDP to NIC]
-    LOAD --> RECONCILE[Reconcile\nrules.json vs kernel map]
-    RECONCILE --> DAEMON[Go Daemon\nHTTP API + Metrics Poller]
+    CLI[xdp-fw start<br>--interface eth0] --> LOAD[Load BPF ELF<br>Attach XDP to NIC]
+    LOAD --> RECONCILE[Reconcile<br>rules.json vs kernel map]
+    RECONCILE --> DAEMON[Go Daemon<br>HTTP API + Metrics Poller]
 
     subgraph Kernel Space
         NIC[NIC Driver] --> XDP[XDP Program]
-        XDP --> LPM[LPM Trie\nBPF_MAP_TYPE_LPM_TRIE]
+        XDP --> LPM[LPM Trie<br>BPF_MAP_TYPE_LPM_TRIE]
         LPM -->|match| DROP[XDP_DROP]
         LPM -->|no match| PASS[XDP_PASS]
-        XDP --> CNTR[PERCPU_ARRAY\ncounters]
+        XDP --> CNTR[PERCPU_ARRAY<br>counters]
     end
 
-    DAEMON -->|POST /api/blacklist| ENGINE[ThreatEngine\ncore domain]
+    DAEMON -->|POST /api/blacklist| ENGINE[ThreatEngine<br>core domain]
     ENGINE -->|Insert CIDR| LPM
     ENGINE -->|Save| FILE[rules.json]
     DAEMON -->|poll| CNTR
@@ -359,13 +359,13 @@ Kernel-level XDP firewall. Drops packets from blacklisted CIDRs at the NIC drive
 
 ```mermaid
 graph TD
-    INF[K8s SharedIndexInformer\nwatch v1.Event] --> PROC[EventProcessor]
-    PROC --> FILTER[Filter\nNormal → drop\nWarning → classify]
-    FILTER --> DEDUP[Dedup Engine\nleaky bucket\nnamespace+pod+reason]
+    INF[K8s SharedIndexInformer<br>watch v1.Event] --> PROC[EventProcessor]
+    PROC --> FILTER[Filter<br>Normal → drop<br>Warning → classify]
+    FILTER --> DEDUP[Dedup Engine<br>leaky bucket<br>namespace+pod+reason]
     DEDUP -->|first occurrence| FWD[Forward immediately]
-    DEDUP -->|window expiry| SUMMARY[Summary alert\nsuppressed N events]
-    FWD & SUMMARY --> SQLITE[(SQLite\ntime-series queries)]
-    FWD & SUMMARY --> BLEVE[(Bleve\nfull-text search)]
+    DEDUP -->|window expiry| SUMMARY[Summary alert<br>suppressed N events]
+    FWD & SUMMARY --> SQLITE[(SQLite<br>time-series queries)]
+    FWD & SUMMARY --> BLEVE[(Bleve<br>full-text search)]
     FWD & SUMMARY --> SLACK[Slack Webhook]
 ```
 
@@ -378,16 +378,16 @@ Kubernetes event vacuum daemon. Streams cluster events via informers, deduplicat
 ```mermaid
 graph TD
     Client -->|POST /oauth2/token| TH[Token Handler]
-    TH --> UA[UserAuthenticator\nport — ISP]
-    UA --> US[UserStore\nbcrypt]
-    TH --> TI[TokenIssuer\nport — ISP]
-    TI --> JWT[JWTAdapter\nHS256]
+    TH --> UA[UserAuthenticator<br>port — ISP]
+    UA --> US[UserStore<br>bcrypt]
+    TH --> TI[TokenIssuer<br>port — ISP]
+    TI --> JWT[JWTAdapter<br>HS256]
     JWT -->|Bearer token| Client
 
-    Client -->|GET /me\nAuthorization: Bearer| AM[Auth Middleware\nOCP — chain]
-    AM --> TV[TokenValidator\nport — ISP]
+    Client -->|GET /me<br>Authorization: Bearer| AM[Auth Middleware<br>OCP — chain]
+    AM --> TV[TokenValidator<br>port — ISP]
     TV --> JWT
-    AM -->|Claims in context\nimmutable value object| MH[Me Handler\nSRP]
+    AM -->|Claims in context<br>immutable value object| MH[Me Handler<br>SRP]
     MH -->|user_id + roles| Client
 ```
 
@@ -399,13 +399,13 @@ JWT + OAuth2 password grant + optional mTLS HTTP API. Built with SOLID principle
 
 ```mermaid
 graph LR
-    Client -->|GET PUT DELETE /cache/:key| H[HTTP Handler\nhit/miss stats]
-    H --> SF[SingleflightCache\nstampede prevention]
-    SF --> CA[CacheAside\nlazy loading]
-    CA -->|hit| LRU[LRU Cache\ncontainer/list + map\nO1 evict + TTL reaper]
-    CA -->|miss| ST[Backing Store\nMemory or Redis]
+    Client -->|GET PUT DELETE /cache/:key| H[HTTP Handler<br>hit/miss stats]
+    H --> SF[SingleflightCache<br>stampede prevention]
+    SF --> CA[CacheAside<br>lazy loading]
+    CA -->|hit| LRU[LRU Cache<br>container/list + map<br>O1 evict + TTL reaper]
+    CA -->|miss| ST[Backing Store<br>Memory or Redis]
     ST -->|populate| LRU
-    H -.->|CACHE_BACKEND=redis| R[Redis\ngo-redis/v9]
+    H -.->|CACHE_BACKEND=redis| R[Redis<br>go-redis/v9]
 ```
 
 In-memory + Redis caching layer. Hand-rolled LRU cache with O(1) eviction and background TTL reaper. Three strategies: cache-aside, write-through, and singleflight stampede prevention.
@@ -416,15 +416,15 @@ In-memory + Redis caching layer. Hand-rolled LRU cache with O(1) eviction and ba
 
 ```mermaid
 graph LR
-    P[Producer\ncmd/producer] -->|persistent JSON| EX[tasks\ndirect exchange]
-    EX --> Q[tasks.queue\ndurable + DLX binding]
-    Q -->|prefetch=5\nautoAck=false| W1[Worker 1]
+    P[Producer<br>cmd/producer] -->|persistent JSON| EX[tasks<br>direct exchange]
+    EX --> Q[tasks.queue<br>durable + DLX binding]
+    Q -->|prefetch=5<br>autoAck=false| W1[Worker 1]
     Q --> W2[Worker 2]
     Q --> W3[Worker 3]
     W1 -->|Ack| DONE[done]
     W2 -->|Nack requeue| Q
-    W3 -->|Nack no-requeue| DLX[tasks.dlx\nfanout]
-    DLX --> DLQ[tasks.dlq\ndead letters]
+    W3 -->|Nack no-requeue| DLX[tasks.dlx<br>fanout]
+    DLX --> DLQ[tasks.dlq<br>dead letters]
 ```
 
 RabbitMQ task worker system. Durable exchange, DLX for failed messages after 3 retries, QoS prefetch for backpressure, graceful SIGTERM shutdown.
@@ -435,14 +435,14 @@ RabbitMQ task worker system. Durable exchange, DLX for failed messages after 3 r
 
 ```mermaid
 graph TD
-    Client -->|POST /payments\nIdempotency-Key: abc-123| MW[IdempotencyMiddleware]
-    MW -->|key exists?| PG1[(PostgreSQL\nidempotency_keys)]
+    Client -->|POST /payments<br>Idempotency-Key: abc-123| MW[IdempotencyMiddleware]
+    MW -->|key exists?| PG1[(PostgreSQL<br>idempotency_keys)]
     PG1 -->|cache hit| Client
     MW -->|cache miss| H[PaymentHandler]
-    H --> SVC[LedgerService\nvalidate amount + accounts]
+    H --> SVC[LedgerService<br>validate amount + accounts]
     SVC --> REPO[LedgerRepo.TransferTx]
     REPO -->|BEGIN| TX[Transaction]
-    TX -->|SELECT ... FOR UPDATE| PG2[(PostgreSQL\naccounts)]
+    TX -->|SELECT ... FOR UPDATE| PG2[(PostgreSQL<br>accounts)]
     TX -->|debit + credit + INSERT payment| PG2
     TX -->|COMMIT| REPO
     REPO --> H
@@ -450,7 +450,7 @@ graph TD
     MW -->|store response| PG1
     MW -->|201 JSON| Client
 
-    CLEANUP[TTL Cleanup Goroutine\ntime.Ticker] -->|DELETE expired| PG1
+    CLEANUP[TTL Cleanup Goroutine<br>time.Ticker] -->|DELETE expired| PG1
 ```
 
 Mock payment API that prevents double-charges. The idempotency middleware intercepts every `POST /payments`, checks for a cached response by key, and replays it on retry — the handler never runs twice. `SELECT ... FOR UPDATE` prevents concurrent overdrafts at the DB level.
@@ -462,14 +462,14 @@ Mock payment API that prevents double-charges. The idempotency middleware interc
 ```mermaid
 graph TD
     Webhook[POST /webhooks/ticket] --> ENG[TriageEngine.Start]
-    ENG --> N1[categorize\nLLM → category]
-    N1 --> N2[retrieveRunbook\npgvector cosine search]
-    N2 --> N3[executeDiagnostic\nHTTP → CI build status]
-    N3 --> N4[draftResolution\nLLM → response draft]
-    N4 --> N5[awaitHuman\nSave JSONB to PG\nNotify engineer]
-    N5 -->|PAUSED| PG[(PostgreSQL\ninvestigation_states JSONB\nrunbook_chunks vector 1536)]
+    ENG --> N1[categorize<br>LLM → category]
+    N1 --> N2[retrieveRunbook<br>pgvector cosine search]
+    N2 --> N3[executeDiagnostic<br>HTTP → CI build status]
+    N3 --> N4[draftResolution<br>LLM → response draft]
+    N4 --> N5[awaitHuman<br>Save JSONB to PG<br>Notify engineer]
+    N5 -->|PAUSED| PG[(PostgreSQL<br>investigation_states JSONB<br>runbook_chunks vector 1536)]
 
-    Resume[POST /graph/resume\napproved: true/false] --> LOAD[Load state from PG]
+    Resume[POST /graph/resume<br>approved: true/false] --> LOAD[Load state from PG]
     LOAD -->|approved| DONE[StatusCompleted]
     LOAD -->|rejected| REJ[StatusRejected]
     DONE & REJ --> PG
@@ -487,16 +487,16 @@ Go-based LangGraph-equivalent workflow engine. State is serialized as JSONB and 
 
 ```mermaid
 graph TD
-    API[HTTP API\nPOST /orders] --> ORCH[Saga Orchestrator]
-    ORCH --> SM[State Machine\nstep tracking]
-    SM --> LOG[Saga Log\npersist state]
+    API[HTTP API<br>POST /orders] --> ORCH[Saga Orchestrator]
+    ORCH --> SM[State Machine<br>step tracking]
+    SM --> LOG[Saga Log<br>persist state]
     
     ORCH -->|1| S1[OrderService.Create]
     ORCH -->|2| S2[PaymentService.Charge]
     ORCH -->|3| S3[InventoryService.Reserve]
     ORCH -->|4| S4[ShippingService.Schedule]
     
-    S3 -->|fail| COMP[Compensator\nreverse order]
+    S3 -->|fail| COMP[Compensator<br>reverse order]
     COMP -->|undo 2| C2[PaymentService.Refund]
     COMP -->|undo 1| C1[OrderService.Cancel]
 ```
@@ -509,13 +509,13 @@ Saga pattern orchestrator for distributed transactions. Executes steps sequentia
 
 ```mermaid
 graph TD
-    CMD[Command\nDeposit / Transfer] --> AGG[Account Aggregate\nvalidate + emit]
-    AGG --> ES[(Event Store\nappend-only\noptimistic concurrency)]
+    CMD[Command<br>Deposit / Transfer] --> AGG[Account Aggregate<br>validate + emit]
+    AGG --> ES[(Event Store<br>append-only<br>optimistic concurrency)]
     
-    ES --> P1[Balance Projection\naccount → balance]
-    ES --> P2[History Projection\naccount → events]
+    ES --> P1[Balance Projection<br>account → balance]
+    ES --> P2[History Projection<br>account → events]
     
-    QUERY[Query\nGetBalance] --> P1
+    QUERY[Query<br>GetBalance] --> P1
     QUERY --> P2
 ```
 

@@ -57,10 +57,10 @@ service Greeter {
 
 ```mermaid
 graph LR
-    U["Unary\nreq → resp"] 
-    SS["Server Streaming\nreq → stream"]
-    CS["Client Streaming\nstream → resp"]
-    BD["Bidirectional\nstream ↔ stream"]
+    U["Unary<br>req → resp"] 
+    SS["Server Streaming<br>req → stream"]
+    CS["Client Streaming<br>stream → resp"]
+    BD["Bidirectional<br>stream ↔ stream"]
 ```
 
 **This project implements modes 1 and 2.** Bidirectional streaming is used for real-time systems (gRPC-based chat, live telemetry).

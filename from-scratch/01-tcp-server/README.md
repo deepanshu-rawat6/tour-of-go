@@ -6,12 +6,12 @@ A raw TCP echo server built with Go's `net` package — no `net/http`, no framew
 
 ```mermaid
 graph TD
-    C1[Client 1] -->|TCP connect| LN[net.Listener\n:8080]
+    C1[Client 1] -->|TCP connect| LN[net.Listener<br>:8080]
     C2[Client 2] --> LN
     C3[Client N] --> LN
-    LN -->|Accept| G1[goroutine\nio.Copy conn→conn]
-    LN --> G2[goroutine\nio.Copy conn→conn]
-    LN --> GN[goroutine\nio.Copy conn→conn]
+    LN -->|Accept| G1[goroutine<br>io.Copy conn→conn]
+    LN --> G2[goroutine<br>io.Copy conn→conn]
+    LN --> GN[goroutine<br>io.Copy conn→conn]
     G1 -->|echo bytes| C1
     G2 -->|echo bytes| C2
     GN -->|echo bytes| C3

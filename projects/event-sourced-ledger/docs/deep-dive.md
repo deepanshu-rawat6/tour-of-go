@@ -24,7 +24,7 @@ The core loop is: **load events → replay → validate command → emit new eve
 
 ```mermaid
 sequenceDiagram
-    participant CMD as Command\n(Deposit 500)
+    participant CMD as Command<br>(Deposit 500)
     participant STORE as Event Store
     participant AGG as Account Aggregate
 
@@ -133,10 +133,10 @@ Event sourcing pairs naturally with CQRS because rebuilding state from events on
 
 ```mermaid
 graph LR
-    CMD[Command\nDeposit / Transfer] --> WRITE[Write Side\nAggregate + Event Store]
+    CMD[Command<br>Deposit / Transfer] --> WRITE[Write Side<br>Aggregate + Event Store]
     WRITE -->|events| PROJ[Projection Builder]
-    PROJ -->|update| READ[(Read Model\ncurrent balance\nper account)]
-    QUERY[Query\nGetBalance] --> READ
+    PROJ -->|update| READ[(Read Model<br>current balance<br>per account)]
+    QUERY[Query<br>GetBalance] --> READ
 ```
 
 ```go
@@ -175,7 +175,7 @@ After 10,000 deposits to an account, hydrating requires loading 10,000 events. S
 
 ```mermaid
 graph LR
-    SNAP["Snapshot\n{balance:850, version:1000}"] -->|load| AGG[Aggregate]
+    SNAP["Snapshot<br>{balance:850, version:1000}"] -->|load| AGG[Aggregate]
     EVENTS["Events 1001..1015"] -->|replay 15 events| AGG
     AGG -->|ready| CMD[Handle Command]
 ```

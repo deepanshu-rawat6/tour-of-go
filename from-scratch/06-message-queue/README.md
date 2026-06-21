@@ -6,10 +6,10 @@ An in-memory pub/sub message broker with a TCP server interface.
 
 ```mermaid
 graph LR
-    P[Producer\ncmd/producer] -->|PUB events msg\n| TCP[TCP Server\n:9001]
-    TCP --> B[Broker\ntopics map]
-    B -->|fan-out| CH1[chan Message\nsubscriber 1]
-    B --> CH2[chan Message\nsubscriber 2]
+    P[Producer<br>cmd/producer] -->|PUB events msg<br>| TCP[TCP Server<br>:9001]
+    TCP --> B[Broker<br>topics map]
+    B -->|fan-out| CH1[chan Message<br>subscriber 1]
+    B --> CH2[chan Message<br>subscriber 2]
     CH1 -->|MSG events msg| C1[Consumer 1]
     CH2 -->|MSG events msg| C2[Consumer 2]
 ```
@@ -18,11 +18,11 @@ graph LR
 
 ```
 # Publish
-PUB <topic> <payload>\n  →  OK\n
+PUB <topic> <payload><br>  →  OK<br>
 
 # Subscribe
-SUB <topic>\n            →  OK\n
-                         ←  MSG <topic> <payload>\n  (for each message)
+SUB <topic><br>            →  OK<br>
+                         ←  MSG <topic> <payload><br>  (for each message)
 ```
 
 ## Quick Start

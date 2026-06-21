@@ -12,9 +12,9 @@ All possible hash values form a ring (0 → 2³²-1 for crc32). Nodes are placed
 
 ```mermaid
 graph TD
-    K1["key:user:42\nhash → 850M\n→ cache-2 (900M)"]
-    K2["key:session:7\nhash → 100M\n→ cache-1 (200M)"]
-    K3["key:order:99\nhash → 3.5B\n→ cache-1 (wraps around)"]
+    K1["key:user:42<br>hash → 850M<br>→ cache-2 (900M)"]
+    K2["key:session:7<br>hash → 100M<br>→ cache-1 (200M)"]
+    K3["key:order:99<br>hash → 3.5B<br>→ cache-1 (wraps around)"]
 
     RING["Ring: 0 ───────── 200M(cache-1) ──── 900M(cache-2) ──── 2.5B(cache-3) ──── 4.2B → 0"]
     RING --> K1
@@ -28,12 +28,12 @@ One physical node → 150 virtual nodes, each at a different ring position. Prev
 
 ```mermaid
 graph LR
-    P1[cache-1] --> V1A[cache-1#0\npos: 123M]
-    P1 --> V1B[cache-1#1\npos: 789M]
-    P1 --> V1C[cache-1#2\npos: 2.1B]
-    P2[cache-2] --> V2A[cache-2#0\npos: 456M]
-    P2 --> V2B[cache-2#1\npos: 1.5B]
-    P2 --> V2C[cache-2#2\npos: 3.8B]
+    P1[cache-1] --> V1A[cache-1#0<br>pos: 123M]
+    P1 --> V1B[cache-1#1<br>pos: 789M]
+    P1 --> V1C[cache-1#2<br>pos: 2.1B]
+    P2[cache-2] --> V2A[cache-2#0<br>pos: 456M]
+    P2 --> V2B[cache-2#1<br>pos: 1.5B]
+    P2 --> V2C[cache-2#2<br>pos: 3.8B]
 ```
 
 Without virtual nodes: uneven ring gaps → one node gets 60% of keys, another gets 5%.
@@ -44,10 +44,10 @@ With 150 virtual nodes: each physical node handles `~1/N` of keyspace regardless
 ```mermaid
 flowchart LR
     KEY["key: user:42"] --> HASH["crc32(key) → pos"]
-    HASH --> BS["binary search\nsorted []uint32 positions"]
-    BS --> IDX["first position ≥ hash\n(wrap to 0 if none)"]
+    HASH --> BS["binary search<br>sorted []uint32 positions"]
+    BS --> IDX["first position ≥ hash<br>(wrap to 0 if none)"]
     IDX --> VNODE["virtual node at that position"]
-    VNODE --> PHYS["physical node\n(strip #N suffix)"]
+    VNODE --> PHYS["physical node<br>(strip #N suffix)"]
 ```
 
 ```go
@@ -69,13 +69,13 @@ func (r *Ring) Get(key string) string {
 
 ```mermaid
 flowchart TD
-    ADD["AddNode(cache-4)"] --> PLACE["place 150 virtual nodes\nat crc32(cache-4#0..149)"]
-    PLACE --> REBUCKET["only keys that now land\nbetween new positions\n→ remap to cache-4"]
-    REBUCKET --> FRAC["~1/N keys moved\nall others unchanged"]
+    ADD["AddNode(cache-4)"] --> PLACE["place 150 virtual nodes<br>at crc32(cache-4#0..149)"]
+    PLACE --> REBUCKET["only keys that now land<br>between new positions<br>→ remap to cache-4"]
+    REBUCKET --> FRAC["~1/N keys moved<br>all others unchanged"]
 
-    REMOVE["RemoveNode(cache-2)"] --> DELETE["delete cache-2's\n150 positions from ring"]
-    DELETE --> REPOINT["keys that were on cache-2\n→ next clockwise node"]
-    REPOINT --> FRAC2["~1/N keys moved\nall others unchanged"]
+    REMOVE["RemoveNode(cache-2)"] --> DELETE["delete cache-2's<br>150 positions from ring"]
+    DELETE --> REPOINT["keys that were on cache-2<br>→ next clockwise node"]
+    REPOINT --> FRAC2["~1/N keys moved<br>all others unchanged"]
 ```
 
 **Why 1/N?** Each virtual node covers 1/(total vnodes) of the ring. Removing N physical nodes × 150 vnodes means those ring segments now point to the next clockwise node — only the keys in those segments move.

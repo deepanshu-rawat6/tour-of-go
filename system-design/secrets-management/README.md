@@ -21,8 +21,8 @@ graph TD
         ESO[External Secrets Operator]
     end
     
-    BAD[Secrets exposed\nin logs, Git history, backups] --> ENV
-    GOOD[Encrypted at rest\naudited access\nrotatable] --> VAULT
+    BAD[Secrets exposed<br>in logs, Git history, backups] --> ENV
+    GOOD[Encrypted at rest<br>audited access<br>rotatable] --> VAULT
 ```
 
 ---
@@ -43,11 +43,11 @@ graph TD
 
 ```mermaid
 graph LR
-    DEV[Developer] -->|kubeseal encrypt| SS[SealedSecret\nencrypted YAML\nsafe for Git]
+    DEV[Developer] -->|kubeseal encrypt| SS[SealedSecret<br>encrypted YAML<br>safe for Git]
     SS -->|push to Git| GIT[Git Repo]
     GIT --> ARGO[ArgoCD]
     ARGO --> K8S[Cluster]
-    K8S --> CTRL[Sealed Secrets Controller\ndecrypt → K8s Secret]
+    K8S --> CTRL[Sealed Secrets Controller<br>decrypt → K8s Secret]
 ```
 
 ```bash
@@ -66,9 +66,9 @@ kubeseal --format yaml < secret.yaml > sealed-secret.yaml
 
 ```mermaid
 graph LR
-    ASM[AWS Secrets Manager\nor Vault or GCP SM] --> ESO[External Secrets Operator]
-    ESO --> K8S_SECRET[K8s Secret\nauto-synced]
-    K8S_SECRET --> POD[Pod\nenvFrom: secretRef]
+    ASM[AWS Secrets Manager<br>or Vault or GCP SM] --> ESO[External Secrets Operator]
+    ESO --> K8S_SECRET[K8s Secret<br>auto-synced]
+    K8S_SECRET --> POD[Pod<br>envFrom: secretRef]
 ```
 
 ```yaml
@@ -101,10 +101,10 @@ graph TD
     APP[Go App] -->|authenticate| VAULT[Vault Server]
     VAULT -->|return lease| APP
     APP -->|read secret| VAULT
-    VAULT --> BACKEND[Secret Backend\nKV v2 / Database / PKI]
+    VAULT --> BACKEND[Secret Backend<br>KV v2 / Database / PKI]
     
-    VAULT --> AUDIT[Audit Log\nwho accessed what, when]
-    VAULT --> ROTATE[Auto-Rotation\ndynamic credentials]
+    VAULT --> AUDIT[Audit Log<br>who accessed what, when]
+    VAULT --> ROTATE[Auto-Rotation<br>dynamic credentials]
 ```
 
 ### Go Integration

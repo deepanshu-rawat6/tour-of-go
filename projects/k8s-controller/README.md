@@ -9,10 +9,10 @@ A minimal Kubernetes operator built with `controller-runtime`. It watches a cust
 ```mermaid
 graph TD
     USER[kubectl apply -f greeting.yaml] --> API[Kubernetes API Server]
-    API -->|watch event ADDED/MODIFIED| CTRL[Greeting Controller\ncontroller-runtime]
+    API -->|watch event ADDED/MODIFIED| CTRL[Greeting Controller<br>controller-runtime]
     CTRL -->|Reconcile| FETCH[Fetch Greeting CR]
     FETCH --> CHECK{ConfigMap exists?}
-    CHECK -->|No| CREATE[Create ConfigMap\ngreeting-config]
+    CHECK -->|No| CREATE[Create ConfigMap<br>greeting-config]
     CHECK -->|Yes, message changed| UPDATE[Update ConfigMap]
     CHECK -->|Yes, in sync| NOOP[no-op]
     CREATE & UPDATE --> STATUS[Update Greeting.status.ready = true]

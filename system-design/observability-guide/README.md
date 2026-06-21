@@ -9,14 +9,14 @@ Structured logging with `log/slog`, trace ID propagation, and the three pillars 
 ```mermaid
 graph TD
     subgraph Observability
-        LOGS[Logs\nstructured events\nwhat happened]
-        METRICS[Metrics\nnumeric time-series\nhow much / how fast]
-        TRACES[Traces\nrequest journey\nwhere time is spent]
+        LOGS[Logs<br>structured events<br>what happened]
+        METRICS[Metrics<br>numeric time-series<br>how much / how fast]
+        TRACES[Traces<br>request journey<br>where time is spent]
     end
     
-    LOGS --> ALERT[Alerting\nlog-based alerts]
-    METRICS --> DASH[Dashboards\nGrafana / CloudWatch]
-    TRACES --> DEBUG[Debugging\nlatency analysis]
+    LOGS --> ALERT[Alerting<br>log-based alerts]
+    METRICS --> DASH[Dashboards<br>Grafana / CloudWatch]
+    TRACES --> DEBUG[Debugging<br>latency analysis]
 ```
 
 ---
@@ -26,10 +26,10 @@ graph TD
 ```mermaid
 graph LR
     APP[Application] --> SLOG[slog.Logger]
-    SLOG --> JSON[JSONHandler\nproduction]
-    SLOG --> TEXT[TextHandler\ndevelopment]
+    SLOG --> JSON[JSONHandler<br>production]
+    SLOG --> TEXT[TextHandler<br>development]
     JSON --> STDOUT[stdout → collector]
-    STDOUT --> AGG[Log Aggregator\nLoki / CloudWatch / ELK]
+    STDOUT --> AGG[Log Aggregator<br>Loki / CloudWatch / ELK]
 ```
 
 ### Why Structured Logging?

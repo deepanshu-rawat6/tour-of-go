@@ -43,9 +43,9 @@ func TestAdd(t *testing.T) {
 
 ```mermaid
 graph TD
-    HANDLER[Handler] --> PORT[UserRepository\ninterface]
-    PORT --> REAL[PostgresRepo\nproduction]
-    PORT --> MOCK[MockRepo\ntesting]
+    HANDLER[Handler] --> PORT[UserRepository<br>interface]
+    PORT --> REAL[PostgresRepo<br>production]
+    PORT --> MOCK[MockRepo<br>testing]
 ```
 
 ```go

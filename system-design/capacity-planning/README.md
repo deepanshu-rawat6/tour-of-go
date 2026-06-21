@@ -92,10 +92,10 @@ W = average time in system (latency)
 
 ```mermaid
 graph LR
-    IN[λ = 1000 req/s] --> SYS[System\nL = concurrent requests]
+    IN[λ = 1000 req/s] --> SYS[System<br>L = concurrent requests]
     SYS --> OUT[completed]
     
-    Note[If W = 200ms:\nL = 1000 × 0.2 = 200 concurrent requests\n→ need 200 goroutines / connections]
+    Note[If W = 200ms:<br>L = 1000 × 0.2 = 200 concurrent requests<br>→ need 200 goroutines / connections]
 ```
 
 ### Practical Applications

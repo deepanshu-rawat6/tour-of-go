@@ -13,13 +13,13 @@ graph TD
     Client -->|DELETE /cache/:key| H
     Client -->|GET /stats| H
 
-    H --> SF[SingleflightCache\nstampede prevention]
-    SF --> CA[CacheAside\nlazy loading]
-    CA -->|hit| LRU[LRU Cache\nin-memory]
-    CA -->|miss| ST[Backing Store\nMemory or Redis]
+    H --> SF[SingleflightCache<br>stampede prevention]
+    SF --> CA[CacheAside<br>lazy loading]
+    CA -->|hit| LRU[LRU Cache<br>in-memory]
+    CA -->|miss| ST[Backing Store<br>Memory or Redis]
     ST -->|populate| LRU
 
-    H --> WT[WriteThrough\nalternative strategy]
+    H --> WT[WriteThrough<br>alternative strategy]
     WT -->|write| LRU
     WT -->|write| ST
 ```

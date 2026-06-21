@@ -26,13 +26,13 @@ Supported syntax:
 
 ```mermaid
 graph TD
-    EXPR[cron expression\n5 fields] --> SPLIT[strings.Fields]
-    SPLIT --> F1[minute field\nparseField 0-59]
-    SPLIT --> F2[hour field\nparseField 0-23]
-    SPLIT --> F3[day field\nparseField 1-31]
-    SPLIT --> F4[month field\nparseField 1-12]
-    SPLIT --> F5[weekday field\nparseField 0-6]
-    F1 & F2 & F3 & F4 & F5 --> BITS[bool arrays\nO1 match lookup]
+    EXPR[cron expression<br>5 fields] --> SPLIT[strings.Fields]
+    SPLIT --> F1[minute field<br>parseField 0-59]
+    SPLIT --> F2[hour field<br>parseField 0-23]
+    SPLIT --> F3[day field<br>parseField 1-31]
+    SPLIT --> F4[month field<br>parseField 1-12]
+    SPLIT --> F5[weekday field<br>parseField 0-6]
+    F1 & F2 & F3 & F4 & F5 --> BITS[bool arrays<br>O1 match lookup]
 ```
 
 Each field is parsed into a `[]bool` array. Matching is O(1) — just index into the array.
@@ -41,11 +41,11 @@ Each field is parsed into a `[]bool` array. Matching is O(1) — just index into
 
 ```mermaid
 graph TD
-    START[Start ctx] --> TICKER[time.NewTicker\nevery second]
+    START[Start ctx] --> TICKER[time.NewTicker<br>every second]
     TICKER -->|now| TICK[tick now]
-    TICK --> SCAN[scan all tasks\nRLock]
-    SCAN --> MATCH{schedule.Match\nnow}
-    MATCH -->|true| FIRE[go task.Fn\nnew goroutine]
+    TICK --> SCAN[scan all tasks<br>RLock]
+    SCAN --> MATCH{schedule.Match<br>now}
+    MATCH -->|true| FIRE[go task.Fn<br>new goroutine]
     MATCH -->|false| SKIP[skip]
     FIRE & SKIP --> TICKER
     CTX[ctx.Done] --> STOP[return]

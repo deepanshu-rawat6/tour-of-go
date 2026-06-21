@@ -9,8 +9,8 @@ sequenceDiagram
     participant C as Browser
     participant S as Server
 
-    C->>S: GET /ws HTTP/1.1\nUpgrade: websocket\nSec-WebSocket-Key: ...
-    S-->>C: 101 Switching Protocols\nUpgrade: websocket\nSec-WebSocket-Accept: ...
+    C->>S: GET /ws HTTP/1.1<br>Upgrade: websocket<br>Sec-WebSocket-Key: ...
+    S-->>C: 101 Switching Protocols<br>Upgrade: websocket<br>Sec-WebSocket-Accept: ...
     Note over C,S: TCP connection stays open
     C->>S: Text frame: {"text":"hello"}
     S-->>C: Text frame: alice: hello
@@ -23,9 +23,9 @@ The hub is a single goroutine that owns all client state. No locks needed on the
 
 ```mermaid
 graph TD
-    C1[Client 1\ngoroutine] -->|join general| HUB[Hub goroutine\nselect loop]
-    C2[Client 2\ngoroutine] -->|join general| HUB
-    C3[Client 3\ngoroutine] -->|join other| HUB
+    C1[Client 1<br>goroutine] -->|join general| HUB[Hub goroutine<br>select loop]
+    C2[Client 2<br>goroutine] -->|join general| HUB
+    C3[Client 3<br>goroutine] -->|join other| HUB
     C1 -->|publish Message| HUB
     HUB -->|broadcast to general| C1
     HUB -->|broadcast to general| C2
@@ -38,8 +38,8 @@ Each WebSocket connection spawns two goroutines — one for reading, one for wri
 
 ```mermaid
 graph LR
-    CONN[net.Conn\nWebSocket] --> RG[Reader goroutine\nconn.ReadMessage\nblocks on network]
-    CONN --> WG[Writer goroutine\nconn.WriteMessage\ndrains send channel]
+    CONN[net.Conn<br>WebSocket] --> RG[Reader goroutine<br>conn.ReadMessage<br>blocks on network]
+    CONN --> WG[Writer goroutine<br>conn.WriteMessage<br>drains send channel]
     RG -->|hub.Publish| HUB[Hub]
     HUB -->|client.send chan| WG
 ```
@@ -50,10 +50,10 @@ The writer goroutine uses a buffered `send chan []byte`. If the channel is full 
 
 ```mermaid
 graph TD
-    HUB[Hub\nrooms map] --> R1[room: general\nset of clients]
-    HUB --> R2[room: engineering\nset of clients]
-    HUB --> R3[room: random\nset of clients]
-    MSG[Message\nRoom: general] --> HUB
+    HUB[Hub<br>rooms map] --> R1[room: general<br>set of clients]
+    HUB --> R2[room: engineering<br>set of clients]
+    HUB --> R3[room: random<br>set of clients]
+    MSG[Message<br>Room: general] --> HUB
     HUB -->|only sends to| R1
 ```
 

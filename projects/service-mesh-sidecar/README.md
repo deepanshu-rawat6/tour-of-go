@@ -8,14 +8,14 @@ A TCP reverse proxy sidecar with token bucket rate limiting, a 3-state circuit b
 
 ```mermaid
 graph LR
-    Client -->|TCP| PROXY[Sidecar Proxy\n:8080]
-    PROXY --> RL[Token Bucket\nRate Limiter\nper client IP]
-    RL -->|allowed| CB[Circuit Breaker\nClosed / Open / Half-Open]
-    CB -->|closed| UP[Upstream Service\n:9090]
+    Client -->|TCP| PROXY[Sidecar Proxy<br>:8080]
+    PROXY --> RL[Token Bucket<br>Rate Limiter<br>per client IP]
+    RL -->|allowed| CB[Circuit Breaker<br>Closed / Open / Half-Open]
+    CB -->|closed| UP[Upstream Service<br>:9090]
     CB -->|open| ERR[drop connection]
     RL -->|rate limited| DROP[drop connection]
-    PROXY --> M[Prometheus Metrics\n:9091 /metrics]
-    PROXY --> H[Health Check\n:9091 /health]
+    PROXY --> M[Prometheus Metrics<br>:9091 /metrics]
+    PROXY --> H[Health Check<br>:9091 /health]
 ```
 
 ## Circuit Breaker States

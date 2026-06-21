@@ -41,7 +41,7 @@ graph TD
     CHECK2["Contains: baz?"] --> D1["hash1(baz) → 3 → 1"]
     CHECK2 --> D2["hash2(baz) → 7 → 1"]
     CHECK2 --> D3["hash3(baz) → 11 → 1"]
-    D1 & D2 & D3 --> MAYBE["Probably in set\n(may be false positive)"]
+    D1 & D2 & D3 --> MAYBE["Probably in set<br>(may be false positive)"]
 ```
 
 **Key property:** False negatives are impossible. If all bits are set, the element was either added OR it's a false positive.
@@ -104,7 +104,7 @@ One register tracks the max leading zeros seen. This would be noisy, so HyperLog
 graph TD
     ELEM["element: user:42"] --> HASH["FNV hash → 64 bits"]
     HASH --> PREFIX["top 14 bits → register index (0..16383)"]
-    HASH --> ZEROS["remaining 50 bits\n→ count leading zeros → max per register"]
+    HASH --> ZEROS["remaining 50 bits<br>→ count leading zeros → max per register"]
     PREFIX --> REG["registers[index] = max(registers[index], leading_zeros)"]
     REG --> EST["cardinality = α × m² × harmonic_mean(2^registers[i])"]
 ```

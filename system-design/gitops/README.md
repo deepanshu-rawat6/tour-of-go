@@ -8,10 +8,10 @@ Declarative deployment with ArgoCD and Flux — Git as the single source of trut
 
 ```mermaid
 graph LR
-    DEV[Developer] -->|push code| CODE[App Repo\nsrc + Dockerfile]
-    CODE -->|CI builds image| REG[Container Registry\nghcr.io/org/app:sha]
-    REG -->|update image tag| CONFIG[Config Repo\nk8s manifests / Helm values]
-    CONFIG -->|sync| ARGO[ArgoCD / Flux\nreconciliation loop]
+    DEV[Developer] -->|push code| CODE[App Repo<br>src + Dockerfile]
+    CODE -->|CI builds image| REG[Container Registry<br>ghcr.io/org/app:sha]
+    REG -->|update image tag| CONFIG[Config Repo<br>k8s manifests / Helm values]
+    CONFIG -->|sync| ARGO[ArgoCD / Flux<br>reconciliation loop]
     ARGO -->|apply| K8S[Kubernetes Cluster]
     
     K8S -->|drift detected| ARGO
@@ -32,13 +32,13 @@ graph LR
 graph TD
     subgraph Push (Traditional CI/CD)
         CI1[CI Pipeline] -->|kubectl apply| K8S1[Cluster]
-        Note1[CI has cluster credentials\nSecurity risk]
+        Note1[CI has cluster credentials<br>Security risk]
     end
     
     subgraph Pull (GitOps)
         GIT[Git Repo] --> AGENT[ArgoCD in-cluster]
         AGENT -->|reconcile| K8S2[Cluster]
-        Note2[No external access needed\nAgent pulls from Git]
+        Note2[No external access needed<br>Agent pulls from Git]
     end
 ```
 
@@ -56,7 +56,7 @@ graph TD
 
 ```mermaid
 graph TD
-    GIT[Git Repo\nmanifests/] --> ARGO[ArgoCD Server]
+    GIT[Git Repo<br>manifests/] --> ARGO[ArgoCD Server]
     ARGO --> APP[Application CRD]
     APP --> SYNC{In Sync?}
     SYNC -->|Yes| HEALTHY[✅ Healthy]
@@ -157,9 +157,9 @@ k8s-manifests/
 
 ```mermaid
 graph LR
-    CI[CI: build + push\nghcr.io/org/app:v1.2.3] --> REG[Registry]
-    REG --> IUA[Image Update Automation\nFlux / ArgoCD Image Updater]
-    IUA -->|commit new tag| GIT[Git Repo\nupdate image: v1.2.3]
+    CI[CI: build + push<br>ghcr.io/org/app:v1.2.3] --> REG[Registry]
+    REG --> IUA[Image Update Automation<br>Flux / ArgoCD Image Updater]
+    IUA -->|commit new tag| GIT[Git Repo<br>update image: v1.2.3]
     GIT --> AGENT[GitOps Agent]
     AGENT --> K8S[Deploy new version]
 ```

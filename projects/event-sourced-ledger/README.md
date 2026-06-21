@@ -13,12 +13,12 @@ A financial ledger built with Event Sourcing + CQRS — every state change is an
 ```mermaid
 graph LR
     subgraph CRUD
-        REQ1[Transfer $100] --> DB1[(accounts table\nbalance = balance - 100)]
-        Note1[State is mutable\nhistory is lost]
+        REQ1[Transfer $100] --> DB1[(accounts table<br>balance = balance - 100)]
+        Note1[State is mutable<br>history is lost]
     end
     
     subgraph Event Sourcing
-        REQ2[Transfer $100] --> ES[(Event Store\nappend-only log)]
+        REQ2[Transfer $100] --> ES[(Event Store<br>append-only log)]
         ES --> E1[AccountOpened t=1]
         ES --> E2[MoneyDeposited $500 t=2]
         ES --> E3[MoneyTransferred $100 t=3]
@@ -32,14 +32,14 @@ graph LR
 
 ```mermaid
 graph TD
-    CMD[Command\nDeposit / Withdraw / Transfer] --> AGG[Aggregate\nAccount]
-    AGG -->|validate + emit| ES[(Event Store\nappend-only)]
+    CMD[Command<br>Deposit / Withdraw / Transfer] --> AGG[Aggregate<br>Account]
+    AGG -->|validate + emit| ES[(Event Store<br>append-only)]
     
-    ES -->|subscribe| P1[Balance Projection\nread-optimized view]
-    ES -->|subscribe| P2[Transaction History\nread-optimized view]
-    ES -->|subscribe| P3[Audit Log\ncompliance]
+    ES -->|subscribe| P1[Balance Projection<br>read-optimized view]
+    ES -->|subscribe| P2[Transaction History<br>read-optimized view]
+    ES -->|subscribe| P3[Audit Log<br>compliance]
     
-    QUERY[Query\nGetBalance / GetHistory] --> P1
+    QUERY[Query<br>GetBalance / GetHistory] --> P1
     QUERY --> P2
 ```
 
@@ -74,11 +74,11 @@ sequenceDiagram
 ```mermaid
 graph TD
     HTTP[HTTP API] --> CH[Command Handler]
-    CH --> AGG[Account Aggregate\nvalidation + business rules]
-    AGG --> ES[(Event Store\nin-memory / append-only)]
+    CH --> AGG[Account Aggregate<br>validation + business rules]
+    AGG --> ES[(Event Store<br>in-memory / append-only)]
     
-    ES --> BP[Balance Projection\nmap account→balance]
-    ES --> HP[History Projection\nmap account→events]
+    ES --> BP[Balance Projection<br>map account→balance]
+    ES --> HP[History Projection<br>map account→events]
     
     HTTP --> QH[Query Handler]
     QH --> BP

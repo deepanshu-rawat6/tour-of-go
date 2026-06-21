@@ -10,7 +10,7 @@ graph LR
     HANDLER -->|html/template| BROWSER
     BROWSER -->|WebSocket /ws| HUB[WebSocket Hub]
     BROWSER -->|HTMX hx-get every 2s| HANDLER
-    POLLER[Scheduler Poller\ngoroutine] -->|GET /concurrency/keys| SCHEDULER[distributed-scheduler\n:8080]
+    POLLER[Scheduler Poller<br>goroutine] -->|GET /concurrency/keys| SCHEDULER[distributed-scheduler<br>:8080]
     POLLER -->|Broadcast| HUB
     HUB -->|JSON push| BROWSER
     BROWSER -->|HTMX hx-post /jobs| HANDLER

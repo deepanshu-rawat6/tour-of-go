@@ -8,17 +8,17 @@ A task worker system demonstrating **RabbitMQ** (AMQP) with durable exchanges, d
 
 ```mermaid
 graph LR
-    P[Producer\ncmd/producer] -->|publish persistent| EX[tasks\ndirect exchange]
-    EX -->|routing key: task| Q[tasks.queue\ndurable + DLX binding]
-    Q -->|prefetch=5\nautoAck=false| W1[Worker 1]
+    P[Producer<br>cmd/producer] -->|publish persistent| EX[tasks<br>direct exchange]
+    EX -->|routing key: task| Q[tasks.queue<br>durable + DLX binding]
+    Q -->|prefetch=5<br>autoAck=false| W1[Worker 1]
     Q --> W2[Worker 2]
     Q --> W3[Worker 3]
     W1 -->|success| ACK[Ack]
     W2 -->|fail retries lt 3| NACK_R[Nack requeue]
     W3 -->|fail retries ≥ 3| NACK_D[Nack no-requeue]
     NACK_R -->|back to queue| Q
-    NACK_D --> DLX[tasks.dlx\nfanout exchange]
-    DLX --> DLQ[tasks.dlq\ndead letter queue]
+    NACK_D --> DLX[tasks.dlx<br>fanout exchange]
+    DLX --> DLQ[tasks.dlq<br>dead letter queue]
 ```
 
 ## Message Lifecycle

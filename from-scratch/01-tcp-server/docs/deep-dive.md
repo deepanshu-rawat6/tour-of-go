@@ -25,12 +25,12 @@ The server's core is an infinite loop that blocks on `ln.Accept()` until a clien
 
 ```mermaid
 graph TD
-    BIND[net.Listen\nbind :8080] --> LOOP[Accept loop]
-    LOOP -->|blocks until client connects| ACCEPT[ln.Accept\nreturns net.Conn]
-    ACCEPT --> GOROUTINE[go handle conn\nnew goroutine per connection]
+    BIND[net.Listen<br>bind :8080] --> LOOP[Accept loop]
+    LOOP -->|blocks until client connects| ACCEPT[ln.Accept<br>returns net.Conn]
+    ACCEPT --> GOROUTINE[go handle conn<br>new goroutine per connection]
     GOROUTINE --> LOOP
-    GOROUTINE --> ECHO[io.Copy conn→conn\necho all bytes]
-    ECHO --> CLOSE[conn.Close\nwhen client disconnects]
+    GOROUTINE --> ECHO[io.Copy conn→conn<br>echo all bytes]
+    ECHO --> CLOSE[conn.Close<br>when client disconnects]
 ```
 
 ## Goroutine-per-Connection Model
@@ -39,11 +39,11 @@ Go goroutines start with a 2KB stack (vs 1MB for OS threads), making it practica
 
 ```mermaid
 graph LR
-    LN[Listener] -->|Accept| G1[goroutine 1\nclient A]
-    LN --> G2[goroutine 2\nclient B]
-    LN --> G3[goroutine 3\nclient C]
-    LN --> GN[goroutine N\nclient N]
-    G1 & G2 & G3 & GN -->|scheduled by| GMP[Go runtime\nG-M-P scheduler]
+    LN[Listener] -->|Accept| G1[goroutine 1<br>client A]
+    LN --> G2[goroutine 2<br>client B]
+    LN --> G3[goroutine 3<br>client C]
+    LN --> GN[goroutine N<br>client N]
+    G1 & G2 & G3 & GN -->|scheduled by| GMP[Go runtime<br>G-M-P scheduler]
     GMP -->|OS threads| CPU[CPU cores]
 ```
 
@@ -55,8 +55,8 @@ Each goroutine blocks on `io.Copy` (a read syscall) while waiting for data. The 
 
 ```mermaid
 graph LR
-    SRC[net.Conn\nread side] -->|read up to 32KB| BUF[buffer]
-    BUF -->|write| DST[net.Conn\nwrite side]
+    SRC[net.Conn<br>read side] -->|read up to 32KB| BUF[buffer]
+    BUF -->|write| DST[net.Conn<br>write side]
     DST -->|loop until EOF| SRC
 ```
 

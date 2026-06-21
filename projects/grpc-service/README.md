@@ -27,10 +27,10 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    PROTO[proto/greeter.proto] -->|protoc| PB[gen/greeter/greeter.pb.go\nmessage types]
-    PROTO -->|protoc-gen-go-grpc| GRPC[gen/greeter/greeter_grpc.pb.go\nclient + server interfaces]
-    GRPC --> SERVER[server/main.go\nimplements GreeterServer]
-    GRPC --> CLIENT[client/main.go\nuses GreeterClient]
+    PROTO[proto/greeter.proto] -->|protoc| PB[gen/greeter/greeter.pb.go<br>message types]
+    PROTO -->|protoc-gen-go-grpc| GRPC[gen/greeter/greeter_grpc.pb.go<br>client + server interfaces]
+    GRPC --> SERVER[server/main.go<br>implements GreeterServer]
+    GRPC --> CLIENT[client/main.go<br>uses GreeterClient]
 ```
 
 ## Concepts

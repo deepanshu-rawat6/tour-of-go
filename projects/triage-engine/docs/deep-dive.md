@@ -12,11 +12,11 @@ The key insight: **AI workflows need to pause and resume.** A node may wait hour
 
 ```mermaid
 graph TD
-    START[Start] --> CAT[categorize\nLLM call]
-    CAT --> RET[retrieveRunbook\npgvector search]
-    RET --> DIAG[executeDiagnostic\nHTTP call to CI API]
-    DIAG --> DRAFT[draftResolution\nLLM call]
-    DRAFT --> AWAIT[awaitHuman\nPAUSE — serialize state to DB]
+    START[Start] --> CAT[categorize<br>LLM call]
+    CAT --> RET[retrieveRunbook<br>pgvector search]
+    RET --> DIAG[executeDiagnostic<br>HTTP call to CI API]
+    DIAG --> DRAFT[draftResolution<br>LLM call]
+    DRAFT --> AWAIT[awaitHuman<br>PAUSE — serialize state to DB]
     AWAIT -->|POST /graph/resume approved=true| DONE[StatusCompleted]
     AWAIT -->|POST /graph/resume approved=false| REJ[StatusRejected]
 ```
@@ -114,11 +114,11 @@ RAG (Retrieval-Augmented Generation) retrieves relevant context before asking th
 
 ```mermaid
 graph LR
-    TICKET["Support Ticket\n'k8s pod crashlooping'"] --> EMBED["Embed ticket text\nOpenAI text-embedding-3-small\n→ []float32 (1536 dims)"]
-    EMBED --> SEARCH["pgvector cosine search\nSELECT * FROM runbook_chunks\nORDER BY embedding <=> $1 LIMIT 5"]
-    SEARCH --> CHUNKS["Top 5 runbook chunks\nmatching the problem"]
-    CHUNKS --> LLM["LLM prompt:\nContext: [chunks]\nTicket: [text]\nDraft a resolution:"]
-    LLM --> DRAFT["Draft resolution\ngrounded in real runbooks"]
+    TICKET["Support Ticket<br>'k8s pod crashlooping'"] --> EMBED["Embed ticket text<br>OpenAI text-embedding-3-small<br>→ []float32 (1536 dims)"]
+    EMBED --> SEARCH["pgvector cosine search<br>SELECT * FROM runbook_chunks<br>ORDER BY embedding <=> $1 LIMIT 5"]
+    SEARCH --> CHUNKS["Top 5 runbook chunks<br>matching the problem"]
+    CHUNKS --> LLM["LLM prompt:<br>Context: [chunks]<br>Ticket: [text]<br>Draft a resolution:"]
+    LLM --> DRAFT["Draft resolution<br>grounded in real runbooks"]
 ```
 
 ```go

@@ -93,6 +93,14 @@ Deep-dive reference for Kubernetes internals, AWS architecture, and SRE practice
 | 5XX debugging runbook (K8s + EKS) | `devops/sre/README.md` |
 | OOM recovery (singleton + distributed) | `devops/sre/README.md` |
 | Leader election with `client-go` Lease API | `devops/sre/README.md` |
+| Self-healing infra + AIOps (Argo Events, auto-remediation, LLM agent) | `devops/sre/self-healing-aiops.md` |
+| GPU scheduling, MIG, DCGM metrics | `devops/ai-infra/gpu-scheduling.md` |
+| KubeRay distributed compute, RayCluster | `devops/ai-infra/kuberay.md` |
+| KServe, vLLM serving, PagedAttention, KV cache | `devops/ai-infra/model-serving.md` |
+| RAG, vector DBs, LangSmith tracing, guardrails | `devops/ai-infra/llmops.md` |
+| MLflow / W&B experiment tracking, model registry | `devops/mlops/experiment-tracking.md` |
+| Kubeflow Pipelines, retraining triggers | `devops/mlops/training-pipelines.md` |
+| Data drift detection, shadow scoring, A/B model testing | `devops/mlops/data-drift.md` |
 
 ---
 

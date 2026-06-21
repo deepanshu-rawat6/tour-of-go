@@ -84,7 +84,7 @@ func sseHandler(w http.ResponseWriter, r *http.Request) {
         case <-r.Context().Done():
             return
         case t := <-ticker.C:
-            fmt.Fprintf(w, "event: tick\ndata: %s\n\n", t.Format(time.RFC3339))
+            fmt.Fprintf(w, "event: tick<br>data: %s<br><br>", t.Format(time.RFC3339))
             flusher.Flush()
         }
     }
@@ -138,11 +138,11 @@ func longPollHandler(w http.ResponseWriter, r *http.Request) {
 
 ```mermaid
 graph TD
-    LB[Load Balancer] --> S1[Server 1\n10K connections]
-    LB --> S2[Server 2\n10K connections]
-    LB --> S3[Server 3\n10K connections]
+    LB[Load Balancer] --> S1[Server 1<br>10K connections]
+    LB --> S2[Server 2<br>10K connections]
+    LB --> S3[Server 3<br>10K connections]
     
-    PUB[Event Publisher] --> REDIS[(Redis Pub/Sub\nor NATS)]
+    PUB[Event Publisher] --> REDIS[(Redis Pub/Sub<br>or NATS)]
     REDIS --> S1
     REDIS --> S2
     REDIS --> S3

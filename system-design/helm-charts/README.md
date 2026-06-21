@@ -8,11 +8,11 @@ Chart anatomy, values, templates, and deploying Go microservices to Kubernetes w
 
 ```mermaid
 graph LR
-    VALUES[values.yaml\nconfig per environment] --> TEMPLATES[Templates\n.yaml with Go templating]
-    TEMPLATES --> MANIFESTS[Rendered K8s Manifests\nDeployment, Service, Ingress...]
-    MANIFESTS --> K8S[kubectl apply\nKubernetes cluster]
+    VALUES[values.yaml<br>config per environment] --> TEMPLATES[Templates<br>.yaml with Go templating]
+    TEMPLATES --> MANIFESTS[Rendered K8s Manifests<br>Deployment, Service, Ingress...]
+    MANIFESTS --> K8S[kubectl apply<br>Kubernetes cluster]
     
-    CHART[Chart.yaml\nmetadata + dependencies] --> TEMPLATES
+    CHART[Chart.yaml<br>metadata + dependencies] --> TEMPLATES
 ```
 
 Helm = package manager for Kubernetes. A **chart** is a bundle of templated K8s manifests.
@@ -200,9 +200,9 @@ helm history my-api
 
 ```mermaid
 graph LR
-    BUILD[Build Go Binary\n+ Docker Image] --> PUSH[Push to GHCR\ntag: git-sha]
-    PUSH --> HELM[helm upgrade --install\n--set image.tag=sha]
-    HELM --> K8S[Kubernetes\nrolling update]
+    BUILD[Build Go Binary<br>+ Docker Image] --> PUSH[Push to GHCR<br>tag: git-sha]
+    PUSH --> HELM[helm upgrade --install<br>--set image.tag=sha]
+    HELM --> K8S[Kubernetes<br>rolling update]
 ```
 
 ```yaml

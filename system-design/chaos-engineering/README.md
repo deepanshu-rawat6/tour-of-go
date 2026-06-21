@@ -8,13 +8,13 @@ Fault injection, game days, and building confidence in system resilience.
 
 ```mermaid
 graph TD
-    HYPOTHESIS[Form Hypothesis\n"System handles pod failure gracefully"] --> EXPERIMENT[Design Experiment\nKill 1 of 3 pods]
-    EXPERIMENT --> BLAST[Limit Blast Radius\nstaging first, then prod]
-    BLAST --> RUN[Run Experiment\ninject fault]
-    RUN --> OBSERVE[Observe\nmetrics, errors, latency]
+    HYPOTHESIS[Form Hypothesis<br>"System handles pod failure gracefully"] --> EXPERIMENT[Design Experiment<br>Kill 1 of 3 pods]
+    EXPERIMENT --> BLAST[Limit Blast Radius<br>staging first, then prod]
+    BLAST --> RUN[Run Experiment<br>inject fault]
+    RUN --> OBSERVE[Observe<br>metrics, errors, latency]
     OBSERVE --> LEARN{Hypothesis confirmed?}
     LEARN -->|Yes| CONFIDENCE[✅ Increased confidence]
-    LEARN -->|No| FIX[🔧 Fix weakness\nthen re-test]
+    LEARN -->|No| FIX[🔧 Fix weakness<br>then re-test]
 ```
 
 **Not**: randomly breaking things in production.
@@ -137,10 +137,10 @@ func retryWithBackoff(fn func() error) error {
 ```mermaid
 graph TD
     subgraph Experiment Lifecycle
-        STEADY[📊 Measure Steady State\nbaseline metrics] --> INJECT[💉 Inject Fault\nkill pod / add latency]
-        INJECT --> OBSERVE[👁️ Observe Impact\nerror rate, latency, recovery]
-        OBSERVE --> RECOVER[🔄 Remove Fault\nverify recovery to baseline]
-        RECOVER --> REPORT[📝 Report\nfindings + action items]
+        STEADY[📊 Measure Steady State<br>baseline metrics] --> INJECT[💉 Inject Fault<br>kill pod / add latency]
+        INJECT --> OBSERVE[👁️ Observe Impact<br>error rate, latency, recovery]
+        OBSERVE --> RECOVER[🔄 Remove Fault<br>verify recovery to baseline]
+        RECOVER --> REPORT[📝 Report<br>findings + action items]
     end
 ```
 

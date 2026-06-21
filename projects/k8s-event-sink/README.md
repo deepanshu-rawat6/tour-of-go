@@ -11,19 +11,19 @@ Single binary. Zero external dependencies. Mount a PersistentVolume and deploy.
 ```mermaid
 graph TD
     subgraph Inbound Adapter
-        INF[K8s SharedIndexInformer\nper namespace or cluster-wide\nwatch v1.Event]
+        INF[K8s SharedIndexInformer<br>per namespace or cluster-wide<br>watch v1.Event]
     end
 
     subgraph Core Domain
-        FILTER[Event Filter\nNormal → drop\nWarning → process\nconfig overrides]
-        FILTER --> DEDUP[Dedup Engine\nleaky bucket per key\nnamespace+pod+reason]
+        FILTER[Event Filter<br>Normal → drop<br>Warning → process<br>config overrides]
+        FILTER --> DEDUP[Dedup Engine<br>leaky bucket per key<br>namespace+pod+reason]
         DEDUP -->|first occurrence| FWD[Forward immediately]
-        DEDUP -->|window expiry + count > 1| SUMMARY[Summary alert\n'OOMKill seen 47 times in 5m']
+        DEDUP -->|window expiry + count > 1| SUMMARY[Summary alert<br>'OOMKill seen 47 times in 5m']
     end
 
     subgraph Outbound Adapters
-        SQLITE[(SQLite\nstructured queries\ntime-series)]
-        BLEVE[(Bleve\nfull-text search)]
+        SQLITE[(SQLite<br>structured queries<br>time-series)]
+        BLEVE[(Bleve<br>full-text search)]
         SLACK[Slack Webhook]
         STDOUT[stdout / JSON]
     end
@@ -68,13 +68,13 @@ sequenceDiagram
 ```mermaid
 graph LR
     subgraph Inbound
-        K8S[K8s Informer\nv1.Event stream]
+        K8S[K8s Informer<br>v1.Event stream]
     end
 
     subgraph Core Domain
         PROC[EventProcessor]
-        FILTER[Filter\nhardcoded + config]
-        DEDUP[DedupEngine\nleaky bucket]
+        FILTER[Filter<br>hardcoded + config]
+        DEDUP[DedupEngine<br>leaky bucket]
     end
 
     subgraph Outbound Ports

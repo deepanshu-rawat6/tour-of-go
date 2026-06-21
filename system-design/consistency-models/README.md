@@ -8,10 +8,10 @@ Strong vs eventual vs causal consistency, linearizability, quorum reads/writes, 
 
 ```mermaid
 graph LR
-    STRONG[Strong\nLinearizable] --> SEQ[Sequential] --> CAUSAL[Causal] --> EVENTUAL[Eventual]
+    STRONG[Strong<br>Linearizable] --> SEQ[Sequential] --> CAUSAL[Causal] --> EVENTUAL[Eventual]
     
-    STRONG -.->|slower, less available| NOTE1[Single leader\nConsensus protocols]
-    EVENTUAL -.->|faster, highly available| NOTE2[Multi-leader\nCRDTs, DNS]
+    STRONG -.->|slower, less available| NOTE1[Single leader<br>Consensus protocols]
+    EVENTUAL -.->|faster, highly available| NOTE2[Multi-leader<br>CRDTs, DNS]
 ```
 
 ---
@@ -133,10 +133,10 @@ result, _ := client.GetItem(ctx, &dynamodb.GetItemInput{
 
 ```mermaid
 graph TD
-    CAP[CAP Theorem\nPick 2 of 3 during partition]
-    CAP --> CP[CP: Consistency + Partition Tolerance\nReject writes during partition\nPostgreSQL, etcd, ZooKeeper]
-    CAP --> AP[AP: Availability + Partition Tolerance\nAccept writes, resolve conflicts later\nDynamoDB, Cassandra, CRDTs]
-    CAP --> CA[CA: Consistency + Availability\nOnly possible without partitions\nSingle-node RDBMS]
+    CAP[CAP Theorem<br>Pick 2 of 3 during partition]
+    CAP --> CP[CP: Consistency + Partition Tolerance<br>Reject writes during partition<br>PostgreSQL, etcd, ZooKeeper]
+    CAP --> AP[AP: Availability + Partition Tolerance<br>Accept writes, resolve conflicts later<br>DynamoDB, Cassandra, CRDTs]
+    CAP --> CA[CA: Consistency + Availability<br>Only possible without partitions<br>Single-node RDBMS]
 ```
 
 **Reality**: Network partitions WILL happen. The real choice is CP vs AP.

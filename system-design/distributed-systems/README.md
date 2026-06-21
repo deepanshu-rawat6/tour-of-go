@@ -21,7 +21,7 @@ func (s *Worker) ProcessJob(jobID string) error {
     
     // 2. If it's already done, return successfully without re-doing the work.
     if processed {
-        fmt.Printf("Job %s already completed, skipping.\n", jobID)
+        fmt.Printf("Job %s already completed, skipping.<br>", jobID)
         return nil 
     }
 
@@ -89,7 +89,7 @@ func (w *Worker) ProcessWithRetry(job Job) {
     if err := runJob(job); err != nil {
         // If the job has failed too many times, move it to the 'Dead Letter' storage.
         if job.RetryCount >= MaxRetries {
-            fmt.Printf("Job %s failed %d times. Moving to DLQ.\n", job.ID, MaxRetries)
+            fmt.Printf("Job %s failed %d times. Moving to DLQ.<br>", job.ID, MaxRetries)
             w.moveToDLQ(job) 
         } else {
             // Increment retry count and put back into the queue with a delay (Backoff).

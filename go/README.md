@@ -11,39 +11,39 @@ graph TD
     subgraph Phase 1: Go Internals
         Q[Quirks] --> D[Defer]
         D --> I[Interfaces]
-        I --> RT[Runtime\nG-M-P · GC]
+        I --> RT[Runtime<br>G-M-P · GC]
         RT --> REF[Reflection]
         REF --> CGO[cgo · Assembly]
-        CGO --> CONC[Concurrency\nerrgroup · sync.Pool]
-        CONC --> PROD[Production Go\npprof · atomic · timeouts]
-        PROD --> TEST[Testing\ntable-driven · fuzz · bench]
-        TEST --> MOD[Module Patterns\ngo.work · internal]
+        CGO --> CONC[Concurrency<br>errgroup · sync.Pool]
+        CONC --> PROD[Production Go<br>pprof · atomic · timeouts]
+        PROD --> TEST[Testing<br>table-driven · fuzz · bench]
+        TEST --> MOD[Module Patterns<br>go.work · internal]
     end
 
     subgraph Phase 2: Design Patterns
-        MOD --> PAT[Functional Options\nWorker Pools]
-        PAT --> ERR[Error Handling\nRetryable vs Fatal]
+        MOD --> PAT[Functional Options<br>Worker Pools]
+        PAT --> ERR[Error Handling<br>Retryable vs Fatal]
         ERR --> PLUG[Plugin Architecture]
         PLUG --> DAO[Repository Pattern]
-        DAO --> IND[Industry Patterns\nCircuit Breaker · Middleware]
+        DAO --> IND[Industry Patterns<br>Circuit Breaker · Middleware]
         IND --> TF[Twelve-Factor App]
-        TF --> API[API Design\nREST · Pagination · OpenAPI]
+        TF --> API[API Design<br>REST · Pagination · OpenAPI]
     end
 
     subgraph Phase 3: System Design
-        API --> NET[Networking\nDNS · TLS · HTTP/2]
-        NET --> CONS[Consistency Models\nCAP · Quorums]
-        CONS --> DBINT[Database Internals\nB-tree · LSM-tree]
-        DBINT --> AUTH[Auth\nOAuth2 · JWT · mTLS]
-        AUTH --> MQ[Message Queues\nKafka · NATS · SQS]
-        MQ --> CAP[Capacity Planning\nLittle's Law]
-        CAP --> RL[Rate Limiting\nBackpressure]
-        RL --> HT[High Throughput\nCQRS · WAL · Sharding]
-        HT --> OBS[Observability\nslog · OTel · Prometheus]
-        OBS --> IR[Incident Response\nSLO · Error Budgets]
-        IR --> CICD[CI/CD\nDocker · Actions · GoReleaser]
+        API --> NET[Networking<br>DNS · TLS · HTTP/2]
+        NET --> CONS[Consistency Models<br>CAP · Quorums]
+        CONS --> DBINT[Database Internals<br>B-tree · LSM-tree]
+        DBINT --> AUTH[Auth<br>OAuth2 · JWT · mTLS]
+        AUTH --> MQ[Message Queues<br>Kafka · NATS · SQS]
+        MQ --> CAP[Capacity Planning<br>Little's Law]
+        CAP --> RL[Rate Limiting<br>Backpressure]
+        RL --> HT[High Throughput<br>CQRS · WAL · Sharding]
+        HT --> OBS[Observability<br>slog · OTel · Prometheus]
+        OBS --> IR[Incident Response<br>SLO · Error Budgets]
+        IR --> CICD[CI/CD<br>Docker · Actions · GoReleaser]
         CICD --> TER[Terraform · Helm]
-        TER --> ADV[Advanced\nGossip · Operators · eBPF]
+        TER --> ADV[Advanced<br>Gossip · Operators · eBPF]
     end
 ```
 
@@ -130,6 +130,8 @@ graph TD
 28. `SDE-2` [**Service Discovery & Gossip Protocols**](./system-design/discovery/README.md) - How nodes find each other without a central DB (Consul/Serf).
 29. `SDE-2` [**Go for Platform Ops & SRE**](./system-design/platform-ops/README.md) - Kubernetes Operators, System Signals, and Prometheus Observability.
 30. `SDE-2` [**eBPF with Go**](./system-design/ebpf/README.md) - High-performance networking and security probes in the Linux Kernel.
+31. `SDE-2` [**Distributed Systems Patterns**](./system-design/distributed-systems/README.md) - Raft, Paxos, vector clocks, two-phase commit, distributed transactions.
+32. `SDE-2` [**Cybersecurity**](./system-design/cybersecurity/README.md) - TLS hardening, SSH hardening, mTLS, PKI, API security, container security, K8s security, supply chain security, cloud misconfigurations, privilege escalation.
 
 ---
 

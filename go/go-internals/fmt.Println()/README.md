@@ -43,7 +43,7 @@ if err != nil {
 ### 2. Network CLI Tools
 If you are writing to a network socket (which is also an `io.Writer`), checking `n` ensures all your data was actually sent.
 ```go
-n, err := fmt.Fprintf(conn, "GET / HTTP/1.1\r\n\r\n")
+n, err := fmt.Fprintf(conn, "GET / HTTP/1.1\r<br>\r<br>")
 if n < expectedBytes {
     // Handle partial write!
 }

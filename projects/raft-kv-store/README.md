@@ -10,24 +10,24 @@ A distributed key-value store built from scratch using the Raft consensus algori
 
 ```mermaid
 graph TD
-    Client[HTTP Client] --> HTTP[HTTP API\nGET/PUT/DELETE /kv/key\nGET /status]
+    Client[HTTP Client] --> HTTP[HTTP API<br>GET/PUT/DELETE /kv/key<br>GET /status]
     HTTP --> |write on follower| REJECT[301 Redirect → Leader]
     HTTP --> |write on leader| RAFT[Raft Node]
 
-    RAFT --> LOG[Write-Ahead Log\nappend entry to disk]
-    LOG --> GRPC[gRPC: AppendEntries\nto all followers]
+    RAFT --> LOG[Write-Ahead Log<br>append entry to disk]
+    LOG --> GRPC[gRPC: AppendEntries<br>to all followers]
     GRPC --> F1[Follower 1]
     GRPC --> F2[Follower 2]
     GRPC --> FN[Follower N]
 
     F1 & F2 & FN --> |ack| RAFT
-    RAFT --> |quorum reached| COMMIT[Commit → Apply to\nin-memory KV map]
+    RAFT --> |quorum reached| COMMIT[Commit → Apply to<br>in-memory KV map]
     COMMIT --> |response| Client
 
     subgraph Election
-        TIMER[Election Timeout\nrandomized 150-300ms] --> |timeout| CANDIDATE[Transition → Candidate]
-        CANDIDATE --> VOTE[gRPC: RequestVote\nto all peers]
-        VOTE --> |majority votes| LEADER[Become Leader\nstart heartbeats]
+        TIMER[Election Timeout<br>randomized 150-300ms] --> |timeout| CANDIDATE[Transition → Candidate]
+        CANDIDATE --> VOTE[gRPC: RequestVote<br>to all peers]
+        VOTE --> |majority votes| LEADER[Become Leader<br>start heartbeats]
     end
 ```
 

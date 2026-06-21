@@ -144,7 +144,7 @@ cat /proc/1234/maps
 cat /proc/1234/cmdline | tr '\0' ' '
 
 # Show environment variables
-cat /proc/1234/environ | tr '\0' '\n'
+cat /proc/1234/environ | tr '\0' '<br>'
 
 # Open TCP connections (inode → PID via /proc/net/tcp)
 cat /proc/net/tcp          # hex local/remote addr + inode
@@ -263,7 +263,7 @@ Threshold: Var(Δt) < 2 seconds² → flag as potential beacon
 # Extract connection timestamps to a suspicious IP and compute deltas
 tcpdump -nn -r capture.pcap 'dst host 1.2.3.4' | \
   awk '{print $1}' | \
-  awk 'NR>1{printf "%.3f\n", $1-prev} {prev=$1}'
+  awk 'NR>1{printf "%.3f<br>", $1-prev} {prev=$1}'
 # Pipe to python: import statistics; print(statistics.variance(deltas))
 ```
 

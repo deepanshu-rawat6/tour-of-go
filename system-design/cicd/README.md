@@ -8,10 +8,10 @@ Multi-stage Docker builds, GitHub Actions pipelines, semantic versioning, and de
 
 ```mermaid
 graph LR
-    SRC[Source Code] --> BUILD[Stage 1: Build\ngolang:1.23-alpine\ngo build -ldflags]
-    BUILD --> BIN[Static Binary\n~10MB]
-    BIN --> PROD[Stage 2: Runtime\ngcr.io/distroless/static\nSCRATCH or distroless]
-    PROD --> IMG[Final Image\n~15MB total]
+    SRC[Source Code] --> BUILD[Stage 1: Build<br>golang:1.23-alpine<br>go build -ldflags]
+    BUILD --> BIN[Static Binary<br>~10MB]
+    BIN --> PROD[Stage 2: Runtime<br>gcr.io/distroless/static<br>SCRATCH or distroless]
+    PROD --> IMG[Final Image<br>~15MB total]
 ```
 
 ### Production Dockerfile
@@ -52,13 +52,13 @@ ENTRYPOINT ["/server"]
 
 ```mermaid
 graph TD
-    PUSH[Push / PR] --> LINT[golangci-lint\nvet, staticcheck, errcheck]
-    LINT --> TEST[go test -race -cover\nunit + integration]
-    TEST --> BUILD[go build\ncompile check]
-    BUILD --> SEC[govulncheck\nCVE scanning]
-    SEC --> DOCKER[docker build + push\nGHCR / ECR]
+    PUSH[Push / PR] --> LINT[golangci-lint<br>vet, staticcheck, errcheck]
+    LINT --> TEST[go test -race -cover<br>unit + integration]
+    TEST --> BUILD[go build<br>compile check]
+    BUILD --> SEC[govulncheck<br>CVE scanning]
+    SEC --> DOCKER[docker build + push<br>GHCR / ECR]
     DOCKER --> DEPLOY{Branch?}
-    DEPLOY -->|main| PROD[Deploy to Production\nhelm upgrade / kubectl]
+    DEPLOY -->|main| PROD[Deploy to Production<br>helm upgrade / kubectl]
     DEPLOY -->|develop| STG[Deploy to Staging]
 ```
 
@@ -148,11 +148,11 @@ jobs:
 
 ```mermaid
 graph LR
-    COMMIT[Conventional Commits] --> TOOL[semantic-release\nor goreleaser]
-    TOOL --> TAG[Git Tag\nv1.2.3]
-    TAG --> CHANGELOG[CHANGELOG.md\nauto-generated]
-    TAG --> RELEASE[GitHub Release\nbinaries + checksums]
-    TAG --> DOCKER[Docker Tag\n:v1.2.3 + :latest]
+    COMMIT[Conventional Commits] --> TOOL[semantic-release<br>or goreleaser]
+    TOOL --> TAG[Git Tag<br>v1.2.3]
+    TAG --> CHANGELOG[CHANGELOG.md<br>auto-generated]
+    TAG --> RELEASE[GitHub Release<br>binaries + checksums]
+    TAG --> DOCKER[Docker Tag<br>:v1.2.3 + :latest]
 ```
 
 ### Conventional Commits → Version Bump
@@ -198,12 +198,12 @@ graph TD
     end
     
     subgraph Blue-Green
-        BLUE[Blue (v1)\n100% traffic] -.->|switch| GREEN[Green (v2)\n0% → 100%]
+        BLUE[Blue (v1)<br>100% traffic] -.->|switch| GREEN[Green (v2)<br>0% → 100%]
     end
     
     subgraph Canary
-        STABLE[Stable (v1)\n95% traffic]
-        CANARY[Canary (v2)\n5% traffic]
+        STABLE[Stable (v1)<br>95% traffic]
+        CANARY[Canary (v2)<br>5% traffic]
         CANARY -->|metrics OK| PROMOTE[Promote to 100%]
     end
 ```

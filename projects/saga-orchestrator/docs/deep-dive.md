@@ -14,7 +14,7 @@ graph TD
         O1[OrderService] -->|OrderCreated event| P1[PaymentService]
         P1 -->|PaymentCharged event| I1[InventoryService]
         I1 -->|StockReserved event| S1[ShippingService]
-        P1 -->|PaymentFailed event| COMP1[OrderService\ncancel order]
+        P1 -->|PaymentFailed event| COMP1[OrderService<br>cancel order]
     end
 
     subgraph Orchestration["Orchestration (central coordinator — this project)"]
@@ -22,7 +22,7 @@ graph TD
         ORCH -->|2 charge| P2[PaymentService]
         ORCH -->|3 reserve| I2[InventoryService]
         ORCH -->|4 schedule| S2[ShippingService]
-        ORCH -->|compensate| COMP2[PaymentService refund\nOrderService cancel]
+        ORCH -->|compensate| COMP2[PaymentService refund<br>OrderService cancel]
     end
 ```
 
@@ -94,11 +94,11 @@ func (p *PaymentService) Refund(sagaID, amount float64) error {
 
 ```mermaid
 flowchart LR
-    S1["Step 1\nOrder created"] --> S2
-    S2["Step 2\nPayment charged"] --> S3
-    S3["Step 3 FAILS\nInventory"] --> DECISION{Recovery\nstrategy}
-    DECISION -->|Backward\n(this project)| BACK["Compensate S2\nCompensate S1\nSaga: Aborted"]
-    DECISION -->|Forward\nretry| RETRY["Retry S3\nuntil success or max retries\nSaga: Completed"]
+    S1["Step 1<br>Order created"] --> S2
+    S2["Step 2<br>Payment charged"] --> S3
+    S3["Step 3 FAILS<br>Inventory"] --> DECISION{Recovery<br>strategy}
+    DECISION -->|Backward<br>(this project)| BACK["Compensate S2<br>Compensate S1<br>Saga: Aborted"]
+    DECISION -->|Forward<br>retry| RETRY["Retry S3<br>until success or max retries<br>Saga: Completed"]
 ```
 
 **Backward recovery (compensating transactions):** undo the work done so far. Used when the failure is non-transient (out of stock — retrying won't help).

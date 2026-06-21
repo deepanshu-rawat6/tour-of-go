@@ -6,10 +6,10 @@ A multi-room WebSocket chat server using the hub pattern.
 
 ```mermaid
 graph TD
-    C1[Browser 1\nroom=general] -->|WS /ws?room=general| H[HTTP Upgrade]
-    C2[Browser 2\nroom=general] --> H
-    C3[Browser 3\nroom=other] --> H
-    H --> HUB[Hub goroutine\nrooms map]
+    C1[Browser 1<br>room=general] -->|WS /ws?room=general| H[HTTP Upgrade]
+    C2[Browser 2<br>room=general] --> H
+    C3[Browser 3<br>room=other] --> H
+    H --> HUB[Hub goroutine<br>rooms map]
     HUB -->|broadcast to general| C1
     HUB -->|broadcast to general| C2
     HUB -->|broadcast to other| C3

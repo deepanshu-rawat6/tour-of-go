@@ -6,12 +6,12 @@ L7 reverse proxy with round-robin, least-connections, and background health chec
 
 ```mermaid
 graph TD
-    C[Client] -->|HTTP| LB[Load Balancer\n:8084]
+    C[Client] -->|HTTP| LB[Load Balancer<br>:8084]
     LB --> STRAT{Strategy}
-    STRAT -->|round-robin| B1[Backend 1\n:9010]
-    STRAT -->|round-robin| B2[Backend 2\n:9011]
-    STRAT -->|round-robin| B3[Backend 3\n:9012]
-    HC[Health Checker\nevery 5s] -->|GET /health| B1
+    STRAT -->|round-robin| B1[Backend 1<br>:9010]
+    STRAT -->|round-robin| B2[Backend 2<br>:9011]
+    STRAT -->|round-robin| B3[Backend 3<br>:9012]
+    HC[Health Checker<br>every 5s] -->|GET /health| B1
     HC --> B2
     HC --> B3
     B1 & B2 & B3 -->|unhealthy| SKIP[skipped by balancer]

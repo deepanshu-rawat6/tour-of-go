@@ -58,14 +58,14 @@ client := &http.Client{
 
 ```mermaid
 graph LR
-    APP[Go App\nimport _ net/http/pprof] --> EP[/debug/pprof/]
-    EP --> CPU[CPU Profile\n30s sampling]
-    EP --> HEAP[Heap Profile\nlive allocations]
-    EP --> GOR[Goroutine\nstack dumps]
-    EP --> BLOCK[Block Profile\ncontention]
-    EP --> MUTEX[Mutex Profile\nlock wait time]
+    APP[Go App<br>import _ net/http/pprof] --> EP[/debug/pprof/]
+    EP --> CPU[CPU Profile<br>30s sampling]
+    EP --> HEAP[Heap Profile<br>live allocations]
+    EP --> GOR[Goroutine<br>stack dumps]
+    EP --> BLOCK[Block Profile<br>contention]
+    EP --> MUTEX[Mutex Profile<br>lock wait time]
     
-    CPU --> TOOL[go tool pprof\nweb / top / list]
+    CPU --> TOOL[go tool pprof<br>web / top / list]
 ```
 
 ```go
@@ -94,11 +94,11 @@ curl http://localhost:6060/debug/pprof/goroutine?debug=2
 ```mermaid
 graph TD
     FUNC[Function Call] --> ALLOC{Does value escape?}
-    ALLOC -->|No: stays in function| STACK[Stack Allocation\nO(1) free, no GC pressure]
-    ALLOC -->|Yes: returned/shared| HEAP[Heap Allocation\nGC must track and collect]
+    ALLOC -->|No: stays in function| STACK[Stack Allocation<br>O(1) free, no GC pressure]
+    ALLOC -->|Yes: returned/shared| HEAP[Heap Allocation<br>GC must track and collect]
     
-    HEAP --> PRESSURE[GC Pressure\nSTW pauses]
-    STACK --> FAST[Fast\nzero GC cost]
+    HEAP --> PRESSURE[GC Pressure<br>STW pauses]
+    STACK --> FAST[Fast<br>zero GC cost]
 ```
 
 ```bash

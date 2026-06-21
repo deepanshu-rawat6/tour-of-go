@@ -9,14 +9,14 @@ Pods, Services, Deployments, ConfigMaps, Secrets, RBAC, NetworkPolicies — the 
 ```mermaid
 graph TD
     USER[kubectl / CI] --> API[API Server]
-    API --> ETCD[(etcd\ncluster state)]
-    API --> SCHED[Scheduler\nassign pods to nodes]
-    API --> CM[Controller Manager\nreconciliation loops]
+    API --> ETCD[(etcd<br>cluster state)]
+    API --> SCHED[Scheduler<br>assign pods to nodes]
+    API --> CM[Controller Manager<br>reconciliation loops]
     
     subgraph Node 1
         KUBELET1[kubelet] --> POD1[Pod: my-app]
         KUBELET1 --> POD2[Pod: my-app]
-        KPROXY1[kube-proxy\niptables/IPVS]
+        KPROXY1[kube-proxy<br>iptables/IPVS]
     end
     
     subgraph Node 2
@@ -24,7 +24,7 @@ graph TD
         KPROXY2[kube-proxy]
     end
     
-    SVC[Service\nClusterIP] --> POD1
+    SVC[Service<br>ClusterIP] --> POD1
     SVC --> POD2
     SVC --> POD3
 ```
@@ -91,7 +91,7 @@ spec:
 
 ```mermaid
 graph LR
-    CLIENT[Other Pod / Ingress] -->|my-app.default.svc.cluster.local:80| SVC[Service\nClusterIP]
+    CLIENT[Other Pod / Ingress] -->|my-app.default.svc.cluster.local:80| SVC[Service<br>ClusterIP]
     SVC -->|round-robin| P1[Pod 1 :8080]
     SVC --> P2[Pod 2 :8080]
     SVC --> P3[Pod 3 :8080]
@@ -142,8 +142,8 @@ stringData:
 
 ```mermaid
 graph LR
-    SA[ServiceAccount\nmy-app] --> RB[RoleBinding]
-    RB --> ROLE[Role\nverbs: get, list, watch\nresources: pods, services]
+    SA[ServiceAccount<br>my-app] --> RB[RoleBinding]
+    RB --> ROLE[Role<br>verbs: get, list, watch<br>resources: pods, services]
 ```
 
 ```yaml

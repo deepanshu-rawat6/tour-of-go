@@ -80,9 +80,9 @@ stateDiagram-v2
 
 ```mermaid
 graph TD
-    API[HTTP API\nPOST /orders] --> ORCH[SagaOrchestrator]
-    ORCH --> SM[State Machine\nstep tracking]
-    SM --> LOG[Saga Log\nin-memory or DB]
+    API[HTTP API<br>POST /orders] --> ORCH[SagaOrchestrator]
+    ORCH --> SM[State Machine<br>step tracking]
+    SM --> LOG[Saga Log<br>in-memory or DB]
     
     ORCH --> S1[OrderService.Create]
     ORCH --> S2[PaymentService.Charge]

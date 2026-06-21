@@ -8,13 +8,13 @@ A live ops dashboard for the distributed scheduler. Job state changes are pushed
 
 ```mermaid
 graph TD
-    Browser -->|HTTP GET /| H[HTTP Handler\nhtml/template render]
-    Browser -->|WebSocket /ws| HUB[WebSocket Hub\nbroadcast channel]
-    POLL[Scheduler Poller\ntime.Ticker] -->|fetch job updates| API[Scheduler HTTP API]
+    Browser -->|HTTP GET /| H[HTTP Handler<br>html/template render]
+    Browser -->|WebSocket /ws| HUB[WebSocket Hub<br>broadcast channel]
+    POLL[Scheduler Poller<br>time.Ticker] -->|fetch job updates| API[Scheduler HTTP API]
     API -->|job list| POLL
     POLL -->|changed jobs| HUB
     HUB -->|broadcast| Browser
-    Browser -->|HTMX hx-swap| DOM[DOM fragment update\nno full reload]
+    Browser -->|HTMX hx-swap| DOM[DOM fragment update<br>no full reload]
 ```
 
 ## WebSocket Hub

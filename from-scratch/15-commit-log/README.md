@@ -17,14 +17,14 @@ This bridges the gap between your from-scratch networking projects and high-thro
 
 ```mermaid
 graph TD
-    PROD[Producer] -->|TCP: PRODUCE topic msg| BROKER[Broker\n:9092]
+    PROD[Producer] -->|TCP: PRODUCE topic msg| BROKER[Broker<br>:9092]
     BROKER --> TOPIC[Topic Manager]
-    TOPIC --> P0[Partition 0\nappend-only segment files]
+    TOPIC --> P0[Partition 0<br>append-only segment files]
     TOPIC --> P1[Partition 1]
     
-    P0 --> SEG[Segment\n.log file + .index file]
-    SEG --> LOG[000000000000.log\nraw message bytes]
-    SEG --> IDX[000000000000.index\noffset → file position]
+    P0 --> SEG[Segment<br>.log file + .index file]
+    SEG --> LOG[000000000000.log<br>raw message bytes]
+    SEG --> IDX[000000000000.index<br>offset → file position]
     
     CONS[Consumer] -->|TCP: CONSUME topic partition offset| BROKER
     BROKER -->|sendfile zero-copy| CONS
@@ -37,7 +37,7 @@ graph TD
 ```mermaid
 graph LR
     subgraph Segment File .log
-        R0[Record 0\nlen + crc + key + value]
+        R0[Record 0<br>len + crc + key + value]
         R1[Record 1]
         R2[Record 2]
         R3[Record 3]
@@ -165,14 +165,14 @@ func (cg *ConsumerGroup) Commit(topic string, partition int, offset uint64) {
 ## Wire Protocol
 
 ```
-PRODUCE <topic> <partition>\r\n
-<4-byte length><message bytes>\r\n
+PRODUCE <topic> <partition>\r<br>
+<4-byte length><message bytes>\r<br>
 
-CONSUME <topic> <partition> <offset> <max_bytes>\r\n
+CONSUME <topic> <partition> <offset> <max_bytes>\r<br>
 
 RESPONSE:
-OK <offset>\r\n
-DATA <count>\r\n<messages...>
+OK <offset>\r<br>
+DATA <count>\r<br><messages...>
 ```
 
 ---

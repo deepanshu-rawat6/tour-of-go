@@ -4,12 +4,12 @@
 
 ```mermaid
 graph LR
-    APP[Application\nwrites to file] -->|append| FILE[/tmp/app.log]
-    FILE -->|poll 100ms| TAILER[Tailer\nseek to end on start]
-    TAILER -->|new lines| SHIPPER[Shipper\nTCP client]
-    SHIPPER -->|SOURCE\tLINE\n| AGG[Aggregator\nTCP :9002]
-    AGG --> STORE[In-memory store\n[]LogEntry]
-    STORE -->|search| HTTP[HTTP API\n:8085 /logs]
+    APP[Application<br>writes to file] -->|append| FILE[/tmp/app.log]
+    FILE -->|poll 100ms| TAILER[Tailer<br>seek to end on start]
+    TAILER -->|new lines| SHIPPER[Shipper<br>TCP client]
+    SHIPPER -->|SOURCE\tLINE<br>| AGG[Aggregator<br>TCP :9002]
+    AGG --> STORE[In-memory store<br>[]LogEntry]
+    STORE -->|search| HTTP[HTTP API<br>:8085 /logs]
     HTTP -->|JSON| QUERY[curl / browser]
 ```
 
@@ -25,10 +25,10 @@ sequenceDiagram
     T->>F: Open file
     T->>F: Seek to end (io.SeekEnd)
     loop every 100ms
-        T->>F: ReadString('\n')
+        T->>F: ReadString('<br>')
         alt new line available
-            F-->>T: "ERROR: something\n"
-            T->>T: Lines ← "ERROR: something\n"
+            F-->>T: "ERROR: something<br>"
+            T->>T: Lines ← "ERROR: something<br>"
         else no new data
             F-->>T: io.EOF
             Note over T: sleep, try again
@@ -38,12 +38,12 @@ sequenceDiagram
 
 ## Shipper Protocol
 
-Simple tab-separated format: `SOURCE\tLOG_LINE\n`
+Simple tab-separated format: `SOURCE\tLOG_LINE<br>`
 
 ```mermaid
 graph LR
-    TAILER[Tailer\nLines chan] -->|line| SHIPPER[Shipper]
-    SHIPPER -->|fmt.Fprintf\napp1\tERROR: ...\n| CONN[net.Conn\nTCP to aggregator]
+    TAILER[Tailer<br>Lines chan] -->|line| SHIPPER[Shipper]
+    SHIPPER -->|fmt.Fprintf<br>app1\tERROR: ...<br>| CONN[net.Conn<br>TCP to aggregator]
 ```
 
 ## Aggregator: Ingest + Search
@@ -52,10 +52,10 @@ graph LR
 graph TD
     TCP[TCP :9002] -->|accept| CONN[net.Conn per shipper]
     CONN -->|scan lines| PARSE[split SOURCE\tLINE]
-    PARSE --> INGEST[Ingest\nappend LogEntry]
-    INGEST --> STORE[sync.RWMutex\n[]LogEntry]
+    PARSE --> INGEST[Ingest<br>append LogEntry]
+    INGEST --> STORE[sync.RWMutex<br>[]LogEntry]
 
-    HTTP[GET /logs?q=error&source=app1] --> SEARCH[Search\nreverse scan]
+    HTTP[GET /logs?q=error&source=app1] --> SEARCH[Search<br>reverse scan]
     STORE --> SEARCH
     SEARCH -->|filter by query + source| RESULTS[[]LogEntry]
     RESULTS --> JSON[JSON response]
@@ -67,8 +67,8 @@ Search scans from newest to oldest (reverse slice iteration) and stops at `limit
 
 ```mermaid
 graph TD
-    START[i = len-1] --> CHECK{i >= 0 AND\nlen results < limit}
-    CHECK -->|yes| FILTER{source match\nAND query match}
+    START[i = len-1] --> CHECK{i >= 0 AND<br>len results < limit}
+    CHECK -->|yes| FILTER{source match<br>AND query match}
     FILTER -->|yes| APPEND[append to results]
     FILTER -->|no| SKIP[skip]
     APPEND & SKIP --> DEC[i--]

@@ -9,19 +9,19 @@ An HTTP API demonstrating **Security** (JWT, OAuth2 password grant, mTLS), **SOL
 ```mermaid
 graph TD
     Client -->|POST /oauth2/token| TH[Token Handler]
-    TH --> UA[UserAuthenticator\nport]
-    UA --> US[UserStore\nbcrypt]
-    TH --> TI[TokenIssuer\nport]
-    TI --> JWT[JWTAdapter\nHS256]
+    TH --> UA[UserAuthenticator<br>port]
+    UA --> US[UserStore<br>bcrypt]
+    TH --> TI[TokenIssuer<br>port]
+    TI --> JWT[JWTAdapter<br>HS256]
     JWT -->|Bearer token| Client
 
-    Client -->|GET /me\nAuthorization: Bearer ...| AM[Auth Middleware]
-    AM --> TV[TokenValidator\nport]
+    Client -->|GET /me<br>Authorization: Bearer ...| AM[Auth Middleware]
+    AM --> TV[TokenValidator<br>port]
     TV --> JWT
     AM -->|Claims in context| MH[Me Handler]
     MH -->|user_id + roles| Client
 
-    Client -->|GET /health| HH[Health Handler\npublic]
+    Client -->|GET /health| HH[Health Handler<br>public]
 ```
 
 ## Request Flow

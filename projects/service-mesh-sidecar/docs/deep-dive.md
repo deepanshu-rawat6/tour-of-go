@@ -8,13 +8,13 @@ A TCP proxy sidecar with rate limiting, circuit breaking, health checks, and Pro
 
 ```mermaid
 graph LR
-    CLIENT[Client] -->|TCP| PROXY[TCP Proxy\n:8080]
-    PROXY -->|rate check| RL[Token Bucket\nper client IP]
-    PROXY -->|circuit check| CB[Circuit Breaker\nper upstream]
-    PROXY -->|TCP| UPSTREAM[Upstream\n:9090]
-    HC[Health Checker\nevery 10s] -->|TCP probe| UPSTREAM
+    CLIENT[Client] -->|TCP| PROXY[TCP Proxy<br>:8080]
+    PROXY -->|rate check| RL[Token Bucket<br>per client IP]
+    PROXY -->|circuit check| CB[Circuit Breaker<br>per upstream]
+    PROXY -->|TCP| UPSTREAM[Upstream<br>:9090]
+    HC[Health Checker<br>every 10s] -->|TCP probe| UPSTREAM
     HC -->|healthy flag| PROXY
-    METRICS[Prometheus\n:9091/metrics] -.->|scrape| PROM[Prometheus]
+    METRICS[Prometheus<br>:9091/metrics] -.->|scrape| PROM[Prometheus]
 ```
 
 ---

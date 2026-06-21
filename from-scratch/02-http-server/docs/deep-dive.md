@@ -5,32 +5,32 @@
 HTTP is a text protocol layered on top of TCP. Every request and response follows a strict format:
 
 ```
-GET /path HTTP/1.1\r\n
-Host: localhost\r\n
-Content-Type: text/plain\r\n
-\r\n
+GET /path HTTP/1.1\r<br>
+Host: localhost\r<br>
+Content-Type: text/plain\r<br>
+\r<br>
 <optional body>
 ```
 
 ```mermaid
 graph TD
-    TCP[TCP byte stream] --> RL[Request Line\nMETHOD /path HTTP/version]
-    RL --> HEADERS[Headers\nKey: Value pairs\nuntil blank line]
-    HEADERS --> BLANK[Blank line\r\n]
-    BLANK --> BODY[Body\noptional]
+    TCP[TCP byte stream] --> RL[Request Line<br>METHOD /path HTTP/version]
+    RL --> HEADERS[Headers<br>Key: Value pairs<br>until blank line]
+    HEADERS --> BLANK[Blank line\r<br>]
+    BLANK --> BODY[Body<br>optional]
 ```
 
 ## Raw Parser Flow
 
 ```mermaid
 graph TD
-    CONN[net.Conn] --> BR[bufio.Reader\nbuffered reads]
-    BR -->|ReadString\n| RL[Parse request line\nstrings.Fields]
-    RL --> LOOP[Header loop\nReadString until blank]
-    LOOP --> ROUTE{router\nmap path→handler}
-    ROUTE -->|found| HANDLER[HandlerFunc\nw ResponseWriter, r Request]
+    CONN[net.Conn] --> BR[bufio.Reader<br>buffered reads]
+    BR -->|ReadString<br>| RL[Parse request line<br>strings.Fields]
+    RL --> LOOP[Header loop<br>ReadString until blank]
+    LOOP --> ROUTE{router<br>map path→handler}
+    ROUTE -->|found| HANDLER[HandlerFunc<br>w ResponseWriter, r Request]
     ROUTE -->|not found| 404[write 404]
-    HANDLER --> RW[ResponseWriter.Write\nstatus + headers + body]
+    HANDLER --> RW[ResponseWriter.Write<br>status + headers + body]
     RW --> CONN
 ```
 
@@ -39,15 +39,15 @@ graph TD
 ```mermaid
 graph LR
     subgraph Raw
-        R1[net.Listen] --> R2[bufio.Reader\nmanual parse]
+        R1[net.Listen] --> R2[bufio.Reader<br>manual parse]
         R2 --> R3[map path→HandlerFunc]
-        R3 --> R4[fmt.Fprintf\nwrite response]
+        R3 --> R4[fmt.Fprintf<br>write response]
     end
 
     subgraph Stdlib
-        S1[http.ListenAndServe] --> S2[net/http\nauto parse]
-        S2 --> S3[http.ServeMux\nrouter]
-        S3 --> S4[http.ResponseWriter\nwrite response]
+        S1[http.ListenAndServe] --> S2[net/http<br>auto parse]
+        S2 --> S3[http.ServeMux<br>router]
+        S3 --> S4[http.ResponseWriter<br>write response]
     end
 ```
 
@@ -57,8 +57,8 @@ The raw implementation teaches what `net/http` does internally. The stdlib versi
 
 ```mermaid
 graph TD
-    STATUS[Status line\nHTTP/1.1 200 OK\r\n] --> HDRS[Response headers\nContent-Type: ...\r\nContent-Length: ...\r\n]
-    HDRS --> BLANK[Blank line\r\n]
+    STATUS[Status line<br>HTTP/1.1 200 OK\r<br>] --> HDRS[Response headers<br>Content-Type: ...\r<br>Content-Length: ...\r<br>]
+    HDRS --> BLANK[Blank line\r<br>]
     BLANK --> BODY[Response body]
 ```
 

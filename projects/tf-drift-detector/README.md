@@ -12,14 +12,14 @@ The hardest part of drift detection is avoiding false positives. This tool ships
 graph TD
     A[CLI - Cobra] --> B{Mode?}
     B -- "detect run" --> C[One-shot cycle]
-    B -- "detect daemon" --> D["time.Ticker loop\n+ signal.NotifyContext"]
+    B -- "detect daemon" --> D["time.Ticker loop<br>+ signal.NotifyContext"]
 
     C & D --> E[State Loader]
     E -- S3 --> F[S3 GetObject → parse tfstate]
     E -- Local --> G[os.ReadFile → parse tfstate]
 
     F & G --> H[Extract resource IDs + expected config]
-    H --> I[Live Poller — errgroup fan-out\nbounded by semaphore]
+    H --> I[Live Poller — errgroup fan-out<br>bounded by semaphore]
     I --> I1[EC2 comparator]
     I --> I2[S3 comparator]
     I --> I3[SG comparator]
@@ -27,14 +27,14 @@ graph TD
     I --> I5[IAM comparator]
     I --> I6[Lambda comparator]
 
-    I1 & I2 & I3 & I4 & I5 & I6 --> J[Diff Engine\nhardcoded + config ignore rules\ntype coercion]
-    J --> K[Drift Tracker\nsync.Mutex protected\nnew vs known vs resolved]
+    I1 & I2 & I3 & I4 & I5 & I6 --> J[Diff Engine<br>hardcoded + config ignore rules<br>type coercion]
+    J --> K[Drift Tracker<br>sync.Mutex protected<br>new vs known vs resolved]
     K -- channel --> L[Alert Pipeline]
     L --> L1[Slack webhook]
     L --> L2[Discord webhook]
     L --> L3[stdout / JSON]
 
-    D -- SIGTERM/SIGINT --> M[Persist drift state\ngraceful shutdown]
+    D -- SIGTERM/SIGINT --> M[Persist drift state<br>graceful shutdown]
 ```
 
 ### Concurrency Model

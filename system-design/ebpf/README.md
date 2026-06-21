@@ -10,11 +10,11 @@ The deep bpftrace one-liners and eBPF hook types are covered in [`devops/linux/e
 
 ```mermaid
 graph TD
-    BPFC["eBPF C program\n(probe logic)"] -->|clang -target bpf| OBJ["BPF bytecode\n(.o file)"]
-    OBJ -->|embed in Go binary| GO["Go program\n(cilium/ebpf)"]
-    GO -->|load + verify| KERNEL["Kernel verifier\nsafety check"]
-    KERNEL -->|JIT compile| HOOK["Attached to hook:\nkprobe/tracepoint/tc/xdp"]
-    HOOK -->|events| MAP["BPF Map\n(ring buffer / hash / array)"]
+    BPFC["eBPF C program<br>(probe logic)"] -->|clang -target bpf| OBJ["BPF bytecode<br>(.o file)"]
+    OBJ -->|embed in Go binary| GO["Go program<br>(cilium/ebpf)"]
+    GO -->|load + verify| KERNEL["Kernel verifier<br>safety check"]
+    KERNEL -->|JIT compile| HOOK["Attached to hook:<br>kprobe/tracepoint/tc/xdp"]
+    HOOK -->|events| MAP["BPF Map<br>(ring buffer / hash / array)"]
     MAP -->|read| GO
 ```
 

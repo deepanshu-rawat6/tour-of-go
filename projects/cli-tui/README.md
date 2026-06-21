@@ -8,12 +8,12 @@ A terminal dashboard for the distributed scheduler built with Bubble Tea — dem
 
 ```mermaid
 graph TD
-    MAIN[main.go\nprogram.Start] --> BT[Bubble Tea Runtime]
-    BT -->|Init| CMD[tea.Cmd\nfetchJobs HTTP]
+    MAIN[main.go<br>program.Start] --> BT[Bubble Tea Runtime]
+    BT -->|Init| CMD[tea.Cmd<br>fetchJobs HTTP]
     CMD -->|response| MSG[JobsLoadedMsg]
-    MSG -->|Update| MODEL[Model\njobs list + selected + tab]
-    MODEL -->|View| RENDER[lipgloss\nstyled terminal output]
-    BT -->|keypress| UPDATE[Update\nj/k navigate\ntab switch\nr refresh]
+    MSG -->|Update| MODEL[Model<br>jobs list + selected + tab]
+    MODEL -->|View| RENDER[lipgloss<br>styled terminal output]
+    BT -->|keypress| UPDATE[Update<br>j/k navigate<br>tab switch<br>r refresh]
     UPDATE --> MODEL
 ```
 

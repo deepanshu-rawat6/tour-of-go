@@ -8,13 +8,13 @@ A web console for browsing Kubernetes `Greeting` custom resources. Lists CRs via
 
 ```mermaid
 graph TD
-    Browser -->|GET /| H[Handler\nhtml/template + Tailwind]
-    H -->|list Greetings| K[K8s Dynamic Client\nclient-go]
+    Browser -->|GET /| H[Handler<br>html/template + Tailwind]
+    H -->|list Greetings| K[K8s Dynamic Client<br>client-go]
     K -->|unstructured list| H
     H -->|render| PAGE[HTML Page]
 
-    Browser -->|GET /watch SSE| W[K8s Watcher\nclient-go Watch API]
-    W -->|watch.Event ADDED/MODIFIED/DELETED| SSE[SSE Stream\ntext/event-stream]
+    Browser -->|GET /watch SSE| W[K8s Watcher<br>client-go Watch API]
+    W -->|watch.Event ADDED/MODIFIED/DELETED| SSE[SSE Stream<br>text/event-stream]
     SSE -->|push HTML fragment| Browser
     Browser -->|HTMX hx-swap| DOM[DOM update]
 ```

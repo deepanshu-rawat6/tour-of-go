@@ -7,10 +7,10 @@ L7 (application layer) load balancing operates on HTTP — it can inspect header
 ```mermaid
 graph TD
     subgraph L4 Load Balancer
-        L4[TCP packets\nroute by IP/port]
+        L4[TCP packets<br>route by IP/port]
     end
     subgraph L7 Load Balancer
-        L7[HTTP requests\nroute by path/header/cookie]
+        L7[HTTP requests<br>route by path/header/cookie]
     end
     CLIENT[Client] --> L7
     L7 --> B1[Backend 1]
@@ -39,11 +39,11 @@ Routes to the backend with the fewest active connections:
 ```mermaid
 graph TD
     REQ[New Request] --> SCAN[scan all healthy backends]
-    SCAN --> COMPARE{compare\nActiveConns}
-    COMPARE -->|B1=5 B2=2 B3=8| SELECT[select B2\nlowest conns]
+    SCAN --> COMPARE{compare<br>ActiveConns}
+    COMPARE -->|B1=5 B2=2 B3=8| SELECT[select B2<br>lowest conns]
     SELECT --> INC[B2.ActiveConns++]
     INC --> PROXY[proxy request]
-    PROXY --> DEC[B2.ActiveConns--\ndefer]
+    PROXY --> DEC[B2.ActiveConns--<br>defer]
 ```
 
 `ActiveConns` is an `atomic.Int64` — incremented before the request, decremented via `defer` after.
@@ -74,7 +74,7 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    CLIENT[Client] -->|HTTP request| LB[Load Balancer\nhttputil.ReverseProxy]
+    CLIENT[Client] -->|HTTP request| LB[Load Balancer<br>httputil.ReverseProxy]
     LB -->|Director: rewrite URL| UPSTREAM[Selected Backend]
     UPSTREAM -->|response| LB
     LB -->|forward response| CLIENT

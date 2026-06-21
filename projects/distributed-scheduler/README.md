@@ -8,22 +8,22 @@ A production-grade distributed job scheduler with Redis-based leader election, a
 
 ```mermaid
 graph TD
-    API[HTTP API\n/jobs /search /status] --> MGR[App Manager\nlifecycle orchestrator]
-    MGR -->|acquire| LEASE[Redis Lease\nsingle-active-instance]
-    LEASE -->|leader only| POOL[Concurrency Pool\nsync.Mutex + rules map]
-    POOL --> SCHED[Scheduler Service\nstate machine]
+    API[HTTP API<br>/jobs /search /status] --> MGR[App Manager<br>lifecycle orchestrator]
+    MGR -->|acquire| LEASE[Redis Lease<br>single-active-instance]
+    LEASE -->|leader only| POOL[Concurrency Pool<br>sync.Mutex + rules map]
+    POOL --> SCHED[Scheduler Service<br>state machine]
     SCHED -->|Pending → Running| DEST{Destination}
     DEST --> SQS[AWS SQS]
     DEST --> MEM[In-Memory]
-    SCHED -->|persist| PG[(PostgreSQL\njob state)]
-    SEARCH[Bleve Search\nfull-text index] --> PG
+    SCHED -->|persist| PG[(PostgreSQL<br>job state)]
+    SEARCH[Bleve Search<br>full-text index] --> PG
 
     subgraph Crons
-        COLD[ColdScheduler\npick up pending jobs]
-        REFRESH[ConcurrencyRefresher\nreload rules]
-        ZOMBIE[ZombieChecker\ndetect stale Running jobs]
-        HB[HeartbeatMarker\nmark alive jobs]
-        LONG[LongPublishedChecker\ndetect stuck jobs]
+        COLD[ColdScheduler<br>pick up pending jobs]
+        REFRESH[ConcurrencyRefresher<br>reload rules]
+        ZOMBIE[ZombieChecker<br>detect stale Running jobs]
+        HB[HeartbeatMarker<br>mark alive jobs]
+        LONG[LongPublishedChecker<br>detect stuck jobs]
     end
 
     MGR --> Crons
