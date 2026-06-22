@@ -56,6 +56,7 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 | [docker/networking.md](./docker/networking.md) | bridge/host/overlay/macvlan/none, iptables NAT, container DNS, port publishing internals, deep mode comparison | SDE-1/2 |
 | [docker/buildkit.md](./docker/buildkit.md) | Parallel stages, cache mounts, secret mounts, SSH agent, multi-platform buildx, inline cache | SDE-1/2 |
 | [docker/docker-security.md](./docker/docker-security.md) | Rootless Docker, docker.sock danger, image scanning, cosign/Sigstore, cap-drop, BuildKit secrets | SDE-2 |
+| [docker/internals.md](./docker/internals.md) | Image layers CoW, Linux namespaces, cgroups, containerd-shim, image optimization | SDE-1/2 |
 | [docker/debugging.md](./docker/debugging.md) | 10 scenarios with Prevention: exit codes, OOM, port issues, networking, build cache, image size, volumes, compose, disk | SDE-1 |
 
 **Read order:** README → networking → buildkit → docker-security → debugging
@@ -80,6 +81,8 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 | [kubernetes/pod-lifecycle.md](./kubernetes/pod-lifecycle.md) | Startup sequence (sandbox→CNI→image→probes→Endpoints), admission controller chain, server-side apply, termination race + preStop fix | SDE-2 |
 | [kubernetes/kube-proxy-modes.md](./kubernetes/kube-proxy-modes.md) | iptables O(n) + conntrack, IPVS O(1) + LB algorithms, Cilium/eBPF socket-level LB (no DNAT), comparison | SDE-2 |
 | [kubernetes/cross-node-networking.md](./kubernetes/cross-node-networking.md) | Same-node veth/bridge, VXLAN overlay, Calico BGP direct routing, AWS VPC CNI flat network, MTU table | SDE-2 |
+| [kubernetes/hpa-vpa-internals.md](./kubernetes/hpa-vpa-internals.md) | HPA internals every stage, VPA components, singleton VPA, HPA+VPA conflict | SDE-1/2 |
+| [kubernetes/scheduler-internals.md](./kubernetes/scheduler-internals.md) | Filter+Score plugins, FailedScheduling events, full pod scheduling sequence | SDE-1/2 |
 | [kubernetes/node-shutdown.md](./kubernetes/node-shutdown.md) | Graceful shutdown (systemd inhibitor), pod eviction ordering, node drain, non-graceful shutdown + out-of-service taint, lifecycle taints | SDE-2 |
 
 **Read order:** kubectl-cheatsheet → README → workloads → resource-limits → networking → coredns → storage → rbac → autoscaling → helm → eks-architecture → pod-lifecycle → kube-proxy-modes → cross-node-networking → node-shutdown
@@ -96,6 +99,7 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 | [cicd/jenkins/ecs-agents.md](./cicd/jenkins/ecs-agents.md) | Dynamic Jenkins agents on ECS Fargate, cost optimization | SDE-2 |
 | [cicd/argocd/README.md](./cicd/argocd/README.md) | GitOps, Application CRD, sync waves, multi-cluster with ApplicationSet, RBAC, Projects, SSO | SDE-1/2 |
 | [cicd/gitops-secrets.md](./cicd/gitops-secrets.md) | Sealed Secrets vs ESO, EKS/IRSA pattern, secret rotation, decision framework | SDE-2 |
+| [cicd/pipeline-design.md](./cicd/pipeline-design.md) | Java CI end-to-end, CD to 2 clusters, ArgoCD vs GHA deploy, Helm create/install/upgrade, SDE-1 vs SDE-2 classification | SDE-1/2 |
 | [cicd/argo-rollouts.md](./cicd/argo-rollouts.md) | Canary (steps + Prometheus analysis + ALB), blue-green, kubectl plugin, ArgoCD integration | SDE-2 |
 
 ---
@@ -115,6 +119,8 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 | File | Topics | Level |
 |------|--------|-------|
 | [aws/README.md](./aws/README.md) | VPC, subnets, SGs vs NACLs, NAT GW, IGW, VPC Peering, Transit Gateway | SDE-1 |
+| [aws/ecs-fargate.md](./aws/ecs-fargate.md) | ECS Fargate task definition, networking, rolling updates, auto scaling, debugging | SDE-1/2 |
+| [aws/request-flow-alb-to-pod.md](./aws/request-flow-alb-to-pod.md) | Route53→ALB→TargetGroup→Pod full flow, ALB vs NLB, L4 vs L7, debug commands | SDE-1/2 |
 | [aws/services-overview.md](./aws/services-overview.md) | IAM, ALB/NLB, Route 53, ECS vs EKS, TLS/mTLS | SDE-1 |
 | [aws/storage-databases.md](./aws/storage-databases.md) | S3, RDS, Aurora, ElastiCache, DynamoDB, EBS vs EFS | SDE-1 |
 | [aws/databases-deep-dive.md](./aws/databases-deep-dive.md) | Aurora internals, DocumentDB, DynamoDB single-table design, DAX, 8 scenarios | SDE-2 |
