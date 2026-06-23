@@ -15,7 +15,7 @@ graph TD
     classDef dns fill:#1abc9c,stroke:#16a085,color:#fff,rx:8
 
     CLIENT["Other Pod / Ingress"]:::client -->|"my-svc.default.svc.cluster.local:80"| DNS["CoreDNS resolves to ClusterIP 10.96.45.20"]:::dns
-    DNS --> SVC["Service: my-svc ClusterIP: 10.96.45.20 port: 80 → targetPort: 8080"]:::service
+    DNS --> SVC["Service: my-svc ClusterIP: 10.96.45.20 port: 80 --> targetPort: 8080"]:::service
     SVC -->|"kube-proxy iptables NAT"| P1["Pod 1 10.0.1.5:8080"]:::pod
     SVC --> P2["Pod 2 10.0.2.7:8080"]:::pod
     SVC --> P3["Pod 3 10.0.3.9:8080"]:::pod
@@ -54,14 +54,14 @@ graph LR
 
     subgraph Node1["Worker Node 1"]
         KP1["kube-proxy<br/>watches API server"]:::node
-        IPT1["iptables rules<br/>10.96.45.20:80 → DNAT"]:::virtual
+        IPT1["iptables rules<br/>10.96.45.20:80 --> DNAT"]:::virtual
         POD1["Pod 1<br/>10.0.1.5:8080"]:::node
         KP1 --> IPT1
     end
 
     subgraph Node2["Worker Node 2"]
         KP2["kube-proxy"]:::node
-        IPT2["iptables rules<br/>10.96.45.20:80 → DNAT"]:::virtual
+        IPT2["iptables rules<br/>10.96.45.20:80 --> DNAT"]:::virtual
         POD2["Pod 2<br/>10.0.2.7:8080"]:::node
         KP2 --> IPT2
     end
@@ -110,13 +110,13 @@ sequenceDiagram
     participant B as Pod 2 (Node 2)
 
     A->>K1: dst=10.96.45.20:80
-    Note over K1: DNAT: dst → 10.0.2.7:8080
-    Note over K1: route: 10.0.2.0/24 → Node 2
+    Note over K1: DNAT: dst --> 10.0.2.7:8080
+    Note over K1: route: 10.0.2.0/24 --> Node 2
     K1->>K2: dst=10.0.2.7:8080
     K2->>B: deliver via veth
     B-->>K2: src=10.0.2.7:8080
     K2-->>K1: response
-    Note over K1: un-DNAT via conntrack<br/>src → 10.96.45.20:80
+    Note over K1: un-DNAT via conntrack<br/>src --> 10.96.45.20:80
     K1-->>A: src=10.96.45.20:80
 ```
 
@@ -141,7 +141,7 @@ graph TD
 
     PKT["Packet to 10.96.45.20:80<br/>(from any pod on Node 1)"]
     DNAT["iptables DNAT on Node 1<br/>select pod IP at random"]:::kern
-    ROUTE["CNI routing table<br/>10.0.2.0/24 → Node 2"]:::cni
+    ROUTE["CNI routing table<br/>10.0.2.0/24 --> Node 2"]:::cni
     NODE2["Node 2<br/>deliver to Pod 2 veth"]:::node
 
     PKT --> DNAT --> ROUTE --> NODE2
@@ -194,14 +194,14 @@ sequenceDiagram
     participant PB as Pod B (10.0.2.7)
 
     LB->>NA: dst=NodeA:30080
-    Note over NA: DNAT: dst → 10.0.2.7:8080<br/>route: 10.0.2.0/24 → Node B
+    Note over NA: DNAT: dst --> 10.0.2.7:8080<br/>route: 10.0.2.0/24 --> Node B
     NA->>CNI: dst=10.0.2.7:8080<br/>(VXLAN/BGP tunnel)
     CNI->>NB: deliver to Node B
-    NB->>PB: veth → Pod B
+    NB->>PB: veth --> Pod B
     PB-->>NB: response
     NB-->>CNI: back to Node A
     CNI-->>NA: response
-    Note over NA: conntrack un-DNAT<br/>src → ClusterIP
+    Note over NA: conntrack un-DNAT<br/>src --> ClusterIP
     NA-->>LB: response to LB
 ```
 
@@ -220,7 +220,7 @@ sequenceDiagram
 
     APP->>KERN: connect(10.96.45.20:80)
     Note over KERN: PREROUTING chain hits KUBE-SERVICES
-    KERN->>KERN: Match: dst=10.96.45.20 port=80 → jump KUBE-SVC-XXX
+    KERN->>KERN: Match: dst=10.96.45.20 port=80 --> jump KUBE-SVC-XXX
     KERN->>KERN: KUBE-SVC-XXX: random select 1 of N backends
     KERN->>KERN: DNAT: rewrite dst to 10.0.2.7:8080
     KERN->>DEST: Packet delivered to real pod IP
@@ -260,9 +260,9 @@ graph TD
         HS["Headless (ClusterIP: None) No virtual IP DNS returns pod IPs directly"]:::svctype
     end
 
-    EXT["External Traffic"]:::traffic -->|"DNS → ALB/NLB"| LB
+    EXT["External Traffic"]:::traffic -->|"DNS --> ALB/NLB"| LB
     LB -->|"forwards to NodePort"| NP
-    NP -->|"NodePort → ClusterIP → pod"| CIP
+    NP -->|"NodePort --> ClusterIP --> pod"| CIP
     HS -.- NOTE["Used by StatefulSets: payments-0.my-svc, payments-1.my-svc Each pod gets stable DNS name"]:::note
 ```
 
@@ -465,7 +465,7 @@ Does NOT handle traffic itself"]:::proxy
 
     KERNEL["Linux Kernel
 iptables PREROUTING chain
-DNAT: ClusterIP → Pod IP
+DNAT: ClusterIP --> Pod IP
 Round-robin via probability rules"]:::kernel
 
     CNI["CNI Plugin
@@ -481,9 +481,9 @@ NOT in the live packet path"]:::cni
     POD3["Pod 3
 10.0.3.9:8080"]:::pod
 
-    N1["ALB → Ingress: direct pod IP
+    N1["ALB --> Ingress: direct pod IP
 No iptables DNAT on this leg"]:::note
-    N2["Ingress → ClusterIP: kube-proxy rules
+    N2["Ingress --> ClusterIP: kube-proxy rules
 handle DNAT to pod IP"]:::note
     N3["Who selects the pod?
 The KERNEL, via iptables rules
@@ -571,8 +571,8 @@ watches EndpointSlice changes
 programs iptables/IPVS rules"]:::proxy
     RULES["Linux Kernel
 iptables NAT rules:
-KUBE-SVC-XXX → random select KUBE-SEP
-KUBE-SEP → DNAT to pod IP:port"]:::kernel
+KUBE-SVC-XXX --> random select KUBE-SEP
+KUBE-SEP --> DNAT to pod IP:port"]:::kernel
     CONN["Incoming connection
 dst: ClusterIP 10.96.45.20:80"]:::svc
     POD_A["Pod A: 10.0.1.5:8080"]:::pod
@@ -612,7 +612,7 @@ vethXXX on host bridge"]:::cni
         CNI --> IP["Assign pod IP
 from node's CIDR block"]:::cni
         CNI --> ROUTE["Add routes:
-pod subnet → overlay tunnel
+pod subnet --> overlay tunnel
 or VPC route table (EKS)"]:::cni
         CNI --> DONE["Pod network ready
 CNI exits — job done"]:::pod
@@ -699,8 +699,8 @@ graph TD
     subgraph VanillaK8s["Vanilla Kubernetes"]
         V1["New DNS queries fail immediately
 NXDOMAIN or timeout"]:::bad
-        V2["my-svc.namespace.svc.cluster.local → fails
-pod-to-pod by service name → broken"]:::bad
+        V2["my-svc.namespace.svc.cluster.local --> fails
+pod-to-pod by service name --> broken"]:::bad
         V3["Connections using already-resolved IPs
 continue to work (OS DNS cache)"]:::ok
         V4["Pods with long-lived connections
@@ -860,7 +860,7 @@ graph TD
     SPEC["Ingress resource (Kubernetes spec)
 apiVersion: networking.k8s.io/v1
 kind: Ingress
-Rules: host/path → service mapping
+Rules: host/path --> service mapping
 Just configuration — does nothing by itself"]:::spec
 
     SPEC -->|"implemented by"| NGINX["nginx Ingress Controller

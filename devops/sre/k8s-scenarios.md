@@ -649,7 +649,7 @@ kubectl logs -n kube-system -l k8s-app=kube-dns --tail=50
 
 ```mermaid
 flowchart TD
-    A[Pod A → Pod B fails] --> B[kubectl exec -- curl pod-b]
+    A[Pod A --> Pod B fails] --> B[kubectl exec -- curl pod-b]
     B --> C{Timeout or refused?}
     C -- Timeout --> D[Check NetworkPolicy exists]
     D --> E[Check ingress rules<br/>on destination pod]
@@ -874,7 +874,7 @@ flowchart TD
     D -- Yes --> F{Cert valid?<br/>caBundle correct?}
     F -- No --> G[Renew cert /<br/>update caBundle]
     F -- Yes --> H{failurePolicy<br/>= Fail?}
-    H -- Yes --> I[Webhook timeout<br/>or crash → blocks]
+    H -- Yes --> I[Webhook timeout<br/>or crash --> blocks]
     H -- Ignore --> J[Webhook skipped<br/>on failure]
     I --> K[Check webhook<br/>service + port]
 ```

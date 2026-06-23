@@ -24,8 +24,8 @@ graph TD
     ROLLOUT["Rollout CRD<br>(replaces Deployment)"] --> RS_STABLE["ReplicaSet: stable<br>(current version)"]
     ROLLOUT --> RS_CANARY["ReplicaSet: canary<br>(new version)"]
     ROLLOUT --> ANAL["AnalysisRun<br>(queries Prometheus/Datadog)"]
-    ROLLOUT --> SVC_STABLE["Service: stable<br>(100% → reduces as canary grows)"]
-    ROLLOUT --> SVC_CANARY["Service: canary<br>(0% → grows)"]
+    ROLLOUT --> SVC_STABLE["Service: stable<br>(100% --> reduces as canary grows)"]
+    ROLLOUT --> SVC_CANARY["Service: canary<br>(0% --> grows)"]
     SVC_STABLE --> LB["Ingress / AWS ALB<br>weighted routing"]
     SVC_CANARY --> LB
 
@@ -183,11 +183,11 @@ spec:
 ```mermaid
 flowchart LR
     subgraph Before
-        ACTIVE["active Service → v1 pods<br>(100% traffic)"]
-        PREVIEW["preview Service → v2 pods<br>(0% traffic, internal only)"]
+        ACTIVE["active Service --> v1 pods<br>(100% traffic)"]
+        PREVIEW["preview Service --> v2 pods<br>(0% traffic, internal only)"]
     end
     subgraph After["After promotion"]
-        ACTIVE2["active Service → v2 pods<br>(100% traffic)"]
+        ACTIVE2["active Service --> v2 pods<br>(100% traffic)"]
         OLD["v1 pods kept 30s<br>then scaled down"]
     end
 ```

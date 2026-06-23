@@ -193,7 +193,7 @@ flowchart TD
     F -->|Yes| G[ARG invalidates all layers below it]
     F -->|No| H{--no-cache flag?}
     H -->|Yes| I[Remove --no-cache from CI]
-    H -->|No| J[Correct layer order:<br/>deps → code → COPY .]
+    H -->|No| J[Correct layer order:<br/>deps --> code --> COPY .]
 ```
 
 **Correct Dockerfile layer order:**

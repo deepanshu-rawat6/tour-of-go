@@ -15,7 +15,7 @@ flowchart TD
     D -- Yes --> E{Public IP<br/>assigned?}
     E -- No --> E1[Allocate & associate<br/>Elastic IP]
     E -- Yes --> F{Route table<br/>has IGW?}
-    F -- No --> F1[Add 0.0.0.0/0 → IGW]
+    F -- No --> F1[Add 0.0.0.0/0 --> IGW]
     F -- Yes --> G{OS firewall<br/>blocking?}
     G -- Yes --> G1[Use EC2 Serial Console<br/>or SSM to disable]
     G -- No --> H[Check system log<br/>for boot errors]
@@ -110,7 +110,7 @@ aws lambda update-function-configuration \
 flowchart TD
     A[ALB 502] --> B{Target group<br/>targets healthy?}
     B -- No --> C{SG on target<br/>allows ALB SG?}
-    C -- No --> C1[Add inbound rule:<br/>ALB SG → app port]
+    C -- No --> C1[Add inbound rule:<br/>ALB SG --> app port]
     C -- Yes --> D{App listening<br/>on correct port?}
     D -- No --> D1[Fix app config<br/>or target group port]
     D -- Yes --> E{Health check path<br/>returns 200?}
@@ -426,10 +426,10 @@ flowchart TD
     B -- No --> B1[Add role ARN to<br/>aws-auth configmap]
     B -- Yes --> C{VPC CNI pods<br/>running?}
     C -- No --> C1[kubectl logs<br/>aws-node pod]
-    C -- Yes --> D{SG allows 443<br/>node → control plane?}
-    D -- No --> D1[Add SG rule:<br/>node SG → cluster SG 443]
-    D -- Yes --> E{SG allows 10250<br/>control plane → node?}
-    E -- No --> E1[Add SG rule:<br/>cluster SG → node SG 10250]
+    C -- Yes --> D{SG allows 443<br/>node --> control plane?}
+    D -- No --> D1[Add SG rule:<br/>node SG --> cluster SG 443]
+    D -- Yes --> E{SG allows 10250<br/>control plane --> node?}
+    E -- No --> E1[Add SG rule:<br/>cluster SG --> node SG 10250]
     E -- Yes --> F[SSH to node<br/>check kubelet logs]
     F --> G[journalctl -u kubelet -f]
 ```

@@ -392,7 +392,7 @@ graph TD
 
     subgraph Overlay["overlay — own namespace + VXLAN tunnel"]
         O_C["Container eth0<br/>10.0.0.x"]:::overlay
-        O_V["veth → br0"]:::overlay
+        O_V["veth --> br0"]:::overlay
         O_VX["vxlan0 UDP:4789"]:::overlay
         O_H["Host eth0"]:::overlay
         O_C --> O_V --> O_VX --> O_H

@@ -29,7 +29,7 @@ graph LR
     F3 --> F4["TaintToleration<br>pod tolerates node taints?"]
     F4 --> F5["PodTopologySpread<br>spread constraints"]
     F5 --> F6["VolumeBinding<br>PVC can be bound here?"]
-    F6 --> PASS["Node passes → enters Score phase"]
+    F6 --> PASS["Node passes --> enters Score phase"]
     F1 & F2 & F3 & F4 & F5 & F6 -->|"any fail"| REJECT["Node eliminated"]
 ```
 
@@ -86,7 +86,7 @@ sequenceDiagram
     SCHED->>API: Node expander watches Pending pods
     API->>CA: new EC2 node provisioned
     CA->>API: node registers as Ready
-    SCHED->>SCHED: retry scheduling → node passes Filter
+    SCHED->>SCHED: retry scheduling --> node passes Filter
     SCHED->>API: Bind pod to new node
 ```
 
@@ -121,8 +121,8 @@ sequenceDiagram
     API->>API: store in etcd, status=Pending
 
     SCHED->>API: watch: new pod with no nodeName
-    SCHED->>SCHED: Filter + Score → node-2 wins
-    SCHED->>API: POST /pods/binding → nodeName=node-2
+    SCHED->>SCHED: Filter + Score --> node-2 wins
+    SCHED->>API: POST /pods/binding --> nodeName=node-2
 
     API->>KUBELET: kubelet on node-2 watches its pods
     KUBELET->>CRI: RunPodSandbox (create pause container)

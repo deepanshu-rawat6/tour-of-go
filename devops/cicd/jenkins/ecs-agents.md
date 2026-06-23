@@ -55,7 +55,7 @@ sequenceDiagram
 
     Note over TASK: Container starts, pulls image from ECR
     TASK->>TASK: entrypoint: /usr/local/bin/jenkins-agent
-    TASK->>CTRL: JNLP connect: agent.jar -url http://CTRL:8080 -secret <token> -name <agent-name>
+    TASK->>CTRL: JNLP connect: agent.jar -url http://CTRL:8080 -secret TOKEN -name AGENT_NAME
 
     Note over CTRL: Controller is LISTENING on JNLP port (50000)
     CTRL-->>TASK: Connection accepted, agent marked ONLINE

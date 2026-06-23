@@ -16,7 +16,7 @@ graph TD
 
     PV["PersistentVolume: pv-ebs-abc123 50Gi, ReadWriteOnce status: Bound claimRef: postgres/postgres-data-pvc"]:::pv
 
-    PVC["PersistentVolumeClaim: postgres-data-pvc requests: 50Gi, ReadWriteOnce storageClassName: gp3-encrypted status: Bound → pv-ebs-abc123"]:::pvc
+    PVC["PersistentVolumeClaim: postgres-data-pvc requests: 50Gi, ReadWriteOnce storageClassName: gp3-encrypted status: Bound --> pv-ebs-abc123"]:::pvc
 
     POD["Pod: postgres-0 volumeMounts:   - name: data     mountPath: /var/lib/postgresql/data"]:::pod
 

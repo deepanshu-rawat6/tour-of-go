@@ -8,7 +8,7 @@ Kubernetes Secrets must not be committed to git in plaintext. Two production-gra
 
 ```mermaid
 flowchart LR
-    BAD["kubectl create secret generic db-pass<br>--from-literal=password=s3cr3t<br>→ base64 in git = plaintext"]:::warn
+    BAD["kubectl create secret generic db-pass<br>--from-literal=password=s3cr3t<br>--> base64 in git = plaintext"]:::warn
     GOOD1["Sealed Secrets<br>Encrypt with cluster key<br>commit ciphertext to git"]
     GOOD2["External Secrets Operator<br>Store secret in AWS SM/Vault<br>git holds only a reference"]
     BAD -->|"never"| GOOD1

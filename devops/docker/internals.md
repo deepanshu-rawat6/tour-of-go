@@ -94,8 +94,8 @@ cgroups (control groups) enforce **resource limits**. Docker translates `--memor
 
 ```mermaid
 graph TD
-    DOCKER["docker run --memory 512m --cpus 0.5"] --> CG_MEM["cgroup memory controller<br>/sys/fs/cgroup/memory/docker/<id>/memory.limit_in_bytes<br>= 536870912 (512MB)"]
-    DOCKER --> CG_CPU["cgroup CPU controller<br>/sys/fs/cgroup/cpu/docker/<id>/cpu.cfs_quota_us = 50000<br>cpu.cfs_period_us = 100000<br>(50% of one CPU)"]
+    DOCKER["docker run --memory 512m --cpus 0.5"] --> CG_MEM["cgroup memory controller<br>/sys/fs/cgroup/memory/docker/CONTAINER_ID/memory.limit_in_bytes<br>= 536870912 (512MB)"]
+    DOCKER --> CG_CPU["cgroup CPU controller<br>/sys/fs/cgroup/cpu/docker/CONTAINER_ID/cpu.cfs_quota_us = 50000<br>cpu.cfs_period_us = 100000<br>(50% of one CPU)"]
     KERNEL["Linux kernel scheduler"] --> CG_CPU
     KERNEL --> CG_MEM
 ```
@@ -110,7 +110,7 @@ docker inspect <container> --format='{{.HostConfig.Memory}}'
 # 536870912
 
 # Verify CPU throttling
-cat /sys/fs/cgroup/cpu/docker/<id>/cpu.stat
+cat /sys/fs/cgroup/cpu/docker/CONTAINER_ID/cpu.stat
 # nr_throttled: 45   ← this many scheduling periods were throttled
 ```
 

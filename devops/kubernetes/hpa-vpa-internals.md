@@ -30,7 +30,7 @@ sequenceDiagram
     API->>SCHED: new Pod created (Pending, no node assigned)
 
     SCHED->>API: GET nodes + pods (from cache)
-    SCHED->>SCHED: Filter → Score → Bind
+    SCHED->>SCHED: Filter --> Score --> Bind
     SCHED->>API: Bind pod to node-2
 
     API->>KUBELET: kubelet on node-2 watches pod assigned to it
@@ -207,7 +207,7 @@ sequenceDiagram
     Note over VPA_R: monitors CPU/mem over time
     VPA_R->>API: update VPA status: target.cpu=500m target.memory=1Gi
 
-    Note over VPA_U: pod is using 200m CPU but limit is 100m → throttled
+    Note over VPA_U: pod is using 200m CPU but limit is 100m --> throttled
     VPA_U->>POD: evict (SIGTERM)
     Note over POD: pod restarts
     VPA_ADM->>POD: on admission: inject cpu=500m memory=1Gi

@@ -260,7 +260,7 @@ graph TD
     INSIGHTS["Logs Insights"]:::blue
     ALARM["CW Alarm"]:::red
     DASH["Dashboard"]:::green
-    SNS2["SNS → PagerDuty / Lambda"]:::orange
+    SNS2["SNS --> PagerDuty / Lambda"]:::orange
 
     EC2 -->|"PutMetricData"| METRICS
     EC2 -->|"log agent / SDK"| LOGS

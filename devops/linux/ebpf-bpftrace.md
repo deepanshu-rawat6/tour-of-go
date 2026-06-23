@@ -9,9 +9,9 @@ eBPF lets you run sandboxed programs inside the Linux kernel without changing ke
 ```mermaid
 flowchart LR
     SRC["bpftrace script<br/>or C eBPF program"]
-    COMPILE["LLVM/clang<br/>→ eBPF bytecode"]
+    COMPILE["LLVM/clang<br/>--> eBPF bytecode"]
     VERIFY["kernel verifier<br/>safety check"]
-    JIT["JIT compiler<br/>→ native instructions"]
+    JIT["JIT compiler<br/>--> native instructions"]
     HOOK["attach to hook:<br/>kprobe/tracepoint/uprobe/perf"]
     MAP["eBPF map<br/>(shared memory)"]
     USER["user-space<br/>reads map"]

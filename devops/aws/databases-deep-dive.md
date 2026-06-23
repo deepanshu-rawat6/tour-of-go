@@ -625,12 +625,12 @@ graph TD
     classDef red fill:#e74c3c,stroke:#c0392b,color:#fff,rx:8
 
     R53["Route 53<br/>Failover routing"]:::blue
-    PRIMARY["us-east-1 Primary<br/>ALB → EKS → Aurora writer"]:::green
-    SECONDARY["eu-west-1 Secondary<br/>ALB → EKS → Aurora replica"]:::orange
+    PRIMARY["us-east-1 Primary<br/>ALB --> EKS --> Aurora writer"]:::green
+    SECONDARY["eu-west-1 Secondary<br/>ALB --> EKS --> Aurora replica"]:::orange
     HC["R53 Health Check<br/>/health every 30s"]:::blue
 
     R53 -->|healthy| PRIMARY
-    R53 -.->|unhealthy → failover| SECONDARY
+    R53 -.->|unhealthy --> failover| SECONDARY
     HC --> PRIMARY
 
     AURORA_GLOBAL["Aurora Global DB<br/>~1s lag · RPO lt 1s · RTO lt 1min"]:::blue

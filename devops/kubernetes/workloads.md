@@ -254,6 +254,156 @@ graph TD
 
 ---
 
+## ReplicaSet vs StatefulSet — Deep Comparison
+
+### ReplicaSet (via Deployment) — Stateless Pods
+
+A ReplicaSet ensures N identical, interchangeable pod replicas are running. You never create a ReplicaSet directly — you use a **Deployment** which manages ReplicaSets for you (rolling updates, rollback).
+
+```mermaid
+graph TD
+    DEP["Deployment<br>manages ReplicaSets"] --> RS_OLD["ReplicaSet v1<br>replicas: 0 (kept for rollback)"]
+    DEP --> RS_NEW["ReplicaSet v2<br>replicas: 3"]
+    RS_NEW --> P1["api-7f9d4-abc<br>random suffix"]
+    RS_NEW --> P2["api-7f9d4-def<br>random suffix"]
+    RS_NEW --> P3["api-7f9d4-ghi<br>random suffix"]
+    P1 & P2 & P3 --> PVC_SHARED["Shared PVC (optional)<br>ReadWriteMany<br>e.g. EFS"]
+
+    classDef pod fill:#3498db,stroke:#2980b9,color:#fff
+    classDef rs fill:#e67e22,stroke:#d35400,color:#fff
+    class P1,P2,P3 pod
+    class RS_OLD,RS_NEW rs
+```
+
+**Pod identity:** none. Pod `api-7f9d4-abc` is identical to `api-7f9d4-def`. If one dies, the ReplicaSet creates a replacement with a new random name — no data is lost because stateless pods don't hold state.
+
+**Scale up/down:** all pods started/stopped in parallel, any order. Scale from 3→5: 2 new pods created simultaneously.
+
+### StatefulSet — Stateful Pods with Identity
+
+```mermaid
+graph TD
+    STS["StatefulSet: postgres"] --> HS["Headless Service<br>clusterIP: None<br>postgres-svc"]
+    STS --> P0["postgres-0<br>stable index"]
+    STS --> P1["postgres-1<br>stable index"]
+    STS --> P2["postgres-2<br>stable index"]
+    P0 --> PVC0["PVC: data-postgres-0<br>always bound to postgres-0"]
+    P1 --> PVC1["PVC: data-postgres-1<br>always bound to postgres-1"]
+    P2 --> PVC2["PVC: data-postgres-2<br>always bound to postgres-2"]
+    HS --> DNS0["DNS: postgres-0.postgres-svc.default.svc.cluster.local"]
+    HS --> DNS1["DNS: postgres-1.postgres-svc.default.svc.cluster.local"]
+
+    classDef pod fill:#9b59b6,stroke:#8e44ad,color:#fff
+    classDef pvc fill:#2ecc71,stroke:#27ae60,color:#fff
+    class P0,P1,P2 pod
+    class PVC0,PVC1,PVC2 pvc
+```
+
+**Headless Service** (`clusterIP: None`) — required for StatefulSet DNS. Unlike a regular Service (which load-balances), a Headless Service creates individual DNS records for each pod. `postgres-0.postgres-svc` always resolves to `postgres-0`'s IP — clients can target a specific pod (e.g., write to primary, read from replicas).
+
+### Ordered Startup and Deletion
+
+```mermaid
+sequenceDiagram
+    participant STS as StatefulSet Controller
+    participant P0 as postgres-0
+    participant P1 as postgres-1
+    participant P2 as postgres-2
+
+    Note over STS: Scale up (0 --> 3)
+    STS->>P0: create postgres-0
+    P0-->>STS: Running + Ready
+    STS->>P1: create postgres-1 (only after P0 ready)
+    P1-->>STS: Running + Ready
+    STS->>P2: create postgres-2 (only after P1 ready)
+    P2-->>STS: Running + Ready
+
+    Note over STS: Scale down (3 --> 1)
+    STS->>P2: delete postgres-2 (highest index first)
+    P2-->>STS: terminated
+    STS->>P1: delete postgres-1
+    P1-->>STS: terminated
+    Note over P0: postgres-0 remains
+```
+
+Why ordered? Databases need the primary (index 0) to be healthy before replicas join. Shutting down the replica before the primary prevents split-brain.
+
+---
+
+## Which Applications Use Which
+
+```mermaid
+graph TD
+    APP["Your Application"] --> Q1{"Does each instance<br>need its own<br>persistent data?"}
+    Q1 -->|No| Q2{"Multiple instances<br>interchangeable?"}
+    Q1 -->|Yes| STATEFUL["StatefulSet"]
+    Q2 -->|Yes| DEPLOYMENT["Deployment + ReplicaSet"]
+    Q2 -->|No singleton| SINGLETON["Deployment replicas:1<br>or StatefulSet replicas:1"]
+
+    classDef dep fill:#3498db,stroke:#2980b9,color:#fff
+    classDef sts fill:#9b59b6,stroke:#8e44ad,color:#fff
+    class DEPLOYMENT dep
+    class STATEFUL,SINGLETON sts
+```
+
+### Deployment (ReplicaSet) — Stateless Workloads
+
+| Application | Why Deployment |
+|-------------|---------------|
+| REST API servers | All pods identical, share DB connection, any pod can handle any request |
+| GraphQL / gRPC services | Stateless request handling |
+| Web frontends | No per-pod data |
+| Worker processes (SQS consumer) | Any worker can process any message |
+| Batch processors | Jobs consume from a queue, no local state |
+| ML inference servers (vLLM, TorchServe) | Model loaded in each pod's memory but no unique per-pod data to persist |
+| API gateways, proxies | Pure request routing, stateless |
+
+### StatefulSet — Stateful Workloads
+
+| Application | Why StatefulSet | Key requirement |
+|-------------|----------------|-----------------|
+| **PostgreSQL** | Each replica has its own WAL + data directory | Per-pod PVC, ordered startup (primary first) |
+| **MySQL / MariaDB** | Master-replica with per-node data | Stable names for replication config |
+| **Redis (cluster mode)** | Each shard owns specific key slots | Stable identity for cluster topology |
+| **Apache Kafka** | Each broker owns specific partitions on disk | Stable broker ID = stable pod name |
+| **Zookeeper** | Quorum requires stable myid | `zoo-0`, `zoo-1`, `zoo-2` fixed identity |
+| **Elasticsearch** | Each node stores specific shards | Per-pod PVC, stable cluster node names |
+| **Cassandra** | Each node owns a token range | Stable gossip identity |
+| **etcd** | Raft consensus requires stable peer URLs | `etcd-0.etcd` etc. |
+
+### The Key Question to Ask
+
+```
+"If I delete this pod and a new one starts with a different name and no local data,
+does the application still work correctly?"
+
+YES → Deployment
+NO  → StatefulSet
+```
+
+**Redis Standalone** (`replicas:1`, in-memory cache): Deployment — if it restarts, it starts fresh. The cache warms up again. Acceptable.
+
+**Redis Cluster** (sharded, data must persist): StatefulSet — each node owns data, must reconnect to cluster with same identity.
+
+**PostgreSQL primary**: StatefulSet — data on disk, WAL, per-node state. Restarting with a different name would break replication setup.
+
+---
+
+## Comparison Table
+
+| Feature | Deployment (ReplicaSet) | StatefulSet |
+|---------|------------------------|-------------|
+| Pod names | Random (`app-abc123-xyz`) | Stable (`app-0`, `app-1`) |
+| Pod DNS | Single Service (load-balanced) | Headless Service (per-pod DNS) |
+| Storage | Shared PVC or no PVC | Per-pod PVC via `volumeClaimTemplates` |
+| PVC on pod delete | PVC deleted with pod | **PVC survives pod deletion** |
+| Scale up order | Parallel (all at once) | Sequential (0, 1, 2...) |
+| Scale down order | Any order | Reverse (N, N-1, N-2...) |
+| Rolling update | New RS created, old RS scaled down | Pod-by-pod, highest index first |
+| Use case | Stateless APIs, workers | Databases, queues, consensus systems |
+
+
+
 ## DaemonSet
 
 Runs exactly **one pod per node** (or per matching node). When new nodes join the cluster, DaemonSet automatically schedules a pod on them.

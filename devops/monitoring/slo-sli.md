@@ -230,7 +230,7 @@ flowchart TD
     TARGET["Set target conservatively:<br/>start at current p30-day baseline − 0.5%"] --> BUDGET
     BUDGET["Calculate error budget<br/>and burn rate tiers"] --> ALERT
     ALERT["Write multi-window burn rate alerts<br/>link to runbooks"] --> REVIEW
-    REVIEW["Review SLO monthly:<br/>too tight → eng velocity hurt<br/>too loose → reliability suffering"]
+    REVIEW["Review SLO monthly:<br/>too tight --> eng velocity hurt<br/>too loose --> reliability suffering"]
 ```
 
 **Common mistake:** Setting SLO at 99.99% before measuring baseline. If your actual baseline is 99.5%, a 99.99% SLO means your error budget is always exhausted and every deploy is blocked.

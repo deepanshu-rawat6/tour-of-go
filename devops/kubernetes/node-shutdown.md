@@ -18,9 +18,9 @@ sequenceDiagram
     K->>K: Acquire inhibitor lock (blocks actual shutdown)
     K->>A: Taint node: node.kubernetes.io/not-ready:NoExecute
     Note over K: Phase 1: evict non-critical pods
-    K->>P: SIGTERM → wait grace period → SIGKILL
+    K->>P: SIGTERM --> wait grace period --> SIGKILL
     Note over K: Phase 2: evict critical pods
-    K->>P: SIGTERM → wait critical grace period → SIGKILL
+    K->>P: SIGTERM --> wait critical grace period --> SIGKILL
     K->>K: Release inhibitor lock
     SD->>SD: Shutdown proceeds
 ```
@@ -103,8 +103,8 @@ spec:
 
 ```mermaid
 flowchart TD
-    DRAIN["kubectl drain <node>"] --> CORDON
-    CORDON["kubectl cordon <node><br>node.spec.unschedulable = true<br>No new pods scheduled here"] --> EVICT
+    DRAIN["kubectl drain NODE_NAME"] --> CORDON
+    CORDON["kubectl cordon NODE_NAME<br>node.spec.unschedulable = true<br>No new pods scheduled here"] --> EVICT
     EVICT["Evict each pod via Eviction API<br>(respects PodDisruptionBudget)"] --> WAIT
     WAIT["Wait for each pod to terminate<br>(terminationGracePeriodSeconds)"] --> DONE
     DONE["Node ready for maintenance"]

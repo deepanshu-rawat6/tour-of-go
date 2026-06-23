@@ -245,10 +245,10 @@ graph TD
 
     REQ["Process attempts action e.g. nginx reads /etc/shadow"]:::layer
 
-    DAC["1. DAC check Does nginx user have read permission? rw-r--r-- owned by root nginx uid=33 → no permission"]:::check
-    CAP["2. Capability check Does nginx have CAP_DAC_READ_SEARCH? No → denied"]:::check
-    SECCOMP["3. seccomp check Is this syscall allowed? open() → yes"]:::check
-    MAC["4. MAC check (SELinux/AppArmor) nginx_t type can read httpd_config_t /etc/shadow is shadow_t → denied"]:::check
+    DAC["1. DAC check Does nginx user have read permission? rw-r--r-- owned by root nginx uid=33 --> no permission"]:::check
+    CAP["2. Capability check Does nginx have CAP_DAC_READ_SEARCH? No --> denied"]:::check
+    SECCOMP["3. seccomp check Is this syscall allowed? open() --> yes"]:::check
+    MAC["4. MAC check (SELinux/AppArmor) nginx_t type can read httpd_config_t /etc/shadow is shadow_t --> denied"]:::check
 
     REQ --> DAC --> CAP --> SECCOMP --> MAC
     DAC -->|"denied"| DENY["EACCES returned"]

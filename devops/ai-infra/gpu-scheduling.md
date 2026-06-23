@@ -165,7 +165,7 @@ The GPU Operator automates the entire GPU software stack via Kubernetes operator
 graph LR
     GO["GPU Operator<br>(single Helm install)"] --> DRIVER["NVIDIA Driver<br>DaemonSet (no host driver needed)"]
     GO --> DP["Device Plugin<br>DaemonSet"]
-    GO --> DCGM["DCGM Exporter<br>GPU metrics → Prometheus"]
+    GO --> DCGM["DCGM Exporter<br>GPU metrics --> Prometheus"]
     GO --> MIG_MGMT["MIG Manager<br>DaemonSet (A100/H100 only)"]
     GO --> GFD["GPU Feature Discovery<br>auto-labels nodes"]
     GO --> CT["Container Toolkit<br>runtime config"]

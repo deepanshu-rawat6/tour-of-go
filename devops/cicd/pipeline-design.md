@@ -8,8 +8,8 @@ graph LR
     CHECKOUT --> DEPS["2. Pull dependencies<br>mvn dependency:resolve<br>or cached ~/.m2"]
     DEPS --> UNIT["3. Unit Tests<br>mvn test<br>JUnit + Mockito"]
     UNIT --> INTEG["4. Integration Tests<br>mvn verify<br>testcontainers for DB/Redis"]
-    INTEG --> BUILD["5. Build artifact<br>mvn package -DskipTests<br>→ target/app.jar"]
-    BUILD --> DOCKER["6. Build Docker image<br>multi-stage Dockerfile<br>→ image:sha-abc1234"]
+    INTEG --> BUILD["5. Build artifact<br>mvn package -DskipTests<br>--> target/app.jar"]
+    BUILD --> DOCKER["6. Build Docker image<br>multi-stage Dockerfile<br>--> image:sha-abc1234"]
     DOCKER --> SCAN["7. Security scan<br>trivy image / snyk<br>fail on CRITICAL CVEs"]
     SCAN --> PUSH_IMG["8. Push to registry<br>ECR / DockerHub<br>tag: sha + semver"]
 ```
@@ -98,14 +98,14 @@ sequenceDiagram
 
     CI->>GIT: update image tag in values.yaml<br>staging/values.yaml: image.tag=sha-abc1234
     GIT->>ARGO: ArgoCD detects git change
-    ARGO->>C1: sync Application staging → deploy new image
+    ARGO->>C1: sync Application staging --> deploy new image
     C1-->>ARGO: Healthy
 
     Note over CI,ARGO: After staging validation (manual gate or automated test)
 
     CI->>GIT: update prod/values.yaml: image.tag=sha-abc1234
     GIT->>ARGO: ArgoCD detects git change
-    ARGO->>C2: sync Application prod → deploy new image
+    ARGO->>C2: sync Application prod --> deploy new image
     C2-->>ARGO: Healthy
 ```
 

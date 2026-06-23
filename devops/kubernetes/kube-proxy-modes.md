@@ -12,9 +12,9 @@ kube-proxy writes iptables NAT rules in the `KUBE-SERVICES` chain. When a packet
 flowchart LR
     POD["Pod<br>10.0.1.5"] -->|"dst: 10.96.45.20:80"| NF["netfilter<br>PREROUTING chain"]
     NF -->|"KUBE-SERVICES rule matches"| KCHAIN["KUBE-SVC-XXXXX chain<br>(one per Service)"]
-    KCHAIN -->|"random 33%"| SEP1["KUBE-SEP-AAA<br>DNAT → 10.0.1.10:8080"]
-    KCHAIN -->|"random 33%"| SEP2["KUBE-SEP-BBB<br>DNAT → 10.0.2.15:8080"]
-    KCHAIN -->|"random 33%"| SEP3["KUBE-SEP-CCC<br>DNAT → 10.0.3.9:8080"]
+    KCHAIN -->|"random 33%"| SEP1["KUBE-SEP-AAA<br>DNAT --> 10.0.1.10:8080"]
+    KCHAIN -->|"random 33%"| SEP2["KUBE-SEP-BBB<br>DNAT --> 10.0.2.15:8080"]
+    KCHAIN -->|"random 33%"| SEP3["KUBE-SEP-CCC<br>DNAT --> 10.0.3.9:8080"]
 ```
 
 **The O(n) problem:**

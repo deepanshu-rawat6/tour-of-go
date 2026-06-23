@@ -512,13 +512,13 @@ sequenceDiagram
     C->>C: Set up overlayfs: merge image layers + new RW layer
     C->>R: Create bundle (rootfs + config.json OCI spec)
     R->>K: clone() with CLONE_NEWPID|CLONE_NEWNET|CLONE_NEWNS|CLONE_NEWUTS|CLONE_NEWIPC
-    R->>K: Create cgroup under /sys/fs/cgroup/docker/<id>/
+    R->>K: Create cgroup under /sys/fs/cgroup/docker/CONTAINER_ID/
     R->>K: Set memory.max, cpu.max, pids.max from container config
     R->>K: pivot_root() to overlayfs merged directory
     R->>K: Mount /proc, /sys, /dev/pts inside container
     R->>K: Apply seccomp profile (block ~44 dangerous syscalls)
     R->>K: Drop Linux capabilities (keep only ~14 of 38)
-    R->>K: execve("/docker-entrypoint.sh") → nginx
+    R->>K: execve("/docker-entrypoint.sh") --> nginx
     K-->>CLI: Container running (PID visible on host, isolated inside)
 ```
 

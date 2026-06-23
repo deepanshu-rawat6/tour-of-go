@@ -244,9 +244,9 @@ weekly_retraining()
 graph TD
     subgraph Triggers
         SCHED["Schedule<br>CronJob / Airflow"]
-        DRIFT["Data drift detected<br>Evidently alert → webhook"]
-        PERF["Performance drop<br>Prometheus alert → webhook"]
-        DATA["New data arrived<br>S3 event → Lambda → trigger"]
+        DRIFT["Data drift detected<br>Evidently alert --> webhook"]
+        PERF["Performance drop<br>Prometheus alert --> webhook"]
+        DATA["New data arrived<br>S3 event --> Lambda --> trigger"]
     end
 
     SCHED & DRIFT & PERF & DATA --> PIPE["Training Pipeline<br>(KFP or Airflow)"]

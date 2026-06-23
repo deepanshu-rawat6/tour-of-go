@@ -10,7 +10,7 @@ RAG (Retrieval-Augmented Generation) prevents hallucinations by grounding LLM re
 
 ```mermaid
 graph LR
-    USER["User query:<br>'What caused the<br>production outage?'"] --> EMBED["Embed query<br>text-embedding-3-small<br>→ float32[1536]"]
+    USER["User query:<br>'What caused the<br>production outage?'"] --> EMBED["Embed query<br>text-embedding-3-small<br>--> float32[1536]"]
     EMBED --> VDB["Vector DB<br>cosine similarity search<br>return top-5 chunks"]
     VDB --> CONTEXT["Retrieved context:<br>5 runbook/log chunks<br>most similar to query"]
     CONTEXT --> PROMPT["Augmented prompt:<br>Context: [chunks]<br>Question: [query]"]

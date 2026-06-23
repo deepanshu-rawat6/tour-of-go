@@ -13,12 +13,12 @@ sequenceDiagram
     participant POD as Pod :8080
 
     USER->>R53: DNS query: api.example.com
-    R53-->>USER: CNAME → my-alb-1234.us-east-1.elb.amazonaws.com
+    R53-->>USER: CNAME --> my-alb-1234.us-east-1.elb.amazonaws.com
     USER->>ALB: TCP SYN (to ALB IP)
     ALB->>ALB: TLS handshake (cert from ACM)
-    ALB->>ALB: Match listener rule (path /api/* → TG api-tg)
+    ALB->>ALB: Match listener rule (path /api/* --> TG api-tg)
     ALB->>TG: HTTP request to healthy target
-    TG->>SG: check inbound rule allows ALB SG → pod port 8080
+    TG->>SG: check inbound rule allows ALB SG --> pod port 8080
     SG-->>TG: allowed
     TG->>POD: HTTP GET /api/users (original headers + X-Forwarded-For)
     POD-->>ALB: HTTP 200 response
@@ -45,8 +45,8 @@ graph LR
 
 ```mermaid
 graph TD
-    LIS["Listener :443 HTTPS"] --> RULE1["Rule 1: /api/* → TG api"]
-    LIS --> RULE2["Rule 2: /static/* → TG cdn"]
+    LIS["Listener :443 HTTPS"] --> RULE1["Rule 1: /api/* --> TG api"]
+    LIS --> RULE2["Rule 2: /static/* --> TG cdn"]
     LIS --> RULE3["Default: 404"]
     RULE1 --> TG["Target Group: api<br>health check: GET /health<br>healthy threshold: 2<br>interval: 30s"]
     TG --> POD1["10.0.1.5:8080"]
@@ -159,16 +159,16 @@ flowchart TD
     STEP1["1. Check pod logs"] --> STEP2
     STEP2["2. curl pod directly<br>kubectl exec -- curl localhost:8080/health"] --> HEALTHY{Healthy?}
     HEALTHY -->|No| APPBUG["App bug or not listening<br>on 0.0.0.0"]
-    HEALTHY -->|Yes| STEP3["3. Check Service endpoints<br>kubectl get endpoints <svc>"]
+    HEALTHY -->|Yes| STEP3["3. Check Service endpoints<br>kubectl get endpoints svc-name"]
     STEP3 --> NOEP{Endpoints empty?}
     NOEP -->|Yes| LABEL["Labels don't match Service selector<br>kubectl get pods --show-labels"]
     NOEP -->|No| STEP4["4. Check ALB target group health<br>AWS Console or aws elbv2 describe-target-health"]
     STEP4 --> UNHEALTHY{Target unhealthy?}
     UNHEALTHY -->|Yes| HC["Health check failing<br>wrong path, wrong port, SG blocks ALB"]
-    UNHEALTHY -->|No| STEP5["5. Check Security Group<br>ALB SG → Pod SG port 8080 allowed?"]
+    UNHEALTHY -->|No| STEP5["5. Check Security Group<br>ALB SG to Pod SG port 8080 allowed?"]
     STEP5 --> SGRULE{Rule exists?}
     SGRULE -->|No| ADDRULE["Add inbound rule to Pod SG"]
-    SGRULE -->|Yes| STEP6["6. Check readiness probe<br>kubectl describe pod → Readiness probe status"]
+    SGRULE -->|Yes| STEP6["6. Check readiness probe<br>kubectl describe pod - Readiness probe status"]
 ```
 
 ### Full Debug Command Set
