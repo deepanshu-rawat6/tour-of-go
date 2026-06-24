@@ -135,3 +135,128 @@ kubectl exec mongo-0 -- mongosh --eval "db.fsyncUnlock()"
 | `secondary` | Any secondary | Analytics, reporting (stale OK) |
 | `secondaryPreferred` | Secondary if available, else primary | Read scale-out |
 | `nearest` | Lowest latency node | Geographic distribution |
+
+---
+
+## MongoDB on Kubernetes — Community Operator
+
+```bash
+# Install MongoDB Community Operator
+helm repo add mongodb https://mongodb.github.io/helm-charts
+helm install community-operator mongodb/community-operator \
+  --namespace mongodb-operator --create-namespace
+```
+
+```yaml
+# Secret for admin password
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-secret
+  namespace: mongodb
+type: Opaque
+stringData:
+  password: "changeme"
+---
+# 3-node Replica Set
+apiVersion: mongodbcommunity.mongodb.com/v1
+kind: MongoDBCommunity
+metadata:
+  name: mongodb
+  namespace: mongodb
+spec:
+  members: 3
+  type: ReplicaSet
+  version: "7.0.4"
+
+  security:
+    authentication:
+      modes: ["SCRAM"]
+
+  users:
+  - name: appuser
+    db: admin
+    passwordSecretRef:
+      name: mongodb-secret
+    roles:
+    - name: readWrite
+      db: myapp
+    - name: clusterMonitor
+      db: admin
+    scramCredentialsSecretName: appuser-scram
+
+  # MongoDB configuration
+  additionalMongodConfig:
+    operationProfiling:
+      slowOpThresholdMs: 100
+    replication:
+      oplogSizeMB: 2048
+
+  # Storage per pod
+  statefulSet:
+    spec:
+      volumeClaimTemplates:
+      - metadata:
+          name: data-volume
+        spec:
+          accessModes: [ReadWriteOnce]
+          storageClassName: gp3
+          resources:
+            requests:
+              storage: 100Gi
+      - metadata:
+          name: logs-volume
+        spec:
+          accessModes: [ReadWriteOnce]
+          storageClassName: gp3
+          resources:
+            requests:
+              storage: 10Gi
+      template:
+        spec:
+          containers:
+          - name: mongod
+            resources:
+              requests:
+                cpu: "2"
+                memory: 8Gi
+              limits:
+                cpu: "4"
+                memory: 16Gi
+```
+
+```bash
+# Check replica set status
+kubectl get mongodbcommunity mongodb -n mongodb
+# NAME      PHASE   VERSION
+# mongodb   Running 7.0.4
+
+# Connect string (headless service creates per-pod DNS)
+# mongodb-0.mongodb-svc.mongodb.svc.cluster.local:27017
+# mongodb-1.mongodb-svc.mongodb.svc.cluster.local:27017
+# mongodb-2.mongodb-svc.mongodb.svc.cluster.local:27017
+
+kubectl exec -it mongodb-0 -n mongodb -- mongosh \
+  "mongodb://appuser:changeme@mongodb-0.mongodb-svc:27017,mongodb-1.mongodb-svc:27017,mongodb-2.mongodb-svc:27017/myapp?replicaSet=mongodb"
+
+# Check replica set status from inside
+> rs.status()
+> rs.isMaster()   # shows who is primary
+```
+
+```yaml
+# Services created automatically by operator:
+# mongodb-svc       ClusterIP None   — headless, per-pod DNS
+# mongodb-svc-ext   ClusterIP        — single endpoint for the replica set
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-svc
+  namespace: mongodb
+spec:
+  clusterIP: None   # headless
+  selector:
+    app: mongodb-svc
+  ports:
+  - port: 27017
+```

@@ -157,18 +157,64 @@ git merge --no-ff feature     # always create merge commit
 
 Rebase **replays commits** one by one onto a new base:
 
-1. Find common ancestor of current branch and target
-2. Extract patches (diffs) for each commit on current branch
-3. Reset current branch to target
-4. Apply each patch in order as new commits (new SHAs!)
-
+```mermaid
+graph LR
+    subgraph Before["Before: git rebase main"]
+        A1["A"] --> B1["B (main)"]
+        A1 --> C1["C"] --> D1["D (feature)"]
+    end
+    subgraph After["After: git rebase main"]
+        A2["A"] --> B2["B (main)"] --> C2["C' (new SHA)"] --> D2["D' (new SHA, feature)"]
+    end
 ```
+
+**Step by step:**
+1. `git merge-base feature main` → finds A (common ancestor)
+2. Extract patches: C-diff, D-diff
+3. `git reset --hard main` → move feature to B
+4. Apply C-diff → creates C' (new SHA, different parent = different hash)
+5. Apply D-diff → creates D' (new SHA)
+
+**Conflict during rebase:**
+```bash
 git rebase main
-# Equivalent to:
-# git checkout main && git cherry-pick <commit1> <commit2> ...
+# CONFLICT (content): Merge conflict in src/handler.go
+# Fix conflict in editor, then:
+git add src/handler.go
+git rebase --continue   # applies next commit
+# OR:
+git rebase --skip       # skip this commit entirely
+# OR:
+git rebase --abort      # abandon, restore original branch
 ```
 
-**Key difference**: rebase rewrites history (new SHAs). Never rebase shared/public branches.
+**Interactive rebase — rewrite history before pushing:**
+```bash
+git rebase -i HEAD~4   # last 4 commits
+# Editor opens showing:
+# pick a1b2c3 add feature X
+# pick d4e5f6 fix typo
+# pick g7h8i9 wip
+# pick j0k1l2 final cleanup
+#
+# Commands: pick, squash (s), fixup (f), reword (r), edit (e), drop (d)
+# Squash d4e5f6 into a1b2c3:
+# pick a1b2c3 add feature X
+# squash d4e5f6 fix typo     ← merged into previous, keeps both messages
+# fixup g7h8i9 wip           ← merged into previous, discards this message
+# reword j0k1l2 final cleanup ← prompts to edit message
+```
+
+**`--onto` — transplant commits to a different base:**
+```bash
+# Move commits that are on feature but NOT on bugfix, onto main
+git rebase --onto main bugfix feature
+# Before: main ← bugfix ← feature
+# After:  main ← feature' (bugfix commits dropped)
+# Use case: feature was accidentally branched from bugfix, not main
+```
+
+**Key rule:** `git rebase` rewrites SHAs. Never rebase commits that have been pushed to a shared remote branch — it will require force push and break everyone else's history.
 
 ---
 

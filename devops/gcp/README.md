@@ -332,3 +332,15 @@ More granular than Private Google Access. Create a **PSC endpoint** (a forwardin
 | **IP** | Uses `private.googleapis.com` DNS | Assigns internal IP of your choosing |
 | **Use case** | General Google API access | Multi-tenant, specific endpoint, partner services |
 | **AWS analog** | VPC Gateway/Interface Endpoint | Interface VPC Endpoint (PrivateLink) |
+
+---
+
+## Additional Files
+
+| File | Topics |
+|------|--------|
+| [gke.md](./gke.md) | GKE Standard vs Autopilot, Workload Identity, VPC-native networking, container-native LB, GPU node pools, upgrade strategy |
+| [bigquery.md](./bigquery.md) | Columnar storage, partitioning, clustering, slots, streaming vs batch load, external tables, time travel, cost optimization |
+| [bigtable.md](./bigtable.md) | Wide-column data model, row key design, LSM tree, replication, HBase API, monitoring |
+| [gcp-vs-aws.md](./gcp-vs-aws.md) | Service-by-service mapping, global VPC vs regional, BigQuery vs Redshift, GKE vs EKS, when to choose which |
+| [scenarios.md](./scenarios.md) | 7 debugging scenarios: Workload Identity 403, autoscaler not scaling, BigQuery cost spike, cold starts, Spanner hotspot, Pub/Sub backlog, GCS access denied |

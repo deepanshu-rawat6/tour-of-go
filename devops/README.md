@@ -7,18 +7,22 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 ## Recommended Order
 
 ```
-1. Linux fundamentals        → understand what everything runs on
-2. Docker                    → containers before orchestration
-3. Kubernetes                → orchestration, networking, security
-4. CI/CD                     → build and deploy pipelines
-5. IaC                       → Terraform, Helm, CloudFormation
-6. AWS                       → cloud infrastructure
-7. GCP                       → GCP equivalent concepts
-8. Monitoring                → Prometheus, Grafana, OTel, Loki
-9. Performance debugging     → profiling, USE/RED, pprof, eBPF
+1.  Linux fundamentals       → understand what everything runs on
+2.  Networking               → TCP, TLS, HTTP, gRPC — how data moves
+3.  Docker                   → containers before orchestration
+4.  Kubernetes               → orchestration, networking, security
+5.  CI/CD                    → build and deploy pipelines
+6.  IaC                      → Terraform, Helm, CloudFormation
+7.  AWS                      → cloud infrastructure
+8.  GCP                      → GCP equivalents + BigQuery, Bigtable, GKE
+9.  Monitoring               → Prometheus, Grafana, OTel, Loki
 10. Git                      → internals, workflows, fixing mistakes
 11. Advanced                 → service mesh, eBPF, chaos, DR
-12. SRE & Debugging          → production incident runbooks
+12. AI Infrastructure        → GPU scheduling, KubeRay, vLLM, LLMOps
+13. MLOps                    → experiment tracking, pipelines, drift detection
+14. Database Internals       → WAL, MVCC, indexes, replication internals
+15. Databases on K8s         → running Postgres, Kafka, Redis on GKE
+16. SRE & Debugging          → production incident runbooks
 ```
 
 ---
@@ -99,6 +103,7 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 | [kubernetes/cross-node-networking.md](./kubernetes/cross-node-networking.md) | Same-node veth/bridge, VXLAN overlay, Calico BGP direct routing, AWS VPC CNI flat network, MTU table | SDE-2 |
 | [kubernetes/hpa-vpa-internals.md](./kubernetes/hpa-vpa-internals.md) | HPA internals every stage, VPA components, singleton VPA, HPA+VPA conflict | SDE-1/2 |
 | [kubernetes/scheduler-internals.md](./kubernetes/scheduler-internals.md) | Filter+Score plugins, FailedScheduling events, full pod scheduling sequence | SDE-1/2 |
+| [kubernetes/policy-security.md](./kubernetes/policy-security.md) | OPA/Gatekeeper, Kyverno (validate/mutate/generate), multi-tenancy, ResourceQuota, NetworkPolicy isolation, PSA, seccomp, AppArmor | SDE-2 |
 | [kubernetes/node-shutdown.md](./kubernetes/node-shutdown.md) | Graceful shutdown (systemd inhibitor), pod eviction ordering, node drain, non-graceful shutdown + out-of-service taint, lifecycle taints | SDE-2 |
 
 **Read order:** kubectl-cheatsheet → README → workloads → resource-limits → networking → coredns → storage → rbac → autoscaling → helm → eks-architecture → pod-lifecycle → kube-proxy-modes → cross-node-networking → node-shutdown
@@ -150,6 +155,11 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 |------|--------|-------|
 | [gcp/README.md](./gcp/README.md) | Global VPC, subnets, firewall rules, Cloud NAT, VPC Peering, Shared VPC | SDE-1/2 |
 | [gcp/services-overview.md](./gcp/services-overview.md) | IAM, Workload Identity, Cloud LB, Cloud DNS, Cloud Run vs GKE | SDE-1/2 |
+| [gcp/gke.md](./gcp/gke.md) | GKE Standard vs Autopilot, Workload Identity, VPC-native networking, container-native LB (NEG), GPU pools, upgrade channels | SDE-2 |
+| [gcp/bigquery.md](./gcp/bigquery.md) | Columnar storage, partitioning, clustering, slots, streaming vs batch, external tables, time travel, cost optimization | SDE-1/2 |
+| [gcp/bigtable.md](./gcp/bigtable.md) | Wide-column model, row key design (hotspot prevention), LSM tree, HBase API, monitoring | SDE-2 |
+| [gcp/gcp-vs-aws.md](./gcp/gcp-vs-aws.md) | Full service mapping, global VPC vs regional VPC, BigQuery vs Redshift, GKE vs EKS, TPUs, when to choose | SDE-1/2 |
+| [gcp/scenarios.md](./gcp/scenarios.md) | 7 scenarios with Prevention: Workload Identity 403, autoscaler stuck, BigQuery cost spike, Cloud Run cold start, Spanner hotspot, Pub/Sub backlog, GCS 403 | SDE-1/2 |
 
 ---
 

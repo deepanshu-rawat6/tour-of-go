@@ -217,6 +217,58 @@ Each agent runs `train.py`, W&B assigns it different hyperparameters, logs resul
 | Integration | Any Python | Any Python |
 | Best for | On-prem/self-hosted teams | Teams wanting zero infra |
 
+### W&B Model Registry
+
+W&B has a separate Model Registry (different from the Artifacts tab) with staging/production aliases:
+
+```python
+import wandb
+
+# 1. Log model artifact during training
+run = wandb.init(project="my-project")
+artifact = wandb.Artifact("customer-support-llm", type="model")
+artifact.add_file("model.pt")
+artifact.add_file("tokenizer/")
+run.log_artifact(artifact)
+wandb.finish()
+
+# 2. Link artifact to the Model Registry with an alias
+api = wandb.Api()
+artifact = api.artifact("my-org/my-project/customer-support-llm:v3")
+
+# Link to registry collection
+artifact.link("my-org/model-registry/customer-support-llm",
+              aliases=["staging"])   # aliases: staging, production, v1.2.3
+
+# 3. Promote to production (remove staging alias, add production)
+artifact = api.artifact("my-org/model-registry/customer-support-llm:staging")
+artifact.aliases = ["production"]   # replaces all aliases
+artifact.save()
+
+# 4. Fetch production model in serving code
+production = api.artifact("my-org/model-registry/customer-support-llm:production")
+production.download(root="./model")  # downloads to local dir
+```
+
+**W&B Registry vs MLflow Registry comparison:**
+
+| | W&B Model Registry | MLflow Model Registry |
+|--|-------------------|----------------------|
+| Stage names | Custom aliases (any string) | Fixed: Staging/Production/Archived |
+| Webhooks | Yes — trigger CI/CD on alias change | No (use MLflow plugins) |
+| Access control | RBAC at collection level | Per-model permissions |
+| Cross-project | Yes (central registry across all projects) | Per-MLflow-server only |
+| Lineage | Full run → artifact → registry trace | Run → model version |
+
+```bash
+# W&B CLI: list all versions in registry
+wandb artifact ls my-org/model-registry/customer-support-llm
+
+# Trigger deploy on alias promotion (webhook → GitHub Actions)
+# W&B → Settings → Webhooks → add endpoint
+# Payload includes: artifact name, alias added/removed, version
+```
+
 ---
 
 ## Model Artifact Versioning Best Practices

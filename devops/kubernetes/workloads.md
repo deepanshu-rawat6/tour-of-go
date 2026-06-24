@@ -404,6 +404,124 @@ NO  → StatefulSet
 
 
 
+## Init Containers
+
+Init containers run **sequentially before app containers start**. Each must exit 0 before the next runs. If any init container fails, the pod restarts.
+
+```mermaid
+sequenceDiagram
+    participant K as kubelet
+    participant I1 as init-container-1
+    participant I2 as init-container-2
+    participant APP as app container
+
+    K->>I1: start (wait-for-db)
+    Note over I1: loops until postgres:5432 is reachable
+    I1-->>K: exit 0
+    K->>I2: start (run-migrations)
+    I2-->>K: exit 0 (migrations done)
+    K->>APP: start main application
+    Note over APP: DB is ready AND migrated before app starts
+```
+
+```yaml
+spec:
+  initContainers:
+  # 1. Wait for dependency to be ready
+  - name: wait-for-db
+    image: busybox
+    command: ['sh', '-c', 'until nc -z postgres-svc 5432; do echo waiting; sleep 2; done']
+
+  # 2. Run DB migration before app starts
+  - name: migrate
+    image: my-app:v2
+    command: ["/app/server", "migrate"]
+    env:
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: db-secret
+          key: url
+
+  containers:
+  - name: app
+    image: my-app:v2
+    # starts only after both init containers succeed
+```
+
+**Common init container patterns:**
+
+| Pattern | Init container does | Why |
+|---------|-------------------|-----|
+| Wait for dependency | `nc -z svc port` loop | Prevent app crash on startup |
+| DB migration | `./migrate up` | Run once before N replicas start |
+| Secret injection | Fetch secret from Vault, write to emptyDir | Avoid mounting Vault agent sidecar |
+| Config rendering | Render templates with env vars | App expects rendered config, not templates |
+| Permission fix | `chown` shared volume | App needs specific UID on data directory |
+
+**Init containers share volumes with app containers** — this is how they pass data:
+
+```yaml
+volumes:
+- name: config
+  emptyDir: {}
+initContainers:
+- name: render-config
+  image: renderer:v1
+  command: ["render", "--output", "/config/app.yaml"]
+  volumeMounts:
+  - name: config
+    mountPath: /config
+containers:
+- name: app
+  volumeMounts:
+  - name: config
+    mountPath: /etc/app   # reads rendered config written by init container
+```
+
+---
+
+## Ephemeral Containers — Debug Running Pods
+
+Ephemeral containers can be injected into a **running pod** without restarting it. Used for debugging when the app container has no shell (distroless, scratch).
+
+```bash
+# Inject a debug container into a running pod
+kubectl debug -it my-pod \
+  --image=nicolaka/netshoot \    # has tcpdump, curl, dig, netstat
+  --target=app \                  # shares app container's process namespace
+  -- bash
+
+# Inside netshoot: debug the running app
+ps aux              # see app processes (shared PID namespace)
+netstat -tlnp       # see what ports app is listening on
+curl localhost:8080/health
+tcpdump -i any port 8080
+
+# Debug with a copy of the pod (for crashlooping pods)
+kubectl debug my-crashlooping-pod \
+  --copy-to=debug-copy \
+  --image=busybox \
+  --container=app \              # override the crashing container's image
+  -- sleep 3600
+# Now exec into debug-copy to inspect filesystem, env vars, etc.
+```
+
+```mermaid
+graph LR
+    POD["Running Pod<br>(distroless — no shell)"] -->|"kubectl debug inject"| EPH["Ephemeral container<br>nicolaka/netshoot<br>shares: network NS, PID NS"]
+    EPH -->|"can see"| PROC["App processes"]
+    EPH -->|"can curl"| NET["App network"]
+    EPH -->|"cannot modify"| POD
+    NOTE["Pod is NOT restarted<br>Ephemeral container auto-removed when exited"]
+```
+
+**Ephemeral vs exec:**
+- `kubectl exec` — needs a shell already in the container
+- `kubectl debug` — injects a new container with tools, works on distroless images
+
+---
+
 ## DaemonSet
 
 Runs exactly **one pod per node** (or per matching node). When new nodes join the cluster, DaemonSet automatically schedules a pod on them.

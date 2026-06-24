@@ -203,3 +203,96 @@ spec:
 ```
 
 Use snapshots for: pre-upgrade database backups, cloning production data to staging, disaster recovery checkpoints.
+
+---
+
+## ConfigMap vs Secret
+
+```mermaid
+graph LR
+    CM["ConfigMap<br>non-sensitive config<br>app.properties, nginx.conf<br>feature flags, URLs<br>stored in etcd as plaintext"] --> POD
+    SEC["Secret<br>sensitive data<br>passwords, tokens, TLS certs<br>stored in etcd base64-encoded<br>(NOT encrypted by default)"] --> POD["Pod"]
+
+    POD -->|"mount as volume"| VOL["File in container<br>/etc/config/app.properties"]
+    POD -->|"inject as env var"| ENV["ENV DB_PASS=s3cr3t"]
+```
+
+**Key differences:**
+
+| | ConfigMap | Secret |
+|--|-----------|--------|
+| Data type | Non-sensitive | Sensitive (passwords, tokens, certs) |
+| etcd storage | Plaintext | Base64-encoded (NOT encrypted without extra config) |
+| K8s RBAC | `get configmaps` | `get secrets` (separate permission) |
+| Mounted as | File or env var | File, env var, or imagePullSecret |
+| Max size | 1MB | 1MB |
+
+**Base64 ≠ encryption.** A Secret's value is base64-encoded in etcd — anyone with `kubectl get secret -o yaml` can decode it immediately. Real protection requires **encryption at rest**.
+
+### Encryption at Rest
+
+```yaml
+# /etc/kubernetes/encryption-config.yaml (on control plane)
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+- resources: ["secrets"]
+  providers:
+  - aescbc:                          # AES-CBC encryption
+      keys:
+      - name: key1
+        secret: <base64-encoded-32-byte-key>   # generated: head -c 32 /dev/urandom | base64
+  - identity: {}                     # fallback: unencrypted (for existing secrets)
+```
+
+```bash
+# Enable on kube-apiserver
+--encryption-provider-config=/etc/kubernetes/encryption-config.yaml
+
+# Encrypt all existing secrets (re-writes them with the new provider)
+kubectl get secrets --all-namespaces -o json | kubectl replace -f -
+
+# Verify a secret is encrypted in etcd
+ETCDCTL_API=3 etcdctl get /registry/secrets/default/my-secret | hexdump -C | head
+# If encrypted: shows random bytes, not recognizable base64
+# If not encrypted: shows "k8s:enc:aescbc:v1:key1:" prefix if encrypted
+```
+
+**EKS/GKE managed encryption:**
+```bash
+# EKS: enable envelope encryption with KMS
+aws eks create-cluster --name my-cluster \
+  --encryption-config '[{"provider":{"keyArn":"arn:aws:kms:..."},"resources":["secrets"]}]'
+
+# GKE: application-layer encryption (CMEK)
+gcloud container clusters create my-cluster \
+  --database-encryption-key projects/PROJECT/locations/REGION/keyRings/RING/cryptoKeys/KEY
+```
+
+### Using Secrets Safely
+
+```yaml
+# Mount as file (preferred for large secrets, certificates)
+spec:
+  volumes:
+  - name: tls-cert
+    secret:
+      secretName: my-tls-secret
+  containers:
+  - volumeMounts:
+    - name: tls-cert
+      mountPath: /etc/ssl/certs
+      readOnly: true
+
+# Env var (avoid for multi-line secrets, visible in process list)
+env:
+- name: DB_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: db-secret
+      key: password
+
+# Never: hardcode in container spec or ConfigMap
+# Never: commit Secret YAML with real values to git
+# Better: use External Secrets Operator (ESO) → pull from AWS SM/Vault at runtime
+```

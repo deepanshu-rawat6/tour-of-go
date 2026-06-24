@@ -257,6 +257,107 @@ If you need the pod to land on Node Alpha instead, use `nodeSelector`, `nodeAffi
 
 ---
 
+## etcd — The Brain's Memory
+
+Everything in Kubernetes is stored in etcd. The API server is the only component that reads/writes etcd directly. Every other component (scheduler, controller manager, kubelet) talks to the API server — never etcd directly.
+
+```mermaid
+graph TD
+    subgraph "What etcd stores"
+        PODS["All Pod specs and status"]
+        NODES["Node objects and conditions"]
+        SECRETS["Secrets and ConfigMaps"]
+        RBAC["RBAC Roles and Bindings"]
+        LEASES["Leader election Leases<br>(scheduler, controller-manager)"]
+        EVENTS["Kubernetes Events"]
+        CRD["Custom Resource instances"]
+    end
+    API["API Server<br>(ONLY component with etcd access)"] --> etcd[("etcd cluster<br>Raft consensus")]
+    etcd --> PODS & NODES & SECRETS & RBAC & LEASES & EVENTS & CRD
+```
+
+### What Happens When etcd is Slow
+
+```mermaid
+graph LR
+    SLOW["etcd WAL fsync slow<br>(disk I/O bottleneck)"] --> TIMEOUT
+    TIMEOUT["API server requests timeout<br>deadline exceeded errors"] --> KUBELET
+    KUBELET["kubelet can't update pod status<br>pods appear stuck in Terminating"] --> SCHED
+    SCHED["Scheduler can't read nodes<br>pods stuck Pending"] --> CHAOS["Cluster appears broken<br>but workloads still running!"]
+    NOTE["Running pods keep running<br>kubelet operates independently<br>Only control plane is affected"]
+```
+
+**Key insight:** Running workloads continue even when etcd is down. The cluster can't be changed (no new pods, no reschedules), but existing pods keep running.
+
+### etcd Capacity — What Fills It Up
+
+```bash
+# Check etcd DB size
+etcdctl --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
+  --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \
+  endpoint status --write-out=table
+# ENDPOINT    ID    VERSION  DB SIZE  IS LEADER  RAFT TERM  RAFT INDEX
+
+# Default quota: 2GB. If exceeded → etcd goes read-only → cluster broken
+# Increase quota in kube-apiserver:
+# --etcd-args="--quota-backend-bytes=8589934592"  # 8GB
+
+# What fills etcd:
+# 1. Old revisions (every write creates a new revision)
+# 2. Events (high-frequency cluster = thousands of events/minute)
+# 3. Large Secrets/ConfigMaps
+# 4. Many CRD instances
+
+# Compact old revisions (frees space within DB file)
+etcdctl compact $(etcdctl endpoint status --write-out=json | jq '.[0].Status.header.revision')
+
+# Defragment (actually shrinks the file on disk)
+etcdctl defrag --endpoints=https://127.0.0.1:2379
+
+# Run compaction + defrag as a CronJob (weekly)
+```
+
+### etcd Backup and Restore
+
+```bash
+# Snapshot (backup)
+ETCDCTL_API=3 etcdctl snapshot save /backup/etcd-$(date +%F).db \
+  --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key
+
+# Verify snapshot
+etcdctl snapshot status /backup/etcd-2024-01-15.db
+# Hash: abc123  Revision: 12345  Total Keys: 1567  Total Size: 4.2 MB
+
+# Restore (stop all control plane components first)
+etcdctl snapshot restore /backup/etcd-2024-01-15.db \
+  --data-dir /var/lib/etcd-restored \
+  --name master-1 \
+  --initial-cluster master-1=https://10.0.0.1:2380 \
+  --initial-cluster-token cluster-token-1 \
+  --initial-advertise-peer-urls https://10.0.0.1:2380
+# Then update etcd manifest to point to /var/lib/etcd-restored
+```
+
+### etcd HA — Raft Quorum
+
+etcd uses Raft consensus. A cluster needs a **majority** (quorum) of nodes available to function:
+
+| Cluster size | Quorum | Tolerated failures |
+|-------------|--------|-------------------|
+| 1 | 1 | 0 |
+| 3 | 2 | 1 |
+| 5 | 3 | 2 |
+| 7 | 4 | 3 |
+
+**Always run 3 or 5 etcd nodes in production.** Odd numbers minimize wasted fault tolerance. 4 nodes tolerate only 1 failure (same as 3) but has higher write latency.
+
+---
+
 ## Taints, Tolerations & Node Affinity
 
 These three mechanisms control which pods can/prefer to run on which nodes.

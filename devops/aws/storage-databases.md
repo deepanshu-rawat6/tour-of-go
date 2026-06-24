@@ -121,6 +121,89 @@ graph LR
 
 EventBridge is the most flexible — fan-out to many targets, content filtering, cross-account delivery.
 
+### Multipart Upload
+
+Large files (> 100MB) should use multipart upload — parallel parts, resume on failure:
+
+```bash
+# AWS CLI handles multipart automatically for files > 8MB
+aws s3 cp large-file.tar.gz s3://my-bucket/ --storage-class STANDARD
+
+# Manual multipart (for SDK control)
+aws s3api create-multipart-upload --bucket my-bucket --key large-file.tar.gz
+# Returns: UploadId
+
+# Upload parts in parallel (each part min 5MB except last)
+aws s3api upload-part --bucket my-bucket --key large-file.tar.gz \
+  --part-number 1 --upload-id <UploadId> --body part1.bin
+
+# Complete (specify all ETags from upload-part responses)
+aws s3api complete-multipart-upload --bucket my-bucket --key large-file.tar.gz \
+  --upload-id <UploadId> --multipart-upload '{"Parts":[{"PartNumber":1,"ETag":"..."}]}'
+
+# Abort (cleanup incomplete uploads — run periodically or set lifecycle rule)
+aws s3api abort-multipart-upload --bucket my-bucket --key large-file.tar.gz --upload-id <id>
+```
+
+**Lifecycle rule to clean up incomplete multiparts:**
+```json
+{"Rules": [{"Status":"Enabled","AbortIncompleteMultipartUpload":{"DaysAfterInitiation":7}}]}
+```
+
+### Object Lock (WORM)
+
+Write-Once-Read-Many — objects cannot be deleted or overwritten for a retention period. Required for compliance (SEC 17a-4, HIPAA).
+
+```bash
+# Enable Object Lock at bucket creation (cannot add to existing bucket)
+aws s3api create-bucket --bucket compliance-logs --object-lock-enabled-for-bucket
+
+# Apply retention to an object
+aws s3api put-object-retention \
+  --bucket compliance-logs \
+  --key audit-2024-01-15.log \
+  --retention '{"Mode":"COMPLIANCE","RetainUntilDate":"2031-01-15T00:00:00Z"}'
+# COMPLIANCE mode: even root cannot delete before retain date
+# GOVERNANCE mode: users with s3:BypassGovernanceRetention CAN delete
+```
+
+### S3 Select — Query Inside Objects
+
+Query CSV/JSON/Parquet objects with SQL without downloading the whole file:
+
+```bash
+aws s3api select-object-content \
+  --bucket my-bucket \
+  --key logs/2024/01/15.csv.gz \
+  --expression "SELECT * FROM S3Object WHERE status = '500'" \
+  --expression-type SQL \
+  --input-serialization '{"CSV":{"FileHeaderInfo":"USE"},"CompressionType":"GZIP"}' \
+  --output-serialization '{"CSV":{}}' \
+  /dev/stdout
+# Only the matching rows are transferred — saves bandwidth + cost vs downloading all
+```
+
+### S3 Performance
+
+```
+Prefix-based parallelism:
+  Single prefix: ~3500 PUT/s, ~5500 GET/s
+  Multiple prefixes: scales linearly
+  Bad:  all files at root (one prefix = bottleneck)
+  Good: date/hash prefix: 2024/01/15/abc123.parquet (many prefixes)
+
+Transfer Acceleration:
+  Routes uploads through CloudFront edge locations
+  Useful when uploading from far geographies (EU → us-east-1)
+  Enable per bucket, use: mybucket.s3-accelerate.amazonaws.com
+  ~50% faster uploads from distant regions
+
+Byte-Range Fetches:
+  Download parts of large files in parallel
+  GET /myfile?Range: bytes=0-1048576   # first 1MB
+  Application assembles parts → faster for large downloads
+```
+
 ---
 
 ## RDS & Aurora

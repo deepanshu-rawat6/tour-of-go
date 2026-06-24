@@ -136,3 +136,92 @@ mysql_global_status_innodb_buffer_pool_read_requests /
 # Slow queries per second
 rate(mysql_global_status_slow_queries[5m]) > 0
 ```
+
+---
+
+## MySQL on Kubernetes — Oracle MySQL Operator
+
+```bash
+# Install MySQL Operator
+helm repo add mysql-operator https://mysql.github.io/mysql-operator/
+helm install mysql-operator mysql-operator/mysql-operator \
+  --namespace mysql-operator --create-namespace
+```
+
+```yaml
+# Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+  namespace: mysql
+type: Opaque
+stringData:
+  rootUser: root
+  rootPassword: "changeme"
+---
+# 3-node InnoDB Cluster (1 primary + 2 secondary, Group Replication)
+apiVersion: mysql.oracle.com/v2
+kind: InnoDBCluster
+metadata:
+  name: mysql
+  namespace: mysql
+spec:
+  secretName: mysql-secret
+  tlsUseSelfSigned: true
+  instances: 3
+  router:
+    instances: 2        # MySQL Router pods — route :6446 to primary, :6447 to replicas
+  mycnf: |
+    [mysqld]
+    max_connections = 500
+    innodb_buffer_pool_size = 4G
+    slow_query_log = ON
+    long_query_time = 1
+  datadirVolumeClaimTemplate:
+    accessModes: [ReadWriteOnce]
+    storageClassName: gp3
+    resources:
+      requests:
+        storage: 100Gi
+  podSpec:
+    containers:
+    - name: mysql
+      resources:
+        requests:
+          cpu: "2"
+          memory: 8Gi
+        limits:
+          cpu: "4"
+          memory: 16Gi
+```
+
+```bash
+# Check cluster status
+kubectl get innodbcluster mysql -n mysql
+# NAME    STATUS   ONLINE   INSTANCES   ROUTERS
+# mysql   ONLINE   3        3           2
+
+# Connect via Router (auto-routes to primary)
+kubectl port-forward svc/mysql-router 6446:6446 -n mysql
+mysql -h 127.0.0.1 -P 6446 -u root -p
+
+# Check Group Replication status
+kubectl exec -it mysql-0 -n mysql -- \
+  mysql -u root -p -e "SELECT * FROM performance_schema.replication_group_members;"
+```
+
+```yaml
+# Headless service: direct pod DNS (mysql-0.mysql.mysql.svc.cluster.local)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: mysql
+spec:
+  clusterIP: None
+  selector:
+    app: mysql
+  ports:
+  - port: 3306
+```

@@ -235,3 +235,113 @@ spec:
 | Best for | Simplicity, fast mTLS | Full traffic control |
 
 **Rule of thumb**: start with Linkerd if you just need mTLS + basic observability. Use Istio when you need fine-grained traffic policies, canary deployments, or complex AuthorizationPolicies.
+
+---
+
+## 8. Fault Injection — Chaos Testing via Istio
+
+Istio can inject faults at the network level without touching application code — perfect for chaos engineering.
+
+```yaml
+# Inject HTTP 503 errors for 20% of requests to reviews
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: reviews-fault
+spec:
+  hosts: [reviews]
+  http:
+  - fault:
+      abort:
+        percentage:
+          value: 20.0
+        httpStatus: 503
+    route:
+    - destination:
+        host: reviews
+        subset: v1
+---
+# Inject 5-second delay for 10% of requests (test timeout handling)
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: ratings-delay
+spec:
+  hosts: [ratings]
+  http:
+  - fault:
+      delay:
+        percentage:
+          value: 10.0
+        fixedDelay: 5s
+    route:
+    - destination:
+        host: ratings
+        subset: v1
+```
+
+---
+
+## 9. Timeouts and Retries
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: reviews
+spec:
+  hosts: [reviews]
+  http:
+  - route:
+    - destination:
+        host: reviews
+        subset: v1
+    timeout: 3s                     # total request timeout
+    retries:
+      attempts: 3
+      perTryTimeout: 1s             # each attempt gets 1s (total: 3s across 3 attempts)
+      retryOn: "5xx,connect-failure,reset"   # retry on these conditions
+```
+
+**retryOn conditions:**
+
+| Condition | When it retries |
+|-----------|----------------|
+| `5xx` | Any 5xx response from upstream |
+| `connect-failure` | TCP connection failed |
+| `reset` | Connection reset |
+| `retriable-4xx` | 409 Conflict (safe to retry) |
+| `gateway-error` | 502, 503, 504 |
+
+**Important:** Only retry **idempotent** operations (GET, PUT). Never auto-retry POST without idempotency keys.
+
+---
+
+## 10. Traffic Shifting — Canary Deployment
+
+```mermaid
+sequenceDiagram
+    participant USER as Users (100%)
+    participant ISTIO as Istio VirtualService
+    participant V1 as reviews-v1 (90%)
+    participant V2 as reviews-v2 (10%)
+
+    USER->>ISTIO: GET /reviews
+    ISTIO->>V1: 90% of requests
+    ISTIO->>V2: 10% of requests (canary)
+    Note over ISTIO: Monitor error rate on v2
+    Note over ISTIO: If error rate OK: shift to 25%, 50%, 100%
+    Note over ISTIO: If error rate high: shift back to 0%
+```
+
+```bash
+# Gradually shift traffic using kubectl patch
+kubectl patch virtualservice reviews --type=json \
+  -p='[{"op":"replace","path":"/spec/http/0/route/0/weight","value":75},
+       {"op":"replace","path":"/spec/http/0/route/1/weight","value":25}]'
+
+# Monitor canary via Prometheus
+# istio_requests_total{destination_service="reviews",destination_version="v2",response_code!~"5.."}
+# / istio_requests_total{destination_service="reviews",destination_version="v2"}
+# Alert if error rate > 1% on v2 → shift back to 0%
+```
