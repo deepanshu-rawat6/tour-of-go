@@ -48,7 +48,23 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 
 ---
 
-## 2. Docker
+## 2. Networking
+
+| File | Topics | Level |
+|------|--------|-------|
+| [networking/README.md](./networking/README.md) | Index and read order | — |
+| [networking/osi-model.md](./networking/osi-model.md) | 7 OSI layers, full HTTPS request flow layer-by-layer (curl google.com), encapsulation, debug by layer | SDE-1 |
+| [networking/tcp-udp.md](./networking/tcp-udp.md) | TCP 3-way handshake, 4-way teardown, state machine, flow/congestion control, TIME_WAIT, UDP, when to use each | SDE-1/2 |
+| [networking/tls-encryption.md](./networking/tls-encryption.md) | Symmetric vs asymmetric, TLS 1.2 vs 1.3 handshake (RTT comparison), certificate chain, validation steps, openssl debugging | SDE-1/2 |
+| [networking/http-versions.md](./networking/http-versions.md) | HTTP/1.1 vs HTTP/2 vs HTTP/3, HOL blocking, binary framing, status codes, methods, caching (ETag), CORS | SDE-1 |
+| [networking/linux-networking.md](./networking/linux-networking.md) | Linux packet RX/TX path, netfilter hooks, conntrack, network namespaces, veth pairs, SO_REUSEPORT | SDE-2 |
+| [networking/grpc-graphql.md](./networking/grpc-graphql.md) | gRPC on HTTP/2, Protobuf encoding, 4 streaming modes, connection flow; GraphQL SDL, N+1 problem, DataLoader | SDE-1/2 |
+
+**Read order:** osi-model → tcp-udp → tls-encryption → http-versions → grpc-graphql
+
+---
+
+## 3. Docker
 
 | File | Topics | Level |
 |------|--------|-------|
@@ -63,7 +79,7 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 
 ---
 
-## 3. Kubernetes
+## 4. Kubernetes
 
 | File | Topics | Level |
 |------|--------|-------|
@@ -89,7 +105,7 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 
 ---
 
-## 4. CI/CD
+## 5. CI/CD
 
 | File | Topics | Level |
 |------|--------|-------|
@@ -104,7 +120,7 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 
 ---
 
-## 5. Infrastructure as Code
+## 6. Infrastructure as Code
 
 | File | Topics | Level |
 |------|--------|-------|
@@ -114,7 +130,7 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 
 ---
 
-## 6. AWS
+## 7. AWS
 
 | File | Topics | Level |
 |------|--------|-------|
@@ -128,7 +144,7 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 
 ---
 
-## 7. GCP
+## 8. GCP
 
 | File | Topics | Level |
 |------|--------|-------|
@@ -137,7 +153,7 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 
 ---
 
-## 8. Monitoring & Observability
+## 9. Monitoring & Observability
 
 | File | Topics | Level |
 |------|--------|-------|
@@ -155,7 +171,7 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 
 ---
 
-## 9. Git
+## 10. Git
 
 | File | Topics | Level |
 |------|--------|-------|
@@ -165,7 +181,7 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 
 ---
 
-## 10. Advanced
+## 11. Advanced
 
 | File | Topics | Level |
 |------|--------|-------|
@@ -176,7 +192,7 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 
 ---
 
-## 11. AI Infrastructure & LLMOps
+## 12. AI Infrastructure & LLMOps
 
 The natural extension of K8s/Linux expertise into AI/ML platform engineering.
 
@@ -193,7 +209,7 @@ The natural extension of K8s/Linux expertise into AI/ML platform engineering.
 
 ---
 
-## 12. MLOps
+## 13. MLOps
 
 CI/CD for data and models — experiment tracking, automated retraining pipelines, drift detection.
 
@@ -209,7 +225,39 @@ CI/CD for data and models — experiment tracking, automated retraining pipeline
 
 ---
 
-## 13. SRE & Debugging
+## 14. Database Internals
+
+Storage engines, WAL, MVCC, replication internals, indexing, and query execution for each database.
+
+| File | Topics | Level |
+|------|--------|-------|
+| [databases/README.md](./databases/README.md) | WAL concept, MVCC, common patterns | SDE-2 |
+| [databases/postgres-internals.md](./databases/postgres-internals.md) | Buffer pool, WAL/LSN, MVCC with xmin/xmax, VACUUM, B-tree/GIN/BRIN indexes, EXPLAIN ANALYZE, PgBouncer | SDE-2 |
+| [databases/mysql-internals.md](./databases/mysql-internals.md) | InnoDB buffer pool, redo log, undo log, MVCC, clustered B-tree, binlog, GTID replication | SDE-2 |
+| [databases/mongodb-internals.md](./databases/mongodb-internals.md) | WiredTiger cache, journal, oplog internals, aggregation pipeline, index types, write/read concern | SDE-2 |
+| [databases/redis-internals.md](./databases/redis-internals.md) | Data structure encodings, RDB vs AOF, eviction policies, replication, cluster hash slots | SDE-1/2 |
+| [databases/kafka-internals.md](./databases/kafka-internals.md) | Log segments, ISR/HW/LEO, producer acks, consumer group offsets, exactly-once, log compaction | SDE-2 |
+| [databases/clickhouse-internals.md](./databases/clickhouse-internals.md) | MergeTree family, columnar storage, granules, vectorized execution, materialized views | SDE-2 |
+
+---
+
+## 15. Databases on Kubernetes (On-Prem / GKE)
+
+Running stateful databases on Kubernetes — system design, replication, failover, snapshots, and operational runbooks.
+
+| File | Topics | Level |
+|------|--------|-------|
+| [on-prem-k8s/README.md](./on-prem-k8s/README.md) | Why run DBs on K8s, sync vs async replication, 3-2-1 snapshot strategy | SDE-2 |
+| [on-prem-k8s/postgres.md](./on-prem-k8s/postgres.md) | Patroni HA, sync/async replication, automatic failover, PITR, PgBouncer, monitoring | SDE-2 |
+| [on-prem-k8s/mysql.md](./on-prem-k8s/mysql.md) | InnoDB Cluster, Group Replication (Paxos), MySQL Router, XtraBackup, failover | SDE-2 |
+| [on-prem-k8s/mongodb.md](./on-prem-k8s/mongodb.md) | Replica set, oplog, write/read concern, election, readPreference options | SDE-2 |
+| [on-prem-k8s/redis-cluster.md](./on-prem-k8s/redis-cluster.md) | Hash slots, 6-node cluster, failover gossip, RDB vs AOF, backups | SDE-2 |
+| [on-prem-k8s/kafka.md](./on-prem-k8s/kafka.md) | Strimzi operator, ISR, partition leader election, min.insync.replicas, MirrorMaker | SDE-2 |
+| [on-prem-k8s/clickhouse.md](./on-prem-k8s/clickhouse.md) | ClickHouse Operator, sharding, async replication, clickhouse-backup | SDE-2 |
+
+---
+
+## 16. SRE & Debugging
 
 | File | Topics | Level |
 |------|--------|-------|
