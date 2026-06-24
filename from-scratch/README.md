@@ -1,8 +1,10 @@
 # From Scratch Series
 
-Build fundamental distributed systems components from the ground up in Go — no magic, no frameworks, just `net`, `sync`, and the standard library.
+Build fundamental distributed systems components and AI pipelines from the ground up in Go.
 
-Each project builds on the previous one. The series culminates in a URL shortener that integrates the rate limiter, cache, message queue, and task scheduler you built along the way. Project 11 introduces `go-chi/chi` to show where a router earns its place.
+**Two independent tracks — start either one independently:**
+- **Track 1 (FS-01 → FS-15): Systems** — TCP → HTTP → WebSocket → rate limiter → load balancer → message queue → cache → scheduler → URL shortener → API gateway → consistent hash → bloom filter → CRDT → commit log. Each builds on the previous.
+- **Track 2 (FS-16 → FS-22): AI/LLM** — First LLM call → chat with memory → embeddings → vector store → RAG → agent → fine-tuning. Requires only Go basics, not Track 1.
 
 ---
 
@@ -10,20 +12,32 @@ Each project builds on the previous one. The series culminates in a URL shortene
 
 ```mermaid
 graph LR
-    T[01-tcp-server<br/>raw net.Listener] --> H[02-http-server<br/>HTTP/1.1 on TCP]
-    H --> W[03-websocket-chat<br/>hub pattern]
-    H --> R[04-rate-limiter<br/>4 algorithms]
-    H --> L[05-load-balancer<br/>round-robin + least-conn]
-    T --> M[06-message-queue<br/>pub/sub + TCP]
-    T --> C[07-distributed-cache<br/>RESP protocol]
-    T --> A[08-log-aggregator<br/>tail + ship + query]
-    H --> S[09-task-scheduler<br/>cron + HTTP API]
-    R & C & M & S --> U[10-url-shortener<br/>capstone]
-    R & L --> G[11-api-gateway<br/>chi · JWT · ReverseProxy]
-    C --> CH[12-consistent-hash<br/>virtual nodes · ring]
-    C --> BF[13-bloom-filter<br/>probabilistic DS]
-    CH --> CRDT[14-crdt<br/>eventual consistency]
-    M & C --> CL[15-commit-log<br/>mmap · sendfile · segments]
+    subgraph SYS["Track 1: Systems (FS-01 to FS-15)"]
+        T[01-tcp-server<br/>raw net.Listener] --> H[02-http-server<br/>HTTP/1.1 on TCP]
+        H --> W[03-websocket-chat<br/>hub pattern]
+        H --> R[04-rate-limiter<br/>4 algorithms]
+        H --> L[05-load-balancer<br/>round-robin + least-conn]
+        T --> M[06-message-queue<br/>pub/sub + TCP]
+        T --> C[07-distributed-cache<br/>RESP protocol]
+        T --> A[08-log-aggregator<br/>tail + ship + query]
+        H --> S[09-task-scheduler<br/>cron + HTTP API]
+        R & C & M & S --> U[10-url-shortener<br/>capstone]
+        R & L --> G[11-api-gateway<br/>chi · JWT · ReverseProxy]
+        C --> CH[12-consistent-hash<br/>virtual nodes · ring]
+        C --> BF[13-bloom-filter<br/>probabilistic DS]
+        CH --> CRDT[14-crdt<br/>eventual consistency]
+        M & C --> CL[15-commit-log<br/>mmap · sendfile · segments]
+    end
+
+    subgraph AI["Track 2: AI/LLM (FS-16 to FS-22) — independent, needs only Go basics"]
+        LLM_CALL[16-llm-first-call<br/>prompt · token · streaming]
+        LLM_CALL --> CHAT[17-chat-with-memory<br/>history · context window]
+        CHAT --> EMBED[18-embeddings-from-scratch<br/>vectors · cosine similarity]
+        EMBED --> VS[19-vector-store-from-scratch<br/>brute-force search · persistence]
+        VS --> RAG[20-rag-pipeline<br/>chunking · retrieval · grounding]
+        RAG --> AGENT[21-llm-agent<br/>tool use · ReAct loop]
+        AGENT --> FT[22-fine-tuning-pipeline<br/>LoRA · JSONL · job monitoring]
+    end
 ```
 
 ---
@@ -47,6 +61,16 @@ graph LR
 | 13 | [`13-bloom-filter`](./13-bloom-filter/) | `SDE-2` | Bloom filter + HyperLogLog | Probabilistic membership, cardinality estimation, false positive rates |
 | 14 | [`14-crdt`](./14-crdt/) | `SDE-2` | Conflict-Free Replicated Data Types | G-Counter, PN-Counter, LWW-Register, eventual consistency |
 | 15 | [`15-commit-log`](./15-commit-log/) | `SDE-2` | Log-structured message broker (Mini-Kafka) | Append-only segments, mmap index, sendfile zero-copy, consumer offsets |
+| | **— AI Series (start here, no AI background needed) —** | | | |
+| 16 | [`16-llm-first-call`](./16-llm-first-call/) | `SDE-1` | First LLM API call | What is a token, prompt, completion, temperature, streaming SSE, cost estimation |
+| 17 | [`17-chat-with-memory`](./17-chat-with-memory/) | `SDE-1` | Multi-turn chatbot | Conversation history, system prompt, context window limits, sliding window truncation |
+| 18 | [`18-embeddings-from-scratch`](./18-embeddings-from-scratch/) | `SDE-1` | Text embeddings + semantic search | What is a vector, cosine similarity math, embedding API, brute-force semantic search |
+| 19 | [`19-vector-store-from-scratch`](./19-vector-store-from-scratch/) | `SDE-1` | In-memory vector store | Flat index, metadata filtering, binary persistence, HTTP API, brute force vs approximate |
+| 20 | [`20-rag-pipeline`](./20-rag-pipeline/) | `SDE-2` | RAG pipeline (builds on 18+19) | Text chunking with overlap, pgvector IVFFlat, retrieval threshold, LLM grounding, SSE streaming |
+| 21 | [`21-llm-agent`](./21-llm-agent/) | `SDE-2` | LLM Agent with tool use | ReAct loop, OpenAI function calling, tool registry, multi-step reasoning, max iterations |
+| 22 | [`22-fine-tuning-pipeline`](./22-fine-tuning-pipeline/) | `SDE-2` | Fine-tuning pipeline | JSONL dataset prep, token counting, OpenAI fine-tune API, LoRA concepts, evaluation |
+| | **— Tooling —** | | | |
+| 23 | [`23-building-cli`](./23-building-cli/) | `SDE-1` | Modern CLI with Cobra | Cobra commands/subcommands, flags, args validation, Viper config, shell completion, testing, GoReleaser |
 
 ---
 
