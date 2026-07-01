@@ -8,6 +8,42 @@
 *.so
 *.dylib
 
+# Go binaries — compiled output from `go build` or `make build`
+# These are extensionless ELF/Mach-O executables; git can't detect them by
+# extension, so we list the known output names explicitly.
+
+# Root-level binary
+/tour_of_go
+
+# from-scratch project binaries (produced by: go build -o server . or make)
+from-scratch/03-websocket-chat/server
+from-scratch/04-rate-limiter/server
+from-scratch/07-distributed-cache/server
+from-scratch/09-task-scheduler/server
+from-scratch/12-consistent-hash/consistent-hash
+from-scratch/15-commit-log/15-commit-log
+# catch future from-scratch binaries named "server" or matching the dir name
+from-scratch/*/server
+from-scratch/*/bin/
+
+# projects/ binaries
+projects/cache-service/server
+projects/*/server
+projects/*/bin/
+
+# go/go-internals binaries
+go/go-internals/production-go/production-go
+
+# system-design module binaries
+system-design/backpressure/backpressure
+system-design/database-internals/database-internals
+system-design/observability-guide/observability-guide
+
+# Generic output directories used by Makefiles
+dist/
+bin/
+out/
+
 # Test binary, built with `go test -c`
 *.test
 

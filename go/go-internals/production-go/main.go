@@ -74,6 +74,9 @@ func main() {
 	}
 	fmt.Printf("Max latency observed: %dms\n", maxLatency.Load())
 
+	fmt.Println("\n--- SlogExample ---")
+	SlogExample()
+
 	// Demo: graceful shutdown with HTTP server
 	fmt.Println("\n--- Graceful Shutdown Demo ---")
 	fmt.Println("Starting server on :8080 (pprof on /debug/pprof/)")
