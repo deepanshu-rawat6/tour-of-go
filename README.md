@@ -94,6 +94,7 @@ Deep-dive reference for Kubernetes internals, AWS architecture, and SRE practice
 | OOM recovery (singleton + distributed) | `devops/sre/README.md` |
 | Leader election with `client-go` Lease API | `devops/sre/README.md` |
 | Self-healing infra + AIOps (Argo Events, auto-remediation, LLM agent) | `devops/sre/self-healing-aiops.md` |
+| ML/AI basics, neural nets, transformers, embeddings, RAG from scratch (start here if new to AI) | `devops/ai-fundamentals/README.md` |
 | GPU scheduling, MIG, DCGM metrics | `devops/ai-infra/gpu-scheduling.md` |
 | KubeRay distributed compute, RayCluster | `devops/ai-infra/kuberay.md` |
 | KServe, vLLM serving, PagedAttention, KV cache | `devops/ai-infra/model-serving.md` |

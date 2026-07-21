@@ -59,7 +59,11 @@ graph TD
 ## Learning Path
 
 ```
-Phase 1: AI Infrastructure (start here if you have K8s background)
+Phase 0: AI Fundamentals (if you're new to AI/ML) — see ../ai-fundamentals/
+  ml-basics → neural-networks → transformers-llms
+  embeddings-deep-dive → prompting-llm-apis → rag-from-scratch
+
+Phase 1: AI Infrastructure (start here if you have K8s background + Phase 0 concepts)
   gpu-scheduling.md     → understand how GPUs become K8s resources
   kuberay.md            → distributed Python workloads on K8s
   model-serving.md      → expose models as APIs at scale

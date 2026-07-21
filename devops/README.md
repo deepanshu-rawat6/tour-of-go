@@ -18,11 +18,12 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 9.  Monitoring               → Prometheus, Grafana, OTel, Loki
 10. Git                      → internals, workflows, fixing mistakes
 11. Advanced                 → service mesh, eBPF, chaos, DR
-12. AI Infrastructure        → GPU scheduling, KubeRay, vLLM, LLMOps
-13. MLOps                    → experiment tracking, pipelines, drift detection
-14. Database Internals       → WAL, MVCC, indexes, replication internals
-15. Databases on K8s         → running Postgres, Kafka, Redis on GKE
-16. SRE & Debugging          → production incident runbooks
+12. AI Fundamentals          → ML basics, neural networks, transformers, embeddings, RAG from scratch
+13. AI Infrastructure        → GPU scheduling, KubeRay, vLLM, LLMOps
+14. MLOps                    → experiment tracking, pipelines, drift detection
+15. Database Internals       → WAL, MVCC, indexes, replication internals
+16. Databases on K8s         → running Postgres, Kafka, Redis on GKE
+17. SRE & Debugging          → production incident runbooks
 ```
 
 ---
@@ -202,7 +203,33 @@ Kubernetes, Linux, Docker, AWS, GCP, CI/CD, IaC, Monitoring, Git, and SRE — or
 
 ---
 
-## 12. AI Infrastructure & LLMOps
+## 12. AI Fundamentals
+
+AI/ML from first principles — no infrastructure required. Prerequisite for AI Infrastructure & LLMOps below if you haven't trained or used a model before.
+
+| File | Topics | Level |
+|------|--------|-------|
+| [ai-fundamentals/README.md](./ai-fundamentals/README.md) | Index, how this fits before ai-infra/mlops, quick "do I need this" orientation | — |
+| [ai-fundamentals/ml-basics.md](./ai-fundamentals/ml-basics.md) | What ML is vs traditional programming, supervised/unsupervised/RL, training vs inference, overfitting | SDE-1 |
+| [ai-fundamentals/neural-networks.md](./ai-fundamentals/neural-networks.md) | Neurons, activation functions, layers, loss functions, backpropagation, gradient descent | SDE-1 |
+| [ai-fundamentals/transformers-llms.md](./ai-fundamentals/transformers-llms.md) | Tokenization, embeddings, self-attention (Q/K/V), transformer blocks, autoregressive generation, context window | SDE-1/2 |
+| [ai-fundamentals/embeddings-deep-dive.md](./ai-fundamentals/embeddings-deep-dive.md) | Vector space, cosine similarity, contrastive training, embeddings vs keyword search | SDE-1/2 |
+| [ai-fundamentals/prompting-llm-apis.md](./ai-fundamentals/prompting-llm-apis.md) | System/user/assistant roles, OpenAI/Anthropic API calls, temperature/top-p, function calling | SDE-1 |
+| [ai-fundamentals/rag-from-scratch.md](./ai-fundamentals/rag-from-scratch.md) | Full toy RAG in ~40 lines of Python, 1:1 mapping to production llmops.md | SDE-1/2 |
+| [ai-fundamentals/fine-tuning.md](./ai-fundamentals/fine-tuning.md) | Full fine-tuning, LoRA/QLoRA, instruction tuning, fine-tuning vs RAG decision framework | SDE-2 |
+| [ai-fundamentals/rlhf-alignment.md](./ai-fundamentals/rlhf-alignment.md) | RLHF (reward model + PPO), DPO, why aligned models refuse/hedge the way they do | SDE-2 |
+| [ai-fundamentals/classical-ml.md](./ai-fundamentals/classical-ml.md) | Decision trees, random forests, gradient boosting/XGBoost, SVMs, classical ML vs deep learning | SDE-1/2 |
+| [ai-fundamentals/llm-evaluation.md](./ai-fundamentals/llm-evaluation.md) | Perplexity, BLEU/ROUGE, LLM-as-judge, RAG evaluation metrics (faithfulness, context precision/recall) | SDE-2 |
+| [ai-fundamentals/vector-search-internals.md](./ai-fundamentals/vector-search-internals.md) | IVF clustering, HNSW graphs, product quantization — why ANN search is sub-linear | SDE-2 |
+| [ai-fundamentals/multimodal-models.md](./ai-fundamentals/multimodal-models.md) | Vision transformers (ViT), CLIP, vision-language models, diffusion-based image generation | SDE-2 |
+| [ai-fundamentals/agents-reasoning.md](./ai-fundamentals/agents-reasoning.md) | ReAct pattern, planning loops, multi-agent orchestration, agent risks | SDE-2 |
+
+**Read order (core):** README → ml-basics → neural-networks → transformers-llms → embeddings-deep-dive → prompting-llm-apis → rag-from-scratch
+**Read order (extensions, as needed):** classical-ml → fine-tuning → rlhf-alignment → vector-search-internals → multimodal-models → llm-evaluation → agents-reasoning
+
+---
+
+## 13. AI Infrastructure & LLMOps
 
 The natural extension of K8s/Linux expertise into AI/ML platform engineering.
 
@@ -219,7 +246,7 @@ The natural extension of K8s/Linux expertise into AI/ML platform engineering.
 
 ---
 
-## 13. MLOps
+## 14. MLOps
 
 CI/CD for data and models — experiment tracking, automated retraining pipelines, drift detection.
 
@@ -235,7 +262,7 @@ CI/CD for data and models — experiment tracking, automated retraining pipeline
 
 ---
 
-## 14. Database Internals
+## 15. Database Internals
 
 Storage engines, WAL, MVCC, replication internals, indexing, and query execution for each database.
 
@@ -251,7 +278,7 @@ Storage engines, WAL, MVCC, replication internals, indexing, and query execution
 
 ---
 
-## 15. Databases on Kubernetes (On-Prem / GKE)
+## 16. Databases on Kubernetes (On-Prem / GKE)
 
 Running stateful databases on Kubernetes — system design, replication, failover, snapshots, and operational runbooks.
 
@@ -267,7 +294,7 @@ Running stateful databases on Kubernetes — system design, replication, failove
 
 ---
 
-## 16. SRE & Debugging
+## 17. SRE & Debugging
 
 | File | Topics | Level |
 |------|--------|-------|
@@ -326,4 +353,16 @@ cicd/gitops-secrets.md → cicd/argo-rollouts.md
 sre/k8s-scenarios.md (advanced) → sre/linux-debugging.md
 sre/cicd-scenarios.md → sre/iac-scenarios.md
 sre/sre-concepts.md
+
+── AI / ML (optional, if new to AI) ──────────────────────
+ai-fundamentals/README.md → ai-fundamentals/ml-basics.md
+ai-fundamentals/neural-networks.md → ai-fundamentals/transformers-llms.md
+ai-fundamentals/embeddings-deep-dive.md → ai-fundamentals/prompting-llm-apis.md
+ai-fundamentals/rag-from-scratch.md
+ai-fundamentals/classical-ml.md → ai-fundamentals/fine-tuning.md
+ai-fundamentals/rlhf-alignment.md → ai-fundamentals/vector-search-internals.md
+ai-fundamentals/multimodal-models.md → ai-fundamentals/llm-evaluation.md
+ai-fundamentals/agents-reasoning.md
+ai-infra/README.md → ai-infra/gpu-scheduling.md → ai-infra/kuberay.md
+ai-infra/model-serving.md → ai-infra/llmops.md
 ```
